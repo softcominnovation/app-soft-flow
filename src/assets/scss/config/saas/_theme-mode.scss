@@ -23,6 +23,7 @@
     --#{$prefix}menu-item-padding-y:       15px;
     
     --#{$prefix}menu-condensed-link-bg:       #{$primary};
+    --#{$prefix}menu-logo-bg:              #fbfcff;
 
     // Footer Height
     --#{$prefix}footer-height:             60px;
@@ -43,6 +44,7 @@ html[data-menu-color="light"] {
     --#{$prefix}menu-item-hover-color:                 #{$primary};
     --#{$prefix}menu-item-active-color:                #{$primary};
     --#{$prefix}help-box-bg:                           #{$primary};
+    --#{$prefix}menu-logo-bg:                          #fcfdff;
 }
 
 // Dark Left Sidebar
@@ -52,6 +54,7 @@ html[data-menu-color="dark"] {
     --#{$prefix}menu-item-hover-color:                 #bccee4;
     --#{$prefix}menu-item-active-color:                #ffffff;
     --#{$prefix}help-box-bg:                             #{rgba($white, 0.07)};
+    --#{$prefix}menu-logo-bg:                            #{lighten($gray-900, 12%)};
 }
 
 // Brand Menu
@@ -61,6 +64,7 @@ html[data-menu-color="brand"] {
     --#{$prefix}menu-item-hover-color:                     #ffffff;
     --#{$prefix}menu-item-active-color:                    #ffffff;
     --#{$prefix}help-box-bg:                                 #{rgba($white, 0.07)};
+    --#{$prefix}menu-logo-bg:                                rgba(255, 255, 255, 0.18);
 }
 
 // Dark Mode Left Sidebar
@@ -71,6 +75,7 @@ html[data-bs-theme="dark"][data-menu-color="dark"] {
     --#{$prefix}menu-item-hover-color:                 #bccee4;
     --#{$prefix}menu-item-active-color:                #ffffff;
     --#{$prefix}help-box-bg:                             #{rgba($white, 0.07)};
+    --#{$prefix}menu-logo-bg:                            #{lighten(#3a444e, 12%)};
 }
 
 

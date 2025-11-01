@@ -35,13 +35,17 @@
 
 // Sidebar Logo
 .logo {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     top: 0;
     position: sticky;
     text-align: center;
     line-height: $topbar-height;
+    height: $topbar-height;
     padding: 0 calc($leftbar-width-sm * 0.5 - $logo-sm-height * 0.7);
     transition: $transition-base;
+    background: $menu-logo-bg;
 
     span.logo-lg {
         display: block;
@@ -358,7 +362,7 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
 
             .logo {
                 z-index: 1;
-                background: $menu-bg;
+                background: $menu-logo-bg;
 
                 span.logo-lg {
                     display: none;
