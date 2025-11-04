@@ -6,12 +6,38 @@ import CaseWizardStep3 from '@/app/(admin)/apps/cases/form/wizard/caseWizardStep
 import CaseWizardStep4 from '@/app/(admin)/apps/cases/form/wizard/caseWizardStep4';
 import { FormProvider, useForm } from 'react-hook-form';
 import ICasePost from '@/types/cases/ICasePost';
+import { createCase } from '@/services/caseServices';
+import { toast } from 'react-toastify';
 
 export default function CaseWizard() {
 	const methods = useForm<ICasePost>();
 
-	const submit = (data: ICasePost) => {
-		console.log(data);
+	const submit = async (data: any) => {
+		// Mapear campos do formulário para o payload esperado pela API
+		const payload: any = {
+			// mapeamentos solicitados pelo usuário
+			Projeto: data.product?.value ?? data.product ?? null,
+			AtribuidoPara: data.usuario_id?.value ?? (data.usuario_id ?? null),
+			Relator: data.relator_id?.value ?? data.usuario_id?.value ?? (data.usuario_id ?? null),
+			Cronograma_id: data.project?.value ?? data.project ?? null,
+			VersaoProduto: data.version?.value ?? data.version ?? null,
+			// manter alguns campos básicos se existirem
+			Categoria: data.category?.value ?? data.category ?? undefined,
+			// campos textuais do restante do wizard (se existirem)
+			DescricaoResumo: data.descricao_resumo ?? data.descriptionSummary ?? undefined,
+			DescricaoCompleta: data.descricao_completa ?? data.description ?? undefined,
+		};
+
+		console.log('Payload to API:', payload);
+
+		try {
+			const res = await createCase(payload);
+			toast.success('Caso criado com sucesso');
+			console.log('Create case response:', res);
+		} catch (err) {
+			console.error(err);
+			toast.error('Erro ao criar o caso');
+		}
 	}
 
 	return (

@@ -10,7 +10,7 @@ export default function ListSkelleton({rows}:Props) {
 			<tr key={`skeleton-${i}`}>
 				<td>
 					<Placeholder as="span" animation="glow">
-						<Placeholder xs={12} />
+						<Placeholder xs={3} />
 					</Placeholder>
 				</td>
 
@@ -22,12 +22,8 @@ export default function ListSkelleton({rows}:Props) {
 
 				<td>
 					<div className="d-flex align-items-center">
-						<Placeholder as="span" animation="glow" className="me-2">
-							{/* avatar redondo */}
-							<span className="placeholder rounded-circle" style={{ display: 'inline-block', width: 24, height: 24 }} />
-						</Placeholder>
 						<Placeholder as="span" animation="glow" className="flex-grow-1">
-							<Placeholder xs={6} />
+							<Placeholder xs={12} />
 						</Placeholder>
 					</div>
 				</td>
