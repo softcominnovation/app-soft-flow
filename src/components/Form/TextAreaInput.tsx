@@ -1,6 +1,6 @@
 'use client';
 import { Form } from 'react-bootstrap';
-import { Control, Controller, RegisterOptions } from 'react-hook-form';
+import { Control, Controller, RegisterOptions, useFormContext } from 'react-hook-form';
 
 type TextInputProps = {
 	name: string;
@@ -26,17 +26,19 @@ export default function TextInput({
 	placeholder,
 	helpText,
 	errors,
-	control,
+    control,
 	register,
 	...props
 }: TextInputProps) {
-	return (
-		<Controller
-			name={name}
-			control={control}
-			rules={register}
-			render={({ field, fieldState }) => (
-				<Form.Group className={containerClass}>
+    const form = useFormContext();
+    const resolvedControl = control ?? form?.control;
+    return (
+        <Controller
+            name={name}
+            control={resolvedControl}
+            rules={register}
+            render={({ field, fieldState }) => (
+                <Form.Group className={containerClass}>
 					{label && <Form.Label>{label}</Form.Label>}
 					<Form.Control
 						id={id}
@@ -57,9 +59,13 @@ export default function TextInput({
 							{helpText}
 						</Form.Text>
 					)}
-					{errors && fieldState.error && <Form.Control.Feedback type="invalid">{fieldState.error['message']}</Form.Control.Feedback>}
-				</Form.Group>
-			)}
-		/>
-	);
+                    {(errors || fieldState.error) && (
+                        <Form.Control.Feedback type="invalid">
+                            {fieldState.error?.message as any}
+                        </Form.Control.Feedback>
+                    )}
+                </Form.Group>
+            )}
+        />
+    );
 }

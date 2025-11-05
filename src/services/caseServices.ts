@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { ICaseEspecifiedResponse, ICaseResponse } from '@/types/cases/ICase';
 import { ICaseProducaoResponse } from '@/types/cases/ICaseProducao';
+import IAgendaDevAssistant from '@/types/assistant/IAgendaDevAssistant';
 
 export async function allCase(data: any): Promise<ICaseResponse> {
 	try {
@@ -70,4 +71,19 @@ export async function createCase(data: any): Promise<any> {
 			throw new Error(String(err));
 		}
 	}
+}
+
+export async function diaryDevAssistant(id_colaborador: string): Promise<IAgendaDevAssistant[]> {
+    try {
+        const res = await axios.get('/api/assistant/agenda-dev', {
+            params: { id_colaborador }
+        });
+        return res.data as IAgendaDevAssistant[];
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            throw new Error(err.message);
+        } else {
+            throw new Error(String(err));
+        }
+    }
 }

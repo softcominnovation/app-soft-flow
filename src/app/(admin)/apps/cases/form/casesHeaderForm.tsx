@@ -80,9 +80,15 @@ export default function CasesHeaderForm({ control }: Props) {
 	useEffect(() => {
 		const formValues = getValues();
 		if (formValues.Id_Origem && !selectedOrigin) {
-			setSelectedOrigin(formValues.Id_Origem as any);
+			const v: any = formValues.Id_Origem as any;
+			if (typeof v === 'object') {
+				setSelectedOrigin(v);
+			} else {
+				const match = (defaultOriginOptions as any)?.find((o: any) => o?.value === v);
+				if (match) setSelectedOrigin(match);
+			}
 		}
-	}, [getValues, selectedOrigin, setSelectedOrigin]);
+	}, [getValues, selectedOrigin, setSelectedOrigin, defaultOriginOptions]);
 
 	return (
 
@@ -147,6 +153,7 @@ export default function CasesHeaderForm({ control }: Props) {
 											<Select
 												className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
 												{...({ isInvalid: Boolean(fieldState.error) } as any)}
+												inputId="priority"
 												placeholder="Selecione a prioridade"
 												classNamePrefix="react-select"
 												options={priorityOptions}
@@ -178,11 +185,12 @@ export default function CasesHeaderForm({ control }: Props) {
 								control={control}
 								render={({ field, fieldState }) => (
 									<>
-										<AsyncSelect<AsyncSelectOption<IVersionAssistant>, false>
-											cacheOptions
-											defaultOptions={selectedVersion ? [selectedVersion] : defaultVersionOptions}
-											loadOptions={loadVersionOptions}
-											className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
+											<AsyncSelect<AsyncSelectOption<IVersionAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedVersion ? [selectedVersion] : defaultVersionOptions}
+												loadOptions={loadVersionOptions}
+												inputId="versao-id"
+												className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
 											{...({ isInvalid: Boolean(fieldState.error) } as any)}
 											classNamePrefix="react-select"
 											styles={asyncSelectStyles}
@@ -234,11 +242,12 @@ export default function CasesHeaderForm({ control }: Props) {
 											styles={asyncSelectStyles}
 											filterOption={filterOption}
 											value={selectedOrigin}
-											onChange={(option) => {
-												const typedOption = option as AsyncSelectOption<IOriginAssistant>;
-												setSelectedOrigin(typedOption);
-												field.onChange(typedOption?.value);
-											}}
+                            onChange={(option) => {
+                                const typedOption = option as AsyncSelectOption<IOriginAssistant>;
+                                setSelectedOrigin(typedOption);
+                                // store full option in form state to preserve label/value when switching steps
+                                field.onChange(typedOption);
+                            }}
 											onBlur={field.onBlur}
 											onMenuOpen={() => triggerOriginDefaultLoad()}
 											noOptionsMessage={() => (isLoadingOrigins ? 'Carregando...' : 'Nenhuma origem encontrada')}

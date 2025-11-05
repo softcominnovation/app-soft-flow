@@ -2,9 +2,9 @@
 import { Card, CardBody, Col, Row } from 'react-bootstrap';
 import CaseFilters from './caseFilters';
 import CasesTable from './cases';
-import Kpis from './kpis';
 import { CasesProvider, useCasesContext } from '@/contexts/casesContext';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import ProjectsSection from './components/caseListComponents/projectsSection';
 
 const CasesList = () => {
 	const { cases, loading } = useCasesContext();
@@ -21,13 +21,7 @@ const CasesList = () => {
 									</Col>
 								</Row>
 							</div>
-
-							<Row className="g-3 mb-3">
-								<Col xs={12}>
-									<Kpis loading={loading} />
-								</Col>
-							</Row>
-
+							<ProjectsSection />
 							<div className="table-responsive">
 								<CasesTable data={cases} loading={loading} />
 							</div>

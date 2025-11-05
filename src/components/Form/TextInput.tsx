@@ -29,19 +29,20 @@ export default function TextInput({
 	helpText,
 	errors,
 	register,
-	control,
+    control,
 	type,
 	...props
 }: TextInputProps) {
-	// const { control } = useFormContext();
+    const form = useFormContext();
+    const resolvedControl = control ?? form?.control;
 
-	return (
-		<Controller
-			name={name}
-			control={control}
-			rules={register}
-			render={({ field, fieldState }) => (
-				<Form.Group className={containerClass ?? ''}>
+    return (
+        <Controller
+            name={name}
+            control={resolvedControl}
+            rules={register}
+            render={({ field, fieldState }) => (
+                <Form.Group className={containerClass ?? ''}>
 					{label && <Form.Label>{label}</Form.Label>}
 					<Form.Control
 						id={id}
