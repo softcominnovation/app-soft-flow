@@ -129,9 +129,29 @@ const CaseFilters = () => {
 							<i className="uil uil-search" />
 						</Button>
 						{!showFilters && (
-							<Button type="submit" variant="primary" size="sm" disabled={loading} className="flex-grow-1 flex-sm-grow-0 w-100 w-sm-auto">
-								{loading ? 'Pesquisando...' : 'Pesquisar'}
-							</Button>
+							<>
+								{/* Mobile: ocupa o restante da linha */}
+								<Button
+									type="submit"
+									variant="primary"
+									size="sm"
+									disabled={loading}
+									className="d-inline-flex d-sm-none flex-grow-1 w-100"
+								>
+									{loading ? 'Pesquisando...' : 'Pesquisar'}
+								</Button>
+
+								{/* Desktop e telas >= sm: comportamento antigo (sem expandir) */}
+								<Button
+									type="submit"
+									variant="primary"
+									size="sm"
+									disabled={loading}
+									className="d-none d-sm-inline-flex"
+								>
+									{loading ? 'Pesquisando...' : 'Pesquisar'}
+								</Button>
+							</>
 						)}
 					</div>
 					<CasesModal
