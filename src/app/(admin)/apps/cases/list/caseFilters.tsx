@@ -124,12 +124,12 @@ const CaseFilters = () => {
 		<FormProvider {...methods}>
 			<form onSubmit={methods.handleSubmit(onSearch)} className="mb-3">
 				<div className="d-flex flex-wrap align-items-center gap-2 mb-3">
-					<div className="d-flex align-items-center gap-2">
+					<div className="d-flex align-items-center gap-2 w-100 w-sm-auto">
 						<Button type="button" variant="outline-secondary" size="sm" onClick={toggleFilters}>
 							<i className="uil uil-search" />
 						</Button>
 						{!showFilters && (
-							<Button type="submit" variant="primary" size="sm" disabled={loading}>
+							<Button type="submit" variant="primary" size="sm" disabled={loading} className="flex-grow-1 flex-sm-grow-0 w-100 w-sm-auto">
 								{loading ? 'Pesquisando...' : 'Pesquisar'}
 							</Button>
 						)}

@@ -42,7 +42,7 @@ export default function ProjectsSection(){
     if (loading) return <ProjectsSectionSkelleton />;
 
     return (
-        <Row className="gy-3">	
+        <Row className="gy-2 gy-lg-3">	
             <Col lg={4}>
                 <StatusGraphic projects={projects} />
             </Col>

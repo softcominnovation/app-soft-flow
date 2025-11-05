@@ -60,10 +60,10 @@ const StatusGraphic = ({ projects }: Props) => {
 					<Doughnut data={donutChartData} options={donutChartOpts} />
 				</div>
 
-				<Row className="text-center mt-1 py-1">
-					<Col sm={3}>
+				<Row className="text-center mt-1 py-1 g-2">
+					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
-							<i className="mdi mdi-folder-open-outline text-warning mt-1 fs-4"></i>
+							<i className="mdi mdi-folder-open-outline text-warning mt-1 fs-5"></i>
 							<h5 className="fw-normal mb-0">
 								<span>{totals.abertos}</span>
 							</h5>
@@ -71,9 +71,9 @@ const StatusGraphic = ({ projects }: Props) => {
 						</div>
 					</Col>
 
-					<Col sm={3}>
+					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
-						<i className="mdi mdi-folder-check-outline text-info mt-1 fs-4"></i>
+							<i className="mdi mdi-folder-check-outline text-info mt-1 fs-5"></i>
 							<h5 className="fw-normal mb-0">
 								<span>{totals.corrigidos}</span>
 							</h5>
@@ -81,9 +81,9 @@ const StatusGraphic = ({ projects }: Props) => {
 						</div>
 					</Col>
 
-					<Col sm={3}>
+					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
-							<i className="mdi mdi-check-circle-outline text-success mt-1 fs-4"></i>
+							<i className="mdi mdi-check-circle-outline text-success mt-1 fs-5"></i>
 							<h5 className="fw-normal mb-0">
 								<span>{totals.resolvidos}</span>
 							</h5>
@@ -91,9 +91,9 @@ const StatusGraphic = ({ projects }: Props) => {
 						</div>
 					</Col>
 
-					<Col sm={3}>
+					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
-							<i className="mdi mdi-backup-restore text-danger mt-1 fs-4"></i>
+							<i className="mdi mdi-backup-restore text-danger mt-1 fs-5"></i>
 							<h5 className="fw-normal mb-0">
 								<span>{totals.retornos}</span>
 							</h5>
