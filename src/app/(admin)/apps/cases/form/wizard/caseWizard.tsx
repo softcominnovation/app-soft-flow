@@ -8,35 +8,62 @@ import { FormProvider, useForm } from 'react-hook-form';
 import ICasePost from '@/types/cases/ICasePost';
 import { createCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
+import Cookies from 'js-cookie';
 
 export default function CaseWizard() {
-	const methods = useForm<ICasePost>();
+	const methods = useForm<ICasePost>({
+		mode: 'onChange',
+		// keep inputs registered even when their components unmount so trigger() validates across wizard steps
+		shouldUnregister: false,
+		defaultValues: {
+			product: undefined,
+			version: undefined,
+			priority: undefined,
+			project: undefined,
+		}
+	});
 
 	const submit = async (data: any) => {
-		// Mapear campos do formulário para o payload esperado pela API
+		const resolve = (...keys: string[]) => {
+			for (const k of keys) {
+				if (k in data && data[k] !== undefined && data[k] !== null) return data[k];
+			}
+			return undefined;
+		};
+
+		const descricaoResumo = resolve('descricao_resumo', 'description-resumo', 'descriptionSummary', 'descricaoResumo', 'description_resumo');
+		const descricaoCompleta = resolve('descricao_completa', 'description-completa', 'description', 'description-resumo');
+
 		const payload: any = {
-			// mapeamentos solicitados pelo usuário
 			Projeto: data.product?.value ?? data.product ?? null,
-			AtribuidoPara: data.usuario_id?.value ?? (data.usuario_id ?? null),
-			Relator: data.relator_id?.value ?? data.usuario_id?.value ?? (data.usuario_id ?? null),
+			AtribuidoPara: data.usuario_id?.value ?? data.usuario_id ?? null,
+			Relator: data.relator_id?.value ?? data.relator_id ?? data.usuario_id?.value ?? data.usuario_id ?? null,
+			Prioridade: data.priority ?? (data.priority?.value ?? undefined),
 			Cronograma_id: data.project?.value ?? data.project ?? null,
 			VersaoProduto: data.version?.value ?? data.version ?? null,
-			// manter alguns campos básicos se existirem
 			Categoria: data.category?.value ?? data.category ?? undefined,
-			// campos textuais do restante do wizard (se existirem)
-			DescricaoResumo: data.descricao_resumo ?? data.descriptionSummary ?? undefined,
-			DescricaoCompleta: data.descricao_completa ?? data.description ?? undefined,
+			DescricaoResumo: descricaoResumo ?? undefined,
+			DescricaoCompleta: descricaoCompleta ?? undefined,
+			Anexo: data.anexo ?? undefined,
+			Id_Origem: data.Id_Origem ?? data.id_origem ?? undefined,
+			Id_Usuario_AberturaCaso: data.Id_Usuario_AberturaCaso ?? Cookies.get('user_id') ?? undefined,
 		};
 
 		console.log('Payload to API:', payload);
+
+		window.dispatchEvent(new CustomEvent('case:submitting'));
 
 		try {
 			const res = await createCase(payload);
 			toast.success('Caso criado com sucesso');
 			console.log('Create case response:', res);
-		} catch (err) {
+			(window as any).__caseSubmitting = false;
+			window.dispatchEvent(new CustomEvent('case:submitted', { detail: { success: true, data: res } }));
+		} catch (err: any) {
 			console.error(err);
 			toast.error('Erro ao criar o caso');
+			(window as any).__caseSubmitting = false;
+			window.dispatchEvent(new CustomEvent('case:submitted', { detail: { success: false, error: err?.message ?? err } }));
 		}
 	}
 

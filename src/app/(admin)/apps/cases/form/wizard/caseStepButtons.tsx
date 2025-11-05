@@ -1,7 +1,6 @@
 import { useWizard } from 'react-use-wizard';
 import { Button } from 'react-bootstrap';
 import { useFormContext } from 'react-hook-form';
-import ICasePost from '@/types/cases/ICasePost';
 type Props = {
 	nextStepButton?: boolean,
 	prevStepButton?: boolean,
@@ -10,20 +9,88 @@ type Props = {
 }
 
 export default function CaseStepButtons({prevStepButton, nextStepButton, finishButton, closeButton}: Props) {
-	const {previousStep, nextStep} = useWizard();
-	const { handleSubmit } = useFormContext<ICasePost>();
+	const {previousStep, nextStep, goToStep} = useWizard();
+	const { trigger, setFocus, getFieldState } = useFormContext();
 
-	const submit = (data: ICasePost) => {
-		console.log(data.product.value);
-	};
-
-
-	const handleNextStep = (e: React.FormEvent) => {
+	const handleNextStep = async (e: React.FormEvent) => {
 		e.preventDefault();
 
 		if (finishButton) {
-			handleSubmit(submit)();
-			nextStep();
+			// validate all fields first using react-hook-form's trigger
+			try {
+				const valid = await trigger();
+				if (valid) {
+					const form = document.getElementById('form-add-case') as HTMLFormElement | null;
+					if (form) {
+						if (typeof (form as any).requestSubmit === 'function') {
+							(form as any).requestSubmit();
+						} else {
+							form.submit();
+						}
+					}
+
+					// Navigate to final step so user sees loading UI
+					nextStep();
+				} else {
+					// keep user on current step so validation errors are visible
+					try {
+						// Validate groups of fields to find which step contains the first error
+						const headerFields = ['product', 'priority', 'version', 'Id_Origem'];
+						const assignmentFields = ['usuario_id', 'project', 'relator_id'];
+						const descriptionFields = ['descricao_resumo', 'descricao_completa'];
+
+						// Trigger each group and use getFieldState to identify the actual failing field
+						await trigger(headerFields);
+						const headerError = headerFields.find((k) => !!getFieldState(k).error);
+						if (headerError) {
+							goToStep?.(0);
+							try { setFocus(headerError as any); } catch {}
+							const idMap: Record<string, string> = {
+								product: 'produto-id',
+								priority: 'priority',
+								version: 'versao-id',
+								Id_Origem: 'origem-id'
+							};
+							const fallbackEl = document.getElementById(idMap[headerError]) || document.getElementById('produto-id');
+							if (fallbackEl) { fallbackEl.focus?.(); fallbackEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+							return;
+						}
+
+						await trigger(assignmentFields);
+						const assignmentError = assignmentFields.find((k) => !!getFieldState(k).error);
+						if (assignmentError) {
+							goToStep?.(1);
+							try { setFocus(assignmentError as any); } catch {}
+							const idMap: Record<string, string> = {
+								usuario_id: 'dev-atribuido-id',
+								project: 'projeto-id',
+								relator_id: 'relator-id'
+							};
+							const fallbackEl = document.getElementById(idMap[assignmentError]) || document.getElementById('projeto-id');
+							if (fallbackEl) { fallbackEl.focus?.(); fallbackEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+							return;
+						}
+
+						await trigger(descriptionFields);
+						const descriptionError = descriptionFields.find((k) => !!getFieldState(k).error);
+						if (descriptionError) {
+							goToStep?.(2);
+							try { setFocus(descriptionError as any); } catch {}
+							const idMap: Record<string, string> = {
+								descricao_resumo: 'descricao_resumo',
+								descricao_completa: 'descricao_completa'
+							};
+							const fallbackEl = document.getElementById(idMap[descriptionError]) || document.getElementById('descricao_resumo');
+							if (fallbackEl) { fallbackEl.focus?.(); fallbackEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+							return;
+						}
+					} catch (err) {
+						// ignore focus/navigation errors
+					}
+				}
+			} catch (e) {
+				console.error('Validation error on trigger:', e);
+			}
 		} else {
 			nextStep();
 		}

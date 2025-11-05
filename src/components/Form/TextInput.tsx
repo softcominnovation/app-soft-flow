@@ -39,6 +39,7 @@ export default function TextInput({
 		<Controller
 			name={name}
 			control={control}
+			rules={register}
 			render={({ field, fieldState }) => (
 				<Form.Group className={containerClass ?? ''}>
 					{label && <Form.Label>{label}</Form.Label>}

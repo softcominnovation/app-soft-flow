@@ -24,6 +24,7 @@ type StatusOption = { value: string; label: string };
 
 const statusOptions: StatusOption[] = [
 	{ value: 'ATRIBUIDO', label: 'ATRIBUIDO' },
+	{ value: 'NOVO', label: 'NOVO' },
 	{ value: 'AGUARDANDO TESTE', label: 'AGUARDANDO TESTE' },
 	{ value: 'CONCLUIDO', label: 'CONCLUIDO' },
 ];

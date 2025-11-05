@@ -1,11 +1,13 @@
-type option = {
-	value: string,
-	label: string
-}
+import IProductAssistant from "../assistant/IProductAssistant";
+import { IVersionAssistant } from "@/services/versionsServices";
+
+import { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 
 export default interface ICasePost {
-	product: option;
-	project: option;
-	version: option;
-	category: option;
+	product: AsyncSelectOption<IProductAssistant>;
+	project: AsyncSelectOption<any>;
+	version: AsyncSelectOption<IVersionAssistant>;
+	category: AsyncSelectOption<any>;
+	priority: string | undefined;
+	Id_Origem?: string;
 }

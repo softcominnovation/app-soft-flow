@@ -67,7 +67,7 @@ const LeftSidebar = ({isCondensed, leftbarDark}: LeftSidebarProps) => {
 
     return (
         <div className="leftside-menu" ref={menuNodeRef}>
-            <Link href="/" className={`logo ${leftbarDark ? 'logo-light' : 'logo-dark'}`}>
+            <Link href="/" className={`logo ${leftbarDark ? 'logo-light' : 'logo-dark'}`} style={{display: 'flex', alignItems: 'center'}}>
 				<span className="logo-lg">
 					<Image src={leftbarDark ? logo : logoDark} alt="logo" className="sidebar-logo-img"/>
 				</span>

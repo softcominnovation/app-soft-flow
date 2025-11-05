@@ -1,8 +1,6 @@
 import { Form, Card } from 'react-bootstrap';
-import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { useFormContext, Controller } from 'react-hook-form';
-import { TextInput } from '@/components/Form';
 import { useAsyncSelect } from '@/hooks';
 import { assistant as fetchProjects } from '@/services/projectsServices';
 import { assistant as fetchUsers } from '@/services/usersServices';
@@ -10,10 +8,12 @@ import IUserAssistant from '@/types/assistant/IUserAssistant';
 import IProjectAssistant from '@/types/assistant/IProjectAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { useEffect, useRef } from 'react';
+import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 
 export default function CasesAssingMentsForm() {
 	const methods = useFormContext();
 	const control = methods?.control;
+	const getValues = methods?.getValues;
 
 	const {
 		loadOptions: loadUserOptions,
@@ -68,6 +68,18 @@ export default function CasesAssingMentsForm() {
 			setSelectedProject(null);
 			projectOnChangeRef.current?.(null);
 		}
+
+		// initialize selected options from form values so values persist when switching steps
+		try {
+			const formValues = getValues ? getValues() : undefined;
+			if (formValues) {
+				if (formValues.usuario_id && !selectedUser) setSelectedUser(formValues.usuario_id as any);
+				if (formValues.project && !selectedProject) setSelectedProject(formValues.project as any);
+				if (formValues.relator_id && !selectedRelator) setSelectedRelator(formValues.relator_id as any);
+			}
+		} catch (e) {
+			// ignore if getValues unavailable
+		}
 	}, [selectedUser, setSelectedProject]);
 
 	return (
@@ -75,63 +87,82 @@ export default function CasesAssingMentsForm() {
 			<Card className="shadow-sm rounded-3">
 				<Card.Body>
 					<div className="row mb-3">
-						<div className="col-md-4">
+						<div className="col-md-4 mb-3">
 							<Form.Label className="fw-semibold">Dev Atribuido</Form.Label>
 							<Controller
 								name={"usuario_id" as any}
+								rules={{ required: 'O campo Atribuído Para (id do Usuário) é obrigatório.' }}
 								control={control}
-								render={({ field }) => (
-									<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
-										cacheOptions
-										defaultOptions={selectedUser ? [selectedUser] : defaultUserOptions}
-										loadOptions={loadUserOptions}
-										inputId="dev-atribuido-id"
-										className="react-select"
-										classNamePrefix="react-select"
-										placeholder="Pesquise um dev..."
-										isClearable
-										value={selectedUser}
-										onChange={(option) => {
-											setSelectedUser(option as any);
-											field.onChange(option ? { value: (option as any).value, label: (option as any).label } : null);
-										}}
-										onBlur={field.onBlur}
-										onMenuOpen={() => triggerUserDefaultLoad()}
-										noOptionsMessage={() => (isLoadingUsers ? 'Carregando...' : 'Nenhum usuario encontrado')}
-										loadingMessage={() => 'Carregando...'}
-									/>
-								)}
-							/>
-						</div>
-						
-<div className="col-md-4">
-							<Form.Label className="fw-semibold">Projeto*</Form.Label>
-							<Controller
-								name="project"
-								control={control}
-								render={({ field }) => {
-									projectOnChangeRef.current = field.onChange;
-									return (
-										<AsyncSelect<AsyncSelectOption<IProjectAssistant>, false>
+								render={({ field, fieldState }) => (
+									<>
+										<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
 											cacheOptions
-											isDisabled={!selectedUser}
-											defaultOptions={selectedProject ? [selectedProject] : defaultProjectOptions}
-											loadOptions={loadProjectOptions}
-											inputId="projeto-id"
-											className="react-select"
+											defaultOptions={selectedUser ? [selectedUser] : defaultUserOptions}
+											loadOptions={loadUserOptions}
+											inputId="dev-atribuido-id"
+											className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
+											{...({ isInvalid: Boolean(fieldState.error) } as any)}
 											classNamePrefix="react-select"
-											placeholder={selectedUser ? 'Pesquise um projeto...' : 'Selecione um Dev...'}
+											placeholder="Pesquise um dev..."
 											isClearable
-											value={selectedProject}
+											value={selectedUser}
 											onChange={(option) => {
-												setSelectedProject(option as any);
+												setSelectedUser(option as any);
 												field.onChange(option ? { value: (option as any).value, label: (option as any).label } : null);
 											}}
 											onBlur={field.onBlur}
-											onMenuOpen={() => triggerProjectDefaultLoad()}
-											noOptionsMessage={() => (isLoadingProjects ? 'Carregando...' : 'Nenhum projeto encontrado')}
+											onMenuOpen={() => triggerUserDefaultLoad()}
+											noOptionsMessage={() => (isLoadingUsers ? 'Carregando...' : 'Nenhum usuario encontrado')}
 											loadingMessage={() => 'Carregando...'}
 										/>
+										{fieldState.error && (
+											<Form.Control.Feedback type="invalid" className="d-block">
+												{String(fieldState.error.message)}
+											</Form.Control.Feedback>
+										)}
+									</>
+								)}
+							/>
+						</div>
+
+						<div className="col-md-4">
+							<Form.Label className="fw-semibold">Projeto*</Form.Label>
+							<Controller
+								name="project"
+								rules={{ required: 'O campo Projeto (id do Produto) é obrigatório.' }}
+								control={control}
+								render={({ field, fieldState }) => {
+									projectOnChangeRef.current = field.onChange;
+									return (
+										<>
+											<AsyncSelect<AsyncSelectOption<IProjectAssistant>, false>
+												cacheOptions
+												isDisabled={!selectedUser}
+												defaultOptions={selectedProject ? [selectedProject] : defaultProjectOptions}
+												loadOptions={loadProjectOptions}
+												inputId="projeto-id"
+												className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
+												{...({ isInvalid: Boolean(fieldState.error) } as any)}
+												classNamePrefix="react-select"
+												styles={asyncSelectStyles}
+												placeholder={selectedUser ? 'Pesquise um projeto...' : 'Selecione um Dev...'}
+												isClearable
+												value={selectedProject}
+												onChange={(option) => {
+													setSelectedProject(option as any);
+													field.onChange(option ? { value: (option as any).value, label: (option as any).label } : null);
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={() => triggerProjectDefaultLoad()}
+												noOptionsMessage={() => (isLoadingProjects ? 'Carregando...' : 'Nenhum projeto encontrado')}
+												loadingMessage={() => 'Carregando...'}
+											/>
+											{fieldState.error && (
+												<Form.Control.Feedback type="invalid" className="d-block">
+													{String(fieldState.error.message)}
+												</Form.Control.Feedback>
+											)}
+										</>
 									);
 								}}
 							/>
@@ -141,52 +172,38 @@ export default function CasesAssingMentsForm() {
 							<Form.Label className="fw-semibold">Relator</Form.Label>
 							<Controller
 								name={"relator_id" as any}
+								rules={{ required: 'O campo Relator (id do Usuário) é obrigatório.' }}
 								control={control}
-								render={({ field }) => (
-									<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
-										cacheOptions
-										defaultOptions={selectedRelator ? [selectedRelator] : defaultRelatorOptions}
-										loadOptions={loadRelatorOptions}
-										inputId="relator-id"
-										className="react-select"
-										classNamePrefix="react-select"
-										placeholder="Pesquise um relator..."
-										isClearable
-										value={selectedRelator}
-										onChange={(option) => {
-											setSelectedRelator(option as any);
-											field.onChange(option ? { value: (option as any).value, label: (option as any).label } : null);
-										}}
-										onBlur={field.onBlur}
-										onMenuOpen={() => triggerRelatorDefaultLoad()}
-										noOptionsMessage={() => (isLoadingRelators ? 'Carregando...' : 'Nenhum relator encontrado')}
-										loadingMessage={() => 'Carregando...'}
-									/>
+								render={({ field, fieldState }) => (
+									<>
+										<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
+											cacheOptions
+											defaultOptions={selectedRelator ? [selectedRelator] : defaultRelatorOptions}
+											loadOptions={loadRelatorOptions}
+											inputId="relator-id"
+											className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
+											{...({ isInvalid: Boolean(fieldState.error) } as any)}
+											classNamePrefix="react-select"
+											placeholder="Pesquise um relator..."
+											isClearable
+											value={selectedRelator}
+											onChange={(option) => {
+												setSelectedRelator(option as any);
+												field.onChange(option ? { value: (option as any).value, label: (option as any).label } : null);
+											}}
+											onBlur={field.onBlur}
+											onMenuOpen={() => triggerRelatorDefaultLoad()}
+											noOptionsMessage={() => (isLoadingRelators ? 'Carregando...' : 'Nenhum relator encontrado')}
+											loadingMessage={() => 'Carregando...'}
+										/>
+										{fieldState.error && (
+											<Form.Control.Feedback type="invalid" className="d-block">
+												{String(fieldState.error.message)}
+											</Form.Control.Feedback>
+										)}
+									</>
 								)}
 							/>
-						</div>
-
-						
-					</div>
-
-					{/* Linha com Origem e Versão */}
-					<div className="row mb-3">
-						<div className="col-md-6 mb-3 mb-md-0">
-							<Form.Label className="fw-semibold">Tamanho</Form.Label>
-							<Select
-								className="react-select"
-								placeholder="Selecione a versão"
-								classNamePrefix="react-select"
-								options={[
-									{ value: 'softcomshop', label: 'Softcomshop' },
-									{ value: 'softshop', label: 'Softshop' },
-									{ value: 'pdv', label: 'PDV' },
-								]}
-							/>
-						</div>
-
-						<div className="col-md-6">
-							<TextInput type='text' name={'size'} label="Tamanho" placeholder='00:00'/>
 						</div>
 					</div>
 				</Card.Body>
