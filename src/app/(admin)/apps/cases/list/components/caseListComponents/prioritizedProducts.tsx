@@ -23,7 +23,7 @@ const PrioritizedProducts = ({ projects }: Props) => {
   );
 
   return (
-    <Card style={{ maxHeight: 360, overflowY: 'auto' }}>
+    <Card style={{ height: 360, overflowY: 'auto' }}>
       <Card.Body>
         <CardTitle
           containerClass="d-flex align-items-center justify-content-between mb-2"

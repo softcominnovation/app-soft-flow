@@ -38,6 +38,7 @@ export async function POST(request: Request) {
 
 		return NextResponse.json({ message: "Usuário logado com sucesso!" }, { status: 200 });
 	} catch (error: any) {
+		console.log(error)
 		const errorMessage = error.response?.data || error.message || "Erro desconhecido";
 		console.error('Erro durante a requisição de login:', errorMessage);
 		return NextResponse.json({ message: "Erro durante o login", error: errorMessage }, { status: 500 });

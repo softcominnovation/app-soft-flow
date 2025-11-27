@@ -48,7 +48,7 @@ const StatusGraphic = ({ projects }: Props) => {
 	};
 
 	return (
-		<Card>
+		<Card style={{ height: 360, overflow: 'hidden' }}>
 			<CardBody>
 				<CardTitle
 					containerClass="d-flex align-items-center justify-content-between"

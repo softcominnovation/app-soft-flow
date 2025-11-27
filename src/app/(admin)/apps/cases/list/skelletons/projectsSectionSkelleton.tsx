@@ -4,7 +4,7 @@ export default function ProjectsSectionSkelleton() {
   return (
     <Row className="gy-2 gy-lg-3">
       <Col lg={4}>
-        <Card style={{ maxHeight: 360, overflow: 'hidden' }}>
+        <Card style={{ height: 360, overflow: 'hidden' }}>
           <Card.Body>
             <Placeholder as="div" animation="glow" className="mb-2">
               <Placeholder xs={6} style={{ height: 20 }} />
@@ -30,8 +30,9 @@ export default function ProjectsSectionSkelleton() {
         </Card>
       </Col>
       <Col lg={8}>
-        <Card style={{ maxHeight: 360, overflowY: 'auto' }}>
-          <Card.Body>
+        <Card style={{ height: 360, overflow: 'hidden' }}>
+          <Card.Body className="h-100 p-3">
+            <div style={{ height: '100%', overflowY: 'auto' }}>
             <Placeholder as="div" animation="glow" className="mb-2">
               <Placeholder xs={4} style={{ height: 20 }} />
             </Placeholder>
@@ -100,6 +101,7 @@ export default function ProjectsSectionSkelleton() {
                   </Row>
                 </div>
               ))}
+            </div>
             </div>
           </Card.Body>
         </Card>
