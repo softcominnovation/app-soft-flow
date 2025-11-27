@@ -14,7 +14,23 @@ export async function GET(request: Request) {
 
 		const url = new URL(request.url);
 		const params = new URLSearchParams(url.search);
-		const requestData = Object.fromEntries(params.entries());
+		
+		// Preserva arrays de parâmetros (ex: status_id[]=1&status_id[]=2 ou status_id=1&status_id=2)
+		const requestData: Record<string, any> = {};
+		const seenKeys = new Set<string>();
+		
+		for (const key of params.keys()) {
+			// Remove [] do final da chave se existir (status_id[] -> status_id)
+			const cleanKey = key.replace(/\[\]$/, '');
+			
+			if (seenKeys.has(cleanKey)) continue;
+			seenKeys.add(cleanKey);
+			
+			// Verifica se há múltiplos valores para esta chave
+			const allValues = params.getAll(key);
+			requestData[cleanKey] = allValues.length > 1 ? allValues : allValues[0];
+		}
+		
 		const response = await axios.get(`${getBaseApiUrl()}/projeto-memoria`, {
 			headers: {
 				'Content-Type': 'application/json',

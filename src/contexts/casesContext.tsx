@@ -46,9 +46,20 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 		setLoading(true);
 		try {
 			const caseNumber = data?.numero_caso?.trim();
-			const filters = caseNumber
-				? { numero_caso: caseNumber }
-				: { ...buildDefaultFilters(), ...data };
+			let filters: ICaseFilter;
+			
+			if (caseNumber) {
+				filters = { numero_caso: caseNumber };
+			} else {
+				const defaultFilters = buildDefaultFilters();
+				// Se status_id for fornecido, remove status_descricao dos filtros padrão
+				if (data?.status_id) {
+					const { status_descricao, ...filtersWithoutStatusDesc } = defaultFilters;
+					filters = { ...filtersWithoutStatusDesc, ...data };
+				} else {
+					filters = { ...defaultFilters, ...data };
+				}
+			}
 
 			const { cursor, ...sanitizedFilters } = filters;
 			const response = await allCase(sanitizedFilters);
