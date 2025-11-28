@@ -12,8 +12,22 @@ type Props = {
     currentTipo: string,
     runningStart: string | null,
     elapsedMinutes: number | null,
-    caseId: string | undefined
+    caseId: string | undefined,
+    estimadoMinutos: number,
+    realizadoMinutos: number
 }
+
+const formatMinutesToHours = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0 && mins > 0) {
+        return `${hours}h ${mins}min`;
+    } else if (hours > 0) {
+        return `${hours}h`;
+    } else {
+        return `${mins}min`;
+    }
+};
 
 export default function CaseTimeTrackerTimeControl({
     caseId,
@@ -24,7 +38,8 @@ export default function CaseTimeTrackerTimeControl({
     currentTipo,
     runningStart,
     elapsedMinutes,
-    
+    estimadoMinutos,
+    realizadoMinutos
 }:Props) {
 
     const badgeBaseClass = "d-inline-flex align-items-center gap-1 text-capitalize py-1 px-2 rounded-2";
@@ -74,6 +89,26 @@ export default function CaseTimeTrackerTimeControl({
 										Tempo corrido: {elapsedMinutes} {elapsedMinutes === 1 ? 'minuto' : 'minutos'}
 									</div>
 								)}
+								<div className="d-flex align-items-center gap-3 mt-2 pt-2 border-top">
+									<div className="d-flex align-items-center gap-2">
+										<IconifyIcon icon="lucide:target" className="text-primary" />
+										<span className="small fw-medium">
+											Tempo estimado: <span className="text-primary">{formatMinutesToHours(estimadoMinutos)}</span>
+										</span>
+									</div>
+									<div className="d-flex align-items-center gap-2">
+										<IconifyIcon icon="lucide:clock" className="text-info" />
+										<span className="small fw-medium">
+											Tempo total: <span className="text-info">{formatMinutesToHours(realizadoMinutos)}</span>
+										</span>
+									</div>
+									<div className="d-flex align-items-center gap-2">
+										<IconifyIcon icon="lucide:hourglass" className="text-warning" />
+										<span className="small fw-medium">
+											Tempo restante: <span className="text-warning">{formatMinutesToHours(Math.max(estimadoMinutos - realizadoMinutos, 0))}</span>
+										</span>
+									</div>
+								</div>
 							</div>
 						</Col>
 						<Col xs={12} md={4}>

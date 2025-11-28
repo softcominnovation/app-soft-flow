@@ -149,7 +149,7 @@ const CasesTable = ({ data, loading }: Props) => {
 
                                         <td className="py-2">
                                             <h5 className="my-0 fs-6">
-                                                {c.caso.status.resolucao || "-"}
+                                                {c.caso.status.status_tipo || "-"}
                                             </h5>
                                         </td>
 

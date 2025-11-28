@@ -14,7 +14,7 @@ export default function MobileCaseCard({ item, onView }: Props) {
 	const productName = item.produto?.nome || "-";
 	const version = item.produto?.versao || "-";
 	const priority = item.caso.caracteristicas.prioridade || "N/A";
-	const resolucao = item.caso.status.resolucao;
+	const statusTipo = item.caso.status.status_tipo;
 	const summary = item.caso.textos.descricao_resumo;
 
 	return (
@@ -44,7 +44,7 @@ export default function MobileCaseCard({ item, onView }: Props) {
 				<div className="text-end">
 					<p className="mb-1 text-muted small">Status</p>
 					<p className="mb-0 fw-semibold">
-						{resolucao || "-"}
+						{statusTipo || "-"}
 					</p>
 				</div>
 			</div>

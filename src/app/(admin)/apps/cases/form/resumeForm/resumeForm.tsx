@@ -19,13 +19,13 @@ export default function ResumeForm({ caseData }: ResumeFormProps) {
 			methods.reset({
 				codigo: caseData.caso.id,
 				produto: caseData.produto?.nome || '',
-				versao: "-",
+				versao: caseData.produto?.versao || "-",
 				prioridade: caseData.caso.caracteristicas.prioridade || '',
 				desenvolvedor: caseData.caso.usuarios.desenvolvimento?.nome || '',
 				resumo: caseData.caso.textos.descricao_resumo || '',
 				descricao_completa: caseData.caso.textos.descricao_completa || '',
 				anexo: caseData.caso.textos.anexo || '',
-				status: caseData.caso.status.descricao || '',
+				status: caseData.caso.status.status_tipo || '',
 			});
 		}
 	}, [caseData, methods]);

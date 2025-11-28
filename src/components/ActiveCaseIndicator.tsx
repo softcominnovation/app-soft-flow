@@ -32,12 +32,25 @@ const loadActiveCase = (): ActiveCaseStorageData | null => {
 	}
 };
 
+const formatMinutesToHours = (minutes: number): string => {
+	const hours = Math.floor(minutes / 60);
+	const mins = minutes % 60;
+	if (hours > 0 && mins > 0) {
+		return `${hours}h ${mins}min`;
+	} else if (hours > 0) {
+		return `${hours}h`;
+	} else {
+		return `${mins}min`;
+	}
+};
+
 export default function ActiveCaseIndicator() {
 	const [activeCase, setActiveCase] = useState<ActiveCaseStorageData | null>(() => loadActiveCase());
 	const [modalOpen, setModalOpen] = useState<boolean>(false);
 	const [modalCase, setModalCase] = useState<ICase | null>(null);
 	const [opening, setOpening] = useState<boolean>(false);
 	const [elapsedTime, setElapsedTime] = useState<string | null>(null);
+	const [caseData, setCaseData] = useState<ICase | null>(null);
 
 	const formatElapsedTime = (startedAt: string) => {
 		const start = new Date(startedAt).getTime();
@@ -133,6 +146,7 @@ export default function ActiveCaseIndicator() {
 			const response = await findCase(activeCase.caseId);
 			if (response?.data) {
 				setModalCase(response.data);
+				setCaseData(response.data);
 				setModalOpen(true);
 			} else {
 				toast.warning('Nao foi possivel obter os dados do caso ativo.');
@@ -144,6 +158,20 @@ export default function ActiveCaseIndicator() {
 			setOpening(false);
 		}
 	};
+
+	useEffect(() => {
+		if (activeCase?.caseId && !caseData) {
+			findCase(activeCase.caseId)
+				.then((response) => {
+					if (response?.data) {
+						setCaseData(response.data);
+					}
+				})
+				.catch((error) => {
+					console.error('Erro ao obter dados do caso para tempo restante:', error);
+				});
+		}
+	}, [activeCase?.caseId, caseData]);
 
 	const activeIndicator = activeCase ? (() => {
 		const { caseId, startedAt } = activeCase;
@@ -184,6 +212,14 @@ export default function ActiveCaseIndicator() {
 								{elapsedTime && (
 									<small className="text-white-75">Tempo decorrido: {elapsedTime}</small>
 								)}
+								{caseData?.caso.tempos && (() => {
+									const estimado = caseData.caso.tempos.estimado_minutos ?? 0;
+									const realizado = caseData.caso.tempos.realizado_minutos ?? 0;
+									const restante = Math.max(estimado - realizado, 0);
+									return (
+										<small className="text-white-75">Tempo restante: {formatMinutesToHours(restante)}</small>
+									);
+								})()}
 								<small className="text-white-50 mt-1">Clique para visualizar</small>
 							</div>
 						</Card.Body>

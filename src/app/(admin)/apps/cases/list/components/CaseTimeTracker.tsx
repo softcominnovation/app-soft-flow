@@ -404,6 +404,10 @@ export default function CaseTimeTracker({ caseData }: CaseTimeTrackerProps) {
 		return <TimetrackerSkelleton />;
 	}
 
+	const tempos = currentCase?.caso.tempos;
+	const estimadoMinutos = tempos?.estimado_minutos ?? 0;
+	const realizadoMinutos = tempos?.realizado_minutos ?? 0;
+
 	return (
 		<>
 			<div className="d-flex flex-column gap-4">
@@ -416,6 +420,8 @@ export default function CaseTimeTracker({ caseData }: CaseTimeTrackerProps) {
 					runningStart={runningStart}
 					startNewTime={startNewTime}
 					stopCurrentTime={stopCurrentTime}
+					estimadoMinutos={estimadoMinutos}
+					realizadoMinutos={realizadoMinutos}
 				/>
 				<CaseTimeTrackerHistory historyEntries={historyEntries} />
 			</div>
