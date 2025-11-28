@@ -70,7 +70,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 	return (
 		<>
 			<Modal show={open} onHide={handleClose} size="xl" backdrop="static" fullscreen="sm-down">
-				<Modal.Header closeButton className="bg-primary text-white">
+				<Modal.Header closeButton className="bg-primary text-white flex-shrink-0">
 					<div className="d-flex align-items-center">
 						<IconifyIcon icon="lucide:file-text" className="me-2" />
 						<Modal.Title className="fw-bold">
@@ -84,10 +84,10 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 						</Modal.Title>
 					</div>
 				</Modal.Header>
-				<Modal.Body className="p-0">
+				<Modal.Body className="p-0 d-flex flex-column" style={{ maxHeight: 'calc(100vh - 180px)', overflow: 'hidden' }}>
 					<Tab.Container defaultActiveKey="resumo">
-						<div>
-							<Nav variant="tabs" className="nav nav-tabs nav-bordered border-bottom">
+						<div className="d-flex flex-column h-100" style={{ minHeight: 0 }}>
+							<Nav variant="tabs" className="nav nav-tabs nav-bordered border-bottom flex-shrink-0">
 								<Nav.Item>
 									<Nav.Link eventKey="resumo" className="d-flex align-items-center">
 										<IconifyIcon icon="lucide:info" className="me-2" />
@@ -107,7 +107,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 									</Nav.Link>
 								</Nav.Item>
 							</Nav>
-							<div className="p-4">
+							<div className="p-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
 								<Tab.Content>
 									<Tab.Pane eventKey="resumo">
 										<ResumeForm caseData={caseData}/>
