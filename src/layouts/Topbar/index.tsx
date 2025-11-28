@@ -1,6 +1,7 @@
-import {notifications, profileMenus, searchOptions} from './data';
+import {notifications as defaultNotifications, profileMenus, searchOptions} from './data';
 import LanguageDropdown from './LanguageDropdown';
 import NotificationDropdown from './NotificationDropdown';
+import NotificationModal from './NotificationModal';
 import ProfileDropdown from './ProfileDropdown';
 import SearchDropdown from './SearchDropdown';
 import TopbarSearch from './TopbarSearch';
@@ -19,6 +20,15 @@ import {useViewport} from '@/hooks';
 import Link from 'next/link';
 import Image from 'next/image';
 import {useEffect, useState} from "react";
+import { getMensagens } from '@/services/mensagensServices';
+import { IMensagem } from '@/types/mensagens/IMensagem';
+import { NotificationItem } from './types';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/pt-br';
+
+dayjs.extend(relativeTime);
+dayjs.locale('pt-br');
 
 type TopbarProps = {
     topbarDark?: boolean;
@@ -34,6 +44,11 @@ const Topbar = ({topbarDark, toggleMenu, navOpen}: TopbarProps) => {
     const {width} = useViewport();
 
     const [prevSideBarType, setPrevSideBarType] = useState(ThemeSettings.sidebar.size.condensed);
+    const [notifications, setNotifications] = useState<NotificationItem[]>(defaultNotifications);
+    const [loadingNotifications, setLoadingNotifications] = useState(false);
+    const [mensagensOriginais, setMensagensOriginais] = useState<IMensagem[]>([]);
+    const [selectedMensagem, setSelectedMensagem] = useState<IMensagem | null>(null);
+    const [showModal, setShowModal] = useState(false);
 
     /**
      * Toggle the leftmenu when having mobile screen
@@ -104,6 +119,193 @@ const Topbar = ({topbarDark, toggleMenu, navOpen}: TopbarProps) => {
         updateSettings({rightSidebar: ThemeSettings.rightSidebar.show});
     };
 
+    /**
+     * Transforma mensagens da API no formato esperado pelo NotificationDropdown
+     */
+    const transformMensagensToNotifications = (mensagens: IMensagem[]): NotificationItem[] => {
+        if (!mensagens || mensagens.length === 0) {
+            return [];
+        }
+
+        // Agrupa mensagens por dia
+        const groupedByDay: Record<string, IMensagem[]> = {};
+        
+        mensagens.forEach((msg) => {
+            const dataMsg = msg.datas.enviado || msg.datas.msg || msg.datas.hora;
+            if (!dataMsg) return;
+
+            const date = dayjs(dataMsg);
+            const today = dayjs().startOf('day');
+            const yesterday = today.subtract(1, 'day');
+
+            let dayKey: string;
+            if (date.isSame(today, 'day')) {
+                dayKey = 'Hoje';
+            } else if (date.isSame(yesterday, 'day')) {
+                dayKey = 'Ontem';
+            } else {
+                dayKey = date.format('DD MMM YYYY');
+            }
+
+            if (!groupedByDay[dayKey]) {
+                groupedByDay[dayKey] = [];
+            }
+            groupedByDay[dayKey].push(msg);
+        });
+
+        // Converte para o formato NotificationItem
+        return Object.entries(groupedByDay).map(([day, messages]) => ({
+            day,
+            messages: messages.map((msg) => {
+                const dataMsg = msg.datas.enviado || msg.datas.msg || msg.datas.hora;
+                const timeAgo = dataMsg ? dayjs(dataMsg).fromNow() : '';
+
+                return {
+                    id: msg.id,
+                    title: msg.titulo,
+                    subText: msg.msg_texto || msg.titulo,
+                    time: timeAgo,
+                    icon: 'mdi mdi-bell-outline',
+                    variant: msg.status_leitura.lido ? 'secondary' : 'primary',
+                    isRead: msg.status_leitura.lido,
+                    link: msg.link,
+                    // Preserva todos os campos da mensagem original
+                    enviado_por: msg.enviado_por,
+                    msg_texto: msg.msg_texto,
+                    id_tipo: msg.id_tipo,
+                    endo_imagem: msg.endo_imagem,
+                    datas: msg.datas,
+                    status_leitura: msg.status_leitura,
+                    titulo: msg.titulo, // Preserva o título original também
+                };
+            }),
+        }));
+    };
+
+    /**
+     * Busca notificações da API quando o usuário está logado
+     */
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            const userEmail = Cookies.get('user_email');
+            const userId = Cookies.get('user_id');
+            
+            // Só busca notificações se o usuário estiver logado
+            if (!userEmail || !userId) {
+                return;
+            }
+
+            setLoadingNotifications(true);
+            try {
+                // Filtra apenas não lidas e do mês atual
+                const inicioMes = dayjs().startOf('month').format('YYYY-MM-DD');
+                const fimMes = dayjs().endOf('month').format('YYYY-MM-DD');
+                
+                const response = await getMensagens({ 
+                    lido: false,
+                    data_msg_inicio: inicioMes,
+                    data_msg_fim: fimMes
+                });
+                
+                if (response.success && response.data) {
+                    setMensagensOriginais(response.data);
+                    const transformedNotifications = transformMensagensToNotifications(response.data);
+                    setNotifications(transformedNotifications);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar notificações:', error);
+                // Mantém as notificações padrão em caso de erro
+            } finally {
+                setLoadingNotifications(false);
+            }
+        };
+
+        fetchNotifications();
+    }, []);
+
+    /**
+     * Abre o modal com a mensagem selecionada
+     */
+    const handleNotificationClick = (message: any) => {
+        // Converte o message para o formato IMensagem usando os campos preservados
+        if (message) {
+            const mensagemCompleta: IMensagem = {
+                id: message.id,
+                titulo: message.titulo || message.title,
+                link: message.link,
+                enviado_por: message.enviado_por || '',
+                msg_texto: message.msg_texto || message.subText || '',
+                id_tipo: message.id_tipo || 0,
+                endo_imagem: message.endo_imagem,
+                datas: message.datas || {
+                    msg: null,
+                    hora: null,
+                    enviado: null,
+                    inicio: null,
+                    prazo_limite: null,
+                    endo_inicial: null,
+                    endo_final: null,
+                },
+                status_leitura: message.status_leitura || {
+                    lido: message.isRead || false,
+                    auto: false,
+                    data_lido: null,
+                },
+            };
+            setSelectedMensagem(mensagemCompleta);
+            setShowModal(true);
+        }
+    };
+
+    /**
+     * Atualiza a lista de notificações após marcar como lida
+     */
+    const handleMarcarLida = async (msgId: number) => {
+        // Atualiza a notificação na lista local
+        setNotifications(prevNotifications => {
+            return prevNotifications.map(item => ({
+                ...item,
+                messages: item.messages.map(msg => {
+                    if (msg.id === msgId) {
+                        return {
+                            ...msg,
+                            isRead: true,
+                            variant: 'secondary',
+                            status_leitura: msg.status_leitura ? {
+                                ...msg.status_leitura,
+                                lido: true,
+                                auto: msg.status_leitura.auto || false,
+                                data_lido: msg.status_leitura.data_lido || new Date().toISOString(),
+                            } : {
+                                lido: true,
+                                auto: false,
+                                data_lido: new Date().toISOString(),
+                            },
+                        };
+                    }
+                    return msg;
+                }),
+            }));
+        });
+
+        // Atualiza a lista de mensagens originais
+        setMensagensOriginais(prev => {
+            return prev.map(msg => {
+                if (msg.id === msgId) {
+                    return {
+                        ...msg,
+                        status_leitura: {
+                            ...msg.status_leitura,
+                            lido: true,
+                            data_lido: new Date().toISOString(),
+                        },
+                    };
+                }
+                return msg;
+            });
+        });
+    };
+
     return (
         <div className={'navbar-custom'}>
             <div className="topbar container-fluid">
@@ -139,7 +341,10 @@ const Topbar = ({topbarDark, toggleMenu, navOpen}: TopbarProps) => {
                         <SearchDropdown/>
                     </li>
                     <li className="dropdown notification-list">
-                        <NotificationDropdown notifications={notifications}/>
+                        <NotificationDropdown 
+                            notifications={notifications}
+                            onNotificationClick={handleNotificationClick}
+                        />
                     </li>
                     <li className="dropdown d-none d-sm-inline-block">
                         <AppsDropdown/>
@@ -160,6 +365,16 @@ const Topbar = ({topbarDark, toggleMenu, navOpen}: TopbarProps) => {
                     </li>
                 </ul>
             </div>
+            
+            <NotificationModal 
+                show={showModal}
+                mensagem={selectedMensagem}
+                onHide={() => {
+                    setShowModal(false);
+                    setSelectedMensagem(null);
+                }}
+                onMarcarLida={handleMarcarLida}
+            />
         </div>
     );
 };

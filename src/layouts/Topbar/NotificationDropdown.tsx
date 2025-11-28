@@ -16,39 +16,139 @@ const notificationShowContainerStyle = {
 
 type NotificationDropdownProps = {
 	notifications: Array<NotificationItem>;
+	onNotificationClick?: (message: any) => void;
 };
 
-const NotificationDropdown = ({ notifications }: NotificationDropdownProps) => {
+const NotificationDropdown = ({ notifications, onNotificationClick }: NotificationDropdownProps) => {
 	const [isOpen, toggleDropdown] = useToggle();
+	const [hasInteracted, setHasInteracted] = React.useState(false);
+
+	// Conta o número de notificações não lidas
+	const unreadCount = notifications.reduce((count, item) => {
+		return count + (item.messages || []).filter(msg => !msg.isRead).length;
+	}, 0);
+
+	// Marca como interagido quando o dropdown é aberto
+	const handleToggle = () => {
+		if (!isOpen) {
+			setHasInteracted(true);
+		}
+		toggleDropdown();
+	};
 
 	return (
-		<Dropdown show={isOpen} onToggle={toggleDropdown}>
-			<Dropdown.Toggle variant="link" id="dropdown-notification" onClick={toggleDropdown} className="nav-link dropdown-toggle arrow-none">
-				<i className="ri-notification-3-line font-22"></i>
-				<span className="noti-icon-badge"></span>
-			</Dropdown.Toggle>
+		<>
+			<style>{`
+				@keyframes notificationPulse {
+					0%, 100% {
+						opacity: 1;
+						transform: scale(1);
+					}
+					50% {
+						opacity: 0.9;
+						transform: scale(1.1);
+					}
+				}
+				@keyframes ripple {
+					0% {
+						transform: scale(1.2);
+						opacity: 0.9;
+					}
+					100% {
+						transform: scale(3);
+						opacity: 0;
+					}
+				}
+				.notification-pulse {
+					animation: notificationPulse 2s ease-in-out infinite;
+				}
+				.notification-ripple {
+					position: absolute;
+					border-radius: 50%;
+					border: 2px solid #ff9800;
+					width: 24px;
+					height: 24px;
+					left: 50%;
+					top: 50%;
+					margin-left: -12px;
+					margin-top: -12px;
+					animation: ripple 3s ease-out infinite;
+				}
+				.notification-ripple:nth-child(2) {
+					animation-delay: 1s;
+				}
+				.notification-ripple:nth-child(3) {
+					animation-delay: 2s;
+				}
+				.notification-icon-wrapper {
+					position: relative;
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					width: 24px;
+					height: 24px;
+				}
+			`}</style>
+			<Dropdown show={isOpen} onToggle={handleToggle}>
+				<Dropdown.Toggle variant="link" id="dropdown-notification" onClick={handleToggle} className="nav-link dropdown-toggle arrow-none">
+					<div className="notification-icon-wrapper">
+						{unreadCount > 0 && !hasInteracted && (
+							<>
+								<span className="notification-ripple"></span>
+								<span className="notification-ripple"></span>
+								<span className="notification-ripple"></span>
+							</>
+						)}
+						<i 
+							className={`ri-notification-3-line font-22 ${unreadCount > 0 && !hasInteracted ? 'notification-pulse' : ''}`}
+							style={{ 
+								color: unreadCount > 0 && !hasInteracted ? '#ff9800' : 'inherit',
+								fontSize: '1.5rem',
+								position: 'relative',
+								zIndex: 1,
+							}}
+						></i>
+					</div>
+				</Dropdown.Toggle>
 			<Dropdown.Menu className="dropdown-menu-animated dropdown-lg" align="end">
-				<div onClick={toggleDropdown}>
+				<div>
 					<div className="dropdown-item noti-title px-3">
-						<h5 className="m-0">
-							<span className="float-end">
-								<Link href="/notifications" className="text-dark">
-									<small>Clear All</small>
-								</Link>
-							</span>
-							Notification
+						<h5 className="m-0 d-flex align-items-center justify-content-between">
+							<span>Notificação</span>
+							{unreadCount > 0 && (
+								<span className="badge bg-danger rounded-pill">{unreadCount}</span>
+							)}
 						</h5>
 					</div>
 					<SimpleBar className="px-3" style={notificationShowContainerStyle}>
-						{notifications.map((item, index) => {
-							return (
-								<React.Fragment key={index.toString()}>
-									<h5 className="text-muted font-13 fw-normal mt-0">{item.day}</h5>
-									{(item.messages || []).map((message, index) => {
-										return (
-											<Dropdown.Item
+						{notifications.length === 0 ? (
+							<div className="text-center py-4">
+								<i className="mdi mdi-bell-off-outline text-muted h3 mb-2"></i>
+								<p className="text-muted mb-0">Nenhuma notificação</p>
+							</div>
+						) : (
+							notifications.map((item, index) => {
+								return (
+									<React.Fragment key={index.toString()}>
+										<h5 className="text-muted font-13 fw-normal mt-0">{item.day}</h5>
+										{(item.messages || []).map((message, index) => {
+											const handleClick = (e: React.MouseEvent) => {
+												e.preventDefault();
+												e.stopPropagation();
+												if (onNotificationClick) {
+													onNotificationClick(message);
+													setTimeout(() => toggleDropdown(), 100);
+												} else if (message.link) {
+													window.open(message.link, '_blank');
+												}
+											};
+
+											return (
+											<div
 												key={index + '-noti'}
-												className={classNames('p-0 notify-item card shadow-none mb-2', message.isRead ? 'read-noti' : 'unread-noti')}
+												className={classNames('dropdown-item p-0 notify-item card shadow-none mb-2', message.isRead ? 'read-noti' : 'unread-noti')}
+												onClick={handleClick}
+												style={{ cursor: 'pointer' }}
 											>
 												<Card.Body>
 													<span className="float-end noti-close-btn text-muted">
@@ -73,22 +173,18 @@ const NotificationDropdown = ({ notifications }: NotificationDropdownProps) => {
 														</div>
 													</div>
 												</Card.Body>
-											</Dropdown.Item>
-										);
-									})}
-								</React.Fragment>
-							);
-						})}
-
-						<div className="text-center">
-							<i className="mdi mdi-dots-circle mdi-spin text-muted h3 mt-0"></i>
-						</div>
+											</div>
+											);
+										})}
+									</React.Fragment>
+								);
+							})
+						)}
 					</SimpleBar>
-
-					<Dropdown.Item className="text-center text-primary notify-item border-top border-light py-2">View All</Dropdown.Item>
 				</div>
 			</Dropdown.Menu>
 		</Dropdown>
+		</>
 	);
 };
 

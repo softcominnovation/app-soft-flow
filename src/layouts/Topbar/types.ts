@@ -20,6 +20,27 @@ type Message = {
 	icon?: string;
 	variant?: string;
 	isRead: boolean;
+	link?: string | null;
+	// Campos adicionais preservados da mensagem original da API
+	titulo?: string;
+	enviado_por?: string;
+	msg_texto?: string;
+	id_tipo?: number;
+	endo_imagem?: string | null;
+	datas?: {
+		msg: string | null;
+		hora: string | null;
+		enviado: string | null;
+		inicio: string | null;
+		prazo_limite: string | null;
+		endo_inicial: string | null;
+		endo_final: string | null;
+	};
+	status_leitura?: {
+		lido: boolean;
+		auto: boolean;
+		data_lido: string | null;
+	};
 };
 
 export type NotificationItem = {
