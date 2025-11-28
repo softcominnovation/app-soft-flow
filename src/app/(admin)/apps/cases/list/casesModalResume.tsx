@@ -3,6 +3,7 @@ import { Card, Button, Modal, Placeholder, Nav, Tab } from "react-bootstrap";
 import { ICase } from '@/types/cases/ICase';
 import ResumeForm from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
 import CaseTimeTracker from './components/CaseTimeTracker';
+import CaseAnnotations from './components/CaseAnnotations';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import TimetrackerSkelleton from "./skelletons/timetrackerSkelleton";
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
@@ -113,11 +114,14 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 										<ResumeForm caseData={caseData}/>
 									</Tab.Pane>
 									<Tab.Pane eventKey="detalhes">
-										<div className="text-center py-5">
-											<IconifyIcon icon="lucide:file-text" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
-											<h5 className="text-muted">Teste Aba Detalhes</h5>
-											<p className="text-muted">Conteúdo da aba de detalhes será implementado aqui.</p>
-										</div>
+										{caseData ? (
+											<CaseAnnotations anotacoes={caseData.anotacoes} />
+										) : (
+											<div className="text-center py-5">
+												<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
+												<h5 className="text-muted">Carregando caso...</h5>
+											</div>
+										)}
 									</Tab.Pane>
 									<Tab.Pane eventKey="tempo">
 										{

@@ -2,6 +2,7 @@ export interface ICase {
 	caso: Caso;
 	produto: ProdutoCaso | null;
 	projeto: ProjetoCaso | null;
+	anotacoes?: Anotacao[] | null;
 }
 
 interface Caso {
@@ -163,4 +164,12 @@ export interface ICaseResponse {
 
 export interface ICaseEspecifiedResponse {
 	data: ICase;
+}
+
+export interface Anotacao {
+	sequencia: number;
+	registro: number;
+	data_anotacao: string;
+	anotacoes: string | null;
+	usuario: string | null;
 }
