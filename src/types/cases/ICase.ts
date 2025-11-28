@@ -125,6 +125,7 @@ interface Usuario {
 interface ProdutoCaso {
 	id: number | null;
 	nome?: string | null;
+	versao?: string | null;
 }
 
 interface ProjetoCaso {

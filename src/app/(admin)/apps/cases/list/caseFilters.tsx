@@ -10,7 +10,7 @@ import Select from 'react-select';
 import Spinner from '@/components/Spinner';
 import AsyncSelect from 'react-select/async';
 import { useAsyncSelect, useToggle } from '@/hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { assistant as fetchProducts } from '@/services/productsServices';
 import { assistant as fetchProjects } from '@/services/projectsServices';
 import { assistant as fetchUsers } from '@/services/usersServices';
@@ -32,7 +32,8 @@ const statusOptions: StatusOption[] = [
 const CaseFilters = () => {
 	const methods = useForm<ICaseFilter>();
 	const { fetchCases, loading } = useCasesContext();
-	const [showFilters, toggleFilters] = useToggle(false);
+	const [showFilters, setShowFilters] = useState(false);
+	const toggleFilters = () => setShowFilters(prev => !prev);
 	const produtoId = methods.watch('produto_id');
 	const projetoId = methods.watch('projeto_id');
 	const usuarioId = methods.watch('usuario_id');
@@ -123,7 +124,7 @@ const CaseFilters = () => {
 	return (
 		<FormProvider {...methods}>
 			<form onSubmit={methods.handleSubmit(onSearch)} className="mb-3">
-				<div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+				<div className="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 mb-3">
 					<div className="d-flex align-items-center gap-2 w-100 w-sm-auto">
 						<Button type="button" variant="outline-secondary" size="sm" onClick={toggleFilters}>
 							<i className="uil uil-search" />
@@ -155,13 +156,13 @@ const CaseFilters = () => {
 						)}
 					</div>
 					<CasesModal
-						containerClassName="d-flex ms-sm-auto justify-content-sm-end"
+						containerClassName="d-flex ms-sm-auto justify-content-sm-end w-100 w-sm-auto"
 						buttonProps={{
 							size: 'sm',
 						}}
 					/>
 				</div>
-				<Collapse in={showFilters}>
+				<Collapse in={showFilters} mountOnEnter unmountOnExit>
 					<div>
 						<Row className="g-3 g-lg-4 align-items-end">
 							<Col xs={12} sm={6} md={4} lg={3}>

@@ -52,7 +52,7 @@ const StatusGraphic = ({ projects }: Props) => {
 			<CardBody>
 				<CardTitle
 					containerClass="d-flex align-items-center justify-content-between"
-					title="Status dos Projetos"
+					title="Status dos Produtos"
 					menuItems={[{ label: 'Weekly Report' }, { label: 'Monthly Report' }, { label: 'Action' }, { label: 'Settings' }]}
 				/>
 

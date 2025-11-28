@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { DropdownButton, DropdownItem, Table } from 'react-bootstrap';
 import { ICase } from '@/types/cases/ICase';
 import ListSkelleton from '@/app/(admin)/apps/cases/list/skelletons/listSkelleton';
@@ -87,6 +86,12 @@ const CasesTable = ({ data, loading }: Props) => {
 
     return (
         <>
+            <style>{`
+                .cases-table tbody tr:hover {
+                    background-color: rgba(0, 0, 0, 0.05) !important;
+                    transition: background-color 0.2s ease;
+                }
+            `}</style>
             <div className="d-none d-md-block">
                 <Table responsive size="sm" className="table-centered table-nowrap table-sm align-middle mb-0 cases-table">
                     <thead className="table-light text-muted">
@@ -108,11 +113,16 @@ const CasesTable = ({ data, loading }: Props) => {
                         ) : (data || []).length ? (
                             <>
                                 {(data || []).map((c, index) => (
-                                    <tr key={`${c.caso.id}-${index}`} className="align-middle">
+                                    <tr 
+                                        key={`${c.caso.id}-${index}`} 
+                                        className="align-middle"
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => caseEspecifiedModal(`${c.caso.id}`)}
+                                    >
                                         <td className="py-2">
-                                            <Link href="#" className="text-body fw-bold">
+                                            <span className="text-body fw-bold">
                                                 {c.caso.id}
-                                            </Link>
+                                            </span>
                                         </td>
 
                                         <td className="py-2">
@@ -124,7 +134,7 @@ const CasesTable = ({ data, loading }: Props) => {
                                         </td>
 
                                         <td className="py-2">
-                                            <span className="fw-semibold">-</span>
+                                            <span className="fw-semibold">{c.produto?.versao || "-"}</span>
                                         </td>
 
                                         <td className="py-2">
@@ -138,11 +148,13 @@ const CasesTable = ({ data, loading }: Props) => {
                                         </td>
 
                                         <td className="py-2">
-                                            <h5 className="my-0 fs-6">{c.caso.status.descricao ? c.caso.status.descricao.toUpperCase() : ""}</h5>
+                                            <h5 className="my-0 fs-6">
+                                                {c.caso.status.resolucao || "-"}
+                                            </h5>
                                         </td>
 
-                                        <td className="py-2 text-center position-relative">
-                                                                            <DropdownButton size="sm" variant="light" title={<IconifyIcon icon={"lucide:align-left"} />}>
+                                        <td className="py-2 text-center position-relative" onClick={(e) => e.stopPropagation()}>
+                                            <DropdownButton size="sm" variant="light" title={<IconifyIcon icon={"lucide:align-left"} />}>
                                                 <DropdownItem className="text-center" onClick={() => caseEspecifiedModal(`${c.caso.id}`)}>
                                                     Visualização resumida
                                                 </DropdownItem>

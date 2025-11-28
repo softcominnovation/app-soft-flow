@@ -63,7 +63,7 @@ const PrioritizedProducts = ({ projects }: Props) => {
       <Card.Body>
         <CardTitle
           containerClass="d-flex align-items-center justify-content-between mb-2"
-          title="Projetos"
+          title="Produtos"
           menuItems={[]}
         />
 
@@ -145,14 +145,7 @@ const PrioritizedProducts = ({ projects }: Props) => {
                       {project.retornos}
                     </button>
                   </td>
-                  <td className="table-action" style={{ width: '90px' }}>
-                    <Link href="" className="action-icon">
-                      <i className="mdi mdi-pencil"></i>
-                    </Link>
-                    <Link href="" className="action-icon">
-                      <i className="mdi mdi-delete"></i>
-                    </Link>
-                  </td>
+                  
                 </tr>
               ))}
             </tbody>
