@@ -68,8 +68,22 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 		}
 	};
 
+	const hasAnotacoes = caseData?.caso.anotacoes && caseData.caso.anotacoes.length > 0;
+
 	return (
 		<>
+			{hasAnotacoes && (
+				<style>{`
+					.nav-tabs .nav-link[data-event-key="detalhes"].active,
+					.nav-tabs .nav-link[data-event-key="detalhes"]:hover,
+					.nav-tabs .nav-link[data-event-key="detalhes"] {
+						color: #dc3545 !important;
+					}
+					.nav-tabs .nav-link[data-event-key="detalhes"].active {
+						border-bottom-color: #dc3545 !important;
+					}
+				`}</style>
+			)}
 			<Modal show={open} onHide={handleClose} size="xl" backdrop="static" fullscreen="sm-down">
 				<Modal.Header closeButton className="bg-primary text-white flex-shrink-0">
 					<div className="d-flex align-items-center">
@@ -96,9 +110,27 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 									</Nav.Link>
 								</Nav.Item>
 								<Nav.Item>
-									<Nav.Link eventKey="detalhes" className="d-flex align-items-center">
-										<IconifyIcon icon="lucide:file-text" className="me-2" />
-										<span>Anotações</span>
+									<Nav.Link 
+										eventKey="detalhes" 
+										className={`d-flex align-items-center ${hasAnotacoes ? 'fw-bold' : ''}`}
+										style={hasAnotacoes ? { 
+											'--bs-nav-link-color': '#dc3545',
+											'--bs-nav-link-hover-color': '#dc3545',
+											color: '#dc3545',
+											borderBottomColor: '#dc3545'
+										} as React.CSSProperties : {}}
+									>
+										<IconifyIcon 
+											icon="lucide:file-text" 
+											className="me-2" 
+											style={hasAnotacoes ? { color: '#dc3545' } : {}}
+										/>
+										<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
+										{hasAnotacoes && (
+											<span className="badge bg-danger ms-2" style={{ fontSize: '0.65rem' }}>
+												{caseData.caso.anotacoes.length}
+											</span>
+										)}
 									</Nav.Link>
 								</Nav.Item>
 								<Nav.Item>
