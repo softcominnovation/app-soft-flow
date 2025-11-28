@@ -22,8 +22,7 @@ interface Props {
 export default function CasesModalResume({ setOpen, open, case: caseData }: Props) {
 	const [finalizing, setFinalizing] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-	// Usar useContext diretamente - retorna undefined se não estiver dentro do provider
-	const casesContext = useContext(CasesContext);
+const casesContext = useContext(CasesContext);
 	const fetchCases = casesContext?.fetchCases;
 
 	const handleClose = () => {
@@ -126,7 +125,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 											style={hasAnotacoes ? { color: '#dc3545' } : {}}
 										/>
 										<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
-										{hasAnotacoes && (
+										{hasAnotacoes && caseData?.caso?.anotacoes && (
 											<span className="badge bg-danger ms-2" style={{ fontSize: '0.65rem' }}>
 												{caseData.caso.anotacoes.length}
 											</span>
@@ -147,7 +146,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 									</Tab.Pane>
 									<Tab.Pane eventKey="detalhes">
 										{caseData ? (
-											<CaseAnnotations anotacoes={caseData.caso.anotacoes} />
+											<CaseAnnotations anotacoes={caseData.caso.anotacoes || []} />
 										) : (
 											<div className="text-center py-5">
 												<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
