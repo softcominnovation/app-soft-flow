@@ -183,6 +183,12 @@ export default function ActiveCaseIndicator() {
 			cursor: opening ? 'wait' : 'pointer',
 		} as const;
 
+		const isTimeExceeded = caseData?.caso.tempos
+			? (caseData.caso.tempos.realizado_minutos ?? 0) > (caseData.caso.tempos.estimado_minutos ?? 0)
+			: false;
+
+		const cardBgClass = isTimeExceeded ? 'bg-danger' : 'bg-primary';
+
 		return (
 			<>
 				<div
@@ -196,7 +202,7 @@ export default function ActiveCaseIndicator() {
 					role="button"
 					aria-label="Abrir caso em andamento"
 				>
-					<Card className="shadow-lg border-0 bg-primary text-white">
+					<Card className={`shadow-lg border-0 ${cardBgClass} text-white`}>
 						<Card.Body className="d-flex gap-3 align-items-start">
 							<div className="flex-shrink-0 d-flex align-items-center">
 								{opening ? (
@@ -228,7 +234,7 @@ export default function ActiveCaseIndicator() {
 
 				<button
 					type="button"
-					className="position-fixed d-flex d-md-none flex-column align-items-center justify-content-center gap-1 rounded shadow-lg border-0 bg-primary text-white px-3 py-2"
+					className={`position-fixed d-flex d-md-none flex-column align-items-center justify-content-center gap-1 rounded shadow-lg border-0 ${cardBgClass} text-white px-3 py-2`}
 					style={{
 						...basePosition,
 						minWidth: '64px',
