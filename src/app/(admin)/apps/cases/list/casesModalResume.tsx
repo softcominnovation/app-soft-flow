@@ -6,6 +6,11 @@ import CaseTimeTracker from './components/CaseTimeTracker';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import TimetrackerSkelleton from "./skelletons/timetrackerSkelleton";
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
+import { finalizeCase } from '@/services/caseServices';
+import { toast } from 'react-toastify';
+import { useState, useContext } from 'react';
+import { CasesContext } from '@/contexts/casesContext';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Props {
 	open: boolean;
@@ -14,6 +19,11 @@ interface Props {
 }
 
 export default function CasesModalResume({ setOpen, open, case: caseData }: Props) {
+	const [finalizing, setFinalizing] = useState(false);
+	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+	// Usar useContext diretamente - retorna undefined se não estiver dentro do provider
+	const casesContext = useContext(CasesContext);
+	const fetchCases = casesContext?.fetchCases;
 
 	const handleClose = () => {
 		if (typeof window !== 'undefined') {
@@ -21,6 +31,40 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 			window.dispatchEvent(new Event(CASE_RESUME_MODAL_FORCE_CLOSE_EVENT));
 		}
 		setOpen(false);
+	};
+
+	const handleFinalizeCaseClick = () => {
+		if (!caseData?.caso.id || finalizing) {
+			return;
+		}
+		setShowConfirmDialog(true);
+	};
+
+	const handleConfirmFinalize = async () => {
+		if (!caseData?.caso.id || finalizing) {
+			return;
+		}
+
+		setFinalizing(true);
+		setShowConfirmDialog(false);
+		try {
+			await finalizeCase(caseData.caso.id.toString());
+			toast.success('Caso finalizado com sucesso!');
+			handleClose();
+			// Recarregar a listagem de casos se o contexto estiver disponível
+			if (fetchCases) {
+				fetchCases();
+			}
+			// Recarregar a página para atualizar o card flutuante se houver
+			setTimeout(() => {
+				window.location.reload();
+			}, 500);
+		} catch (error: any) {
+			console.error('Erro ao finalizar caso:', error);
+			toast.error(error?.message || 'Erro ao finalizar o caso');
+		} finally {
+			setFinalizing(false);
+		}
 	};
 
 	return (
@@ -86,12 +130,43 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 					</Tab.Container>
 				</Modal.Body>
 				<Modal.Footer className="bg-light border-top">
+					<Button 
+						variant="success" 
+						onClick={handleFinalizeCaseClick} 
+						disabled={finalizing || !caseData}
+						className="d-flex align-items-center"
+					>
+						{finalizing ? (
+							<>
+								<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+								Finalizando...
+							</>
+						) : (
+							<>
+								<IconifyIcon icon="lucide:check-circle" className="me-1" />
+								Finalizar Caso
+							</>
+						)}
+					</Button>
 					<Button variant="secondary" onClick={handleClose} className="d-flex align-items-center">
 						<IconifyIcon icon="lucide:x" className="me-1" />
 						Fechar
 					</Button>
 				</Modal.Footer>
 			</Modal>
+			{caseData && (
+				<ConfirmDialog
+					show={showConfirmDialog}
+					title="Finalizar Caso"
+					message={`Deseja realmente finalizar o Caso #${caseData.caso.id}?`}
+					confirmText="Finalizar"
+					cancelText="Cancelar"
+					confirmVariant="success"
+					onConfirm={handleConfirmFinalize}
+					onCancel={() => setShowConfirmDialog(false)}
+					loading={finalizing}
+				/>
+			)}
 		</>
 	);
 }

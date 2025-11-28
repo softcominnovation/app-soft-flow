@@ -6,8 +6,10 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { ACTIVE_CASE_EVENT, ACTIVE_CASE_STORAGE_KEY, CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT, ActiveCaseStorageData } from '@/constants/caseTimeTracker';
 import CasesModalResume from '@/app/(admin)/apps/cases/list/casesModalResume';
 import { ICase } from '@/types/cases/ICase';
-import { findCase } from '@/services/caseServices';
+import { findCase, finalizeCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
+import { Button } from 'react-bootstrap';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 const loadActiveCase = (): ActiveCaseStorageData | null => {
 	if (typeof window === 'undefined') {
@@ -49,6 +51,8 @@ export default function ActiveCaseIndicator() {
 	const [modalOpen, setModalOpen] = useState<boolean>(false);
 	const [modalCase, setModalCase] = useState<ICase | null>(null);
 	const [opening, setOpening] = useState<boolean>(false);
+	const [finalizing, setFinalizing] = useState<boolean>(false);
+	const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 	const [elapsedTime, setElapsedTime] = useState<string | null>(null);
 	const [caseData, setCaseData] = useState<ICase | null>(null);
 
@@ -173,6 +177,41 @@ export default function ActiveCaseIndicator() {
 		}
 	}, [activeCase?.caseId, caseData]);
 
+	const handleFinalizeCaseClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		if (!activeCase?.caseId || finalizing) {
+			return;
+		}
+		setShowConfirmDialog(true);
+	};
+
+	const handleConfirmFinalize = async () => {
+		if (!activeCase?.caseId || finalizing) {
+			return;
+		}
+
+		setFinalizing(true);
+		setShowConfirmDialog(false);
+		try {
+			await finalizeCase(activeCase.caseId);
+			toast.success('Caso finalizado com sucesso!');
+			// Limpar caso ativo do localStorage
+			if (typeof window !== 'undefined') {
+				window.localStorage.removeItem(ACTIVE_CASE_STORAGE_KEY);
+				window.dispatchEvent(new Event(ACTIVE_CASE_EVENT));
+			}
+			setActiveCase(null);
+			setModalOpen(false);
+			// Recarregar a página para atualizar a listagem
+			window.location.reload();
+		} catch (error: any) {
+			console.error('Erro ao finalizar caso:', error);
+			toast.error(error?.message || 'Erro ao finalizar o caso');
+		} finally {
+			setFinalizing(false);
+		}
+	};
+
 	const activeIndicator = activeCase ? (() => {
 		const { caseId, startedAt } = activeCase;
 		const startedLabel = new Date(startedAt).toLocaleString('pt-BR');
@@ -211,7 +250,7 @@ export default function ActiveCaseIndicator() {
 									<IconifyIcon icon="lucide:timer" className="fs-3" />
 								)}
 							</div>
-							<div className="d-flex flex-column">
+							<div className="d-flex flex-column flex-grow-1">
 								<strong className="small text-uppercase text-white-50">Caso em andamento</strong>
 								<span className="fw-semibold">Caso #{caseId}</span>
 								<small className="text-white-75">Iniciado em {startedLabel}</small>
@@ -227,6 +266,45 @@ export default function ActiveCaseIndicator() {
 									);
 								})()}
 								<small className="text-white-50 mt-1">Clique para visualizar</small>
+								<Button
+									variant="outline-light"
+									size="sm"
+									className="mt-2 fw-semibold"
+									onClick={handleFinalizeCaseClick}
+									disabled={finalizing}
+									style={{ 
+										fontSize: '0.75rem',
+										borderWidth: '2px',
+										backgroundColor: 'rgba(255, 255, 255, 0.2)',
+										borderColor: 'rgba(255, 255, 255, 0.5)',
+										color: '#ffffff',
+										backdropFilter: 'blur(4px)'
+									}}
+									onMouseEnter={(e) => {
+										if (!finalizing) {
+											e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+											e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.7)';
+										}
+									}}
+									onMouseLeave={(e) => {
+										if (!finalizing) {
+											e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+											e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+										}
+									}}
+								>
+									{finalizing ? (
+										<>
+											<Spinner animation="border" size="sm" className="me-1" variant="light" />
+											Finalizando...
+										</>
+									) : (
+										<>
+											<IconifyIcon icon="lucide:check-circle" className="me-1" />
+											Finalizar Caso
+										</>
+									)}
+								</Button>
 							</div>
 						</Card.Body>
 					</Card>
@@ -263,6 +341,19 @@ export default function ActiveCaseIndicator() {
 		<>
 			{activeIndicator}
 			<CasesModalResume case={modalCase} open={modalOpen} setOpen={setModalOpen} />
+			{activeCase && (
+				<ConfirmDialog
+					show={showConfirmDialog}
+					title="Finalizar Caso"
+					message={`Deseja realmente finalizar o Caso #${activeCase.caseId}?`}
+					confirmText="Finalizar"
+					cancelText="Cancelar"
+					confirmVariant="success"
+					onConfirm={handleConfirmFinalize}
+					onCancel={() => setShowConfirmDialog(false)}
+					loading={finalizing}
+				/>
+			)}
 		</>
 	);
 }

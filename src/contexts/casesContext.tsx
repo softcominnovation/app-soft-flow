@@ -11,12 +11,14 @@ interface CasesContextType {
 	loading: boolean;
 	loadingMore: boolean;
 	pagination: ICaseResponse['pagination'] | null;
+	currentFilters: ICaseFilter | undefined;
+	pendingFilters: ICaseFilter | undefined;
 	fetchCases: (data?: ICaseFilter) => Promise<void>;
 	loadMoreCases: () => Promise<void>;
 	fetchEspecifiedCases: (id: string) => Promise<ICaseEspecifiedResponse | undefined>;
 }
 
-const CasesContext = createContext<CasesContextType | undefined>(undefined);
+export const CasesContext = createContext<CasesContextType | undefined>(undefined);
 
 export function useCasesContext() {
 	const context = useContext(CasesContext);
@@ -32,6 +34,7 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 	const [loadingMore, setLoadingMore] = useState<boolean>(false);
 	const [pagination, setPagination] = useState<ICaseResponse['pagination'] | null>(null);
 	const [currentFilters, setCurrentFilters] = useState<ICaseFilter | undefined>(undefined);
+	const [pendingFilters, setPendingFilters] = useState<ICaseFilter | undefined>(undefined);
 
 	const buildDefaultFilters = useCallback((): ICaseFilter => {
 		const userId = Cookies.get('user_id');
@@ -43,31 +46,37 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 	}, []);
 
 	const fetchCases = useCallback(async (data?: ICaseFilter) => {
+		// Atualiza os filtros pendentes imediatamente para que outros componentes possam reagir
+		const caseNumber = data?.numero_caso?.trim();
+		let filters: ICaseFilter;
+		
+		if (caseNumber) {
+			filters = { numero_caso: caseNumber };
+		} else {
+			const defaultFilters = buildDefaultFilters();
+			// Se status_id for fornecido, remove status_descricao dos filtros padrão
+			if (data?.status_id) {
+				const { status_descricao, ...filtersWithoutStatusDesc } = defaultFilters;
+				filters = { ...filtersWithoutStatusDesc, ...data };
+			} else {
+				filters = { ...defaultFilters, ...data };
+			}
+		}
+
+		const { cursor, ...sanitizedFilters } = filters;
+		// Atualiza os filtros pendentes imediatamente
+		setPendingFilters(sanitizedFilters);
+		
 		setLoading(true);
 		try {
-			const caseNumber = data?.numero_caso?.trim();
-			let filters: ICaseFilter;
-			
-			if (caseNumber) {
-				filters = { numero_caso: caseNumber };
-			} else {
-				const defaultFilters = buildDefaultFilters();
-				// Se status_id for fornecido, remove status_descricao dos filtros padrão
-				if (data?.status_id) {
-					const { status_descricao, ...filtersWithoutStatusDesc } = defaultFilters;
-					filters = { ...filtersWithoutStatusDesc, ...data };
-				} else {
-					filters = { ...defaultFilters, ...data };
-				}
-			}
-
-			const { cursor, ...sanitizedFilters } = filters;
 			const response = await allCase(sanitizedFilters);
 			setCases(response.data);
 			setPagination(response.pagination ?? null);
 			setCurrentFilters(sanitizedFilters);
 		} catch (error) {
 			toast.error('Nao foi possivel obter os dados');
+			// Em caso de erro, limpa os filtros pendentes
+			setPendingFilters(undefined);
 		} finally {
 			setLoading(false);
 		}
@@ -111,7 +120,7 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 	}, [fetchCases]);
 
 	return (
-		<CasesContext.Provider value={{ cases, loading, loadingMore, pagination, fetchCases, loadMoreCases, fetchEspecifiedCases }}>
+		<CasesContext.Provider value={{ cases, loading, loadingMore, pagination, currentFilters, pendingFilters, fetchCases, loadMoreCases, fetchEspecifiedCases }}>
 			{children}
 		</CasesContext.Provider>
 	);

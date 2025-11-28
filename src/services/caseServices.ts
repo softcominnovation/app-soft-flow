@@ -73,6 +73,19 @@ export async function createCase(data: any): Promise<any> {
 	}
 }
 
+export async function finalizeCase(id: string): Promise<any> {
+	try {
+		const res = await axios.post(`/api/cases/finalizar/${id}`);
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
 export async function diaryDevAssistant(id_colaborador: string): Promise<IAgendaDevAssistant[]> {
     try {
         const res = await axios.get('/api/assistant/agenda-dev', {

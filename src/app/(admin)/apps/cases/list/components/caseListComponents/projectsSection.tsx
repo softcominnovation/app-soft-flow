@@ -5,31 +5,50 @@ import PrioritizedProducts from "./prioritizedProducts";
 import Cookies from 'js-cookie';
 import IAgendaDevAssistant from "@/types/assistant/IAgendaDevAssistant";
 import { diaryDevAssistant } from "@/services/caseServices";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ProjectsSectionSkelleton from "@/app/(admin)/apps/cases/list/skelletons/projectsSectionSkelleton";
+import { useCasesContext } from "@/contexts/casesContext";
 
 export default function ProjectsSection(){
-
+    const { currentFilters, pendingFilters } = useCasesContext();
     const [projects, setProjects] = useState<IAgendaDevAssistant[]>([]);
     const [loading, setLoading] = useState(true);
-    useEffect(() => {
+    const previousUserIdRef = useRef<string | undefined>(undefined);
 
+    useEffect(() => {
         let cancelled = false;
-        const userId = Cookies.get('user_id');
+        
+        // Usa os filtros pendentes primeiro (atualizados imediatamente), depois os atuais
+        const filters = pendingFilters || currentFilters;
+        const userId = filters?.usuario_dev_id || Cookies.get('user_id');
+        
         if (!userId) {
             setLoading(false);
             return;
         }
 
+        // Só atualiza se o userId mudou
+        if (previousUserIdRef.current === userId) {
+            return;
+        }
+
+        previousUserIdRef.current = userId;
+        setLoading(true);
+
         const fetchProjects = async () => {
             try {
                 const data = await diaryDevAssistant(userId);
-                if (!cancelled) setProjects(data ?? []);
+                if (!cancelled) {
+                    setProjects(data ?? []);
+                    setLoading(false);
+                }
             } catch (err) {
                 console.error('Falha ao carregar agenda do dev:', err);
-                if (!cancelled) setProjects([]);
+                if (!cancelled) {
+                    setProjects([]);
+                    setLoading(false);
+                }
             }
-            if (!cancelled) setLoading(false);
         };
 
         fetchProjects();
@@ -37,7 +56,7 @@ export default function ProjectsSection(){
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [pendingFilters?.usuario_dev_id, currentFilters?.usuario_dev_id]);
 
     if (loading) return <ProjectsSectionSkelleton />;
 

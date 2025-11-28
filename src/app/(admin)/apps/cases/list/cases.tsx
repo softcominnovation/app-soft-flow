@@ -8,6 +8,9 @@ import { useEffect, useRef, useState } from 'react';
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
 import MobileCaseCard from './components/caseListComponents/MobileCaseCard';
 import MobileCaseSkeleton from './components/caseListComponents/MobileCaseSkeleton';
+import { finalizeCase } from '@/services/caseServices';
+import { toast } from 'react-toastify';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 type Props = {
     data: ICase[] | null;
@@ -15,9 +18,12 @@ type Props = {
 };
 
 const CasesTable = ({ data, loading }: Props) => {
-    const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore } = useCasesContext();
+    const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore, fetchCases } = useCasesContext();
     const [openResumeModal, setOpenResumeModal] = useState(false);
     const [especifiedCase, setEspecifiedCase] = useState<ICase | null>(null);
+    const [finalizingCaseId, setFinalizingCaseId] = useState<string | null>(null);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [caseToFinalize, setCaseToFinalize] = useState<string | null>(null);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -82,6 +88,39 @@ const CasesTable = ({ data, loading }: Props) => {
             }
         });
         setOpenResumeModal(true);
+    };
+
+    const handleFinalizeCaseClick = (caseId: string) => {
+        if (finalizingCaseId) {
+            return;
+        }
+        setCaseToFinalize(caseId);
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmFinalize = async () => {
+        if (!caseToFinalize || finalizingCaseId) {
+            return;
+        }
+
+        setFinalizingCaseId(caseToFinalize);
+        setShowConfirmDialog(false);
+        try {
+            await finalizeCase(caseToFinalize);
+            toast.success('Caso finalizado com sucesso!');
+            // Recarregar a listagem
+            fetchCases();
+            // Recarregar a página para atualizar o card flutuante se houver
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        } catch (error: any) {
+            console.error('Erro ao finalizar caso:', error);
+            toast.error(error?.message || 'Erro ao finalizar o caso');
+        } finally {
+            setFinalizingCaseId(null);
+            setCaseToFinalize(null);
+        }
     };
 
     return (
@@ -156,7 +195,25 @@ const CasesTable = ({ data, loading }: Props) => {
                                         <td className="py-2 text-center position-relative" onClick={(e) => e.stopPropagation()}>
                                             <DropdownButton size="sm" variant="light" title={<IconifyIcon icon={"lucide:align-left"} />}>
                                                 <DropdownItem className="text-center" onClick={() => caseEspecifiedModal(`${c.caso.id}`)}>
+                                                    <IconifyIcon icon="lucide:eye" className="me-2" />
                                                     Visualização resumida
+                                                </DropdownItem>
+                                                <DropdownItem 
+                                                    className="text-center text-success" 
+                                                    onClick={() => handleFinalizeCaseClick(`${c.caso.id}`)}
+                                                    disabled={finalizingCaseId === `${c.caso.id}`}
+                                                >
+                                                    {finalizingCaseId === `${c.caso.id}` ? (
+                                                        <>
+                                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                            Finalizando...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <IconifyIcon icon="lucide:check-circle" className="me-2" />
+                                                            Finalizar Caso
+                                                        </>
+                                                    )}
                                                 </DropdownItem>
                                             </DropdownButton>
                                         </td>
@@ -181,7 +238,12 @@ const CasesTable = ({ data, loading }: Props) => {
                 ) : (data || []).length ? (
                     <>
                         {(data || []).map((c, index) => (
-                            <MobileCaseCard key={`mobile-case-${c.caso.id}-${index}`} item={c} onView={caseEspecifiedModal} />
+                            <MobileCaseCard 
+                                key={`mobile-case-${c.caso.id}-${index}`} 
+                                item={c} 
+                                onView={caseEspecifiedModal}
+                                onFinalize={fetchCases}
+                            />
                         ))}
                         {loadingMore && <MobileCaseSkeleton rows={15} />}
                     </>
@@ -198,6 +260,20 @@ const CasesTable = ({ data, loading }: Props) => {
                 }}
             />
             <CasesModalResume setOpen={setOpenResumeModal} open={openResumeModal} case={especifiedCase} />
+            <ConfirmDialog
+                show={showConfirmDialog}
+                title="Finalizar Caso"
+                message={caseToFinalize ? `Deseja realmente finalizar o Caso #${caseToFinalize}?` : ''}
+                confirmText="Finalizar"
+                cancelText="Cancelar"
+                confirmVariant="success"
+                onConfirm={handleConfirmFinalize}
+                onCancel={() => {
+                    setShowConfirmDialog(false);
+                    setCaseToFinalize(null);
+                }}
+                loading={!!finalizingCaseId}
+            />
         </>
     );
 };
