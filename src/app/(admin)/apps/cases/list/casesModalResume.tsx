@@ -115,7 +115,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData }: Prop
 									</Tab.Pane>
 									<Tab.Pane eventKey="detalhes">
 										{caseData ? (
-											<CaseAnnotations anotacoes={caseData.anotacoes} />
+											<CaseAnnotations anotacoes={caseData.caso.anotacoes} />
 										) : (
 											<div className="text-center py-5">
 												<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />

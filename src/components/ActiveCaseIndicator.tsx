@@ -47,7 +47,8 @@ const formatMinutesToHours = (minutes: number): string => {
 };
 
 export default function ActiveCaseIndicator() {
-	const [activeCase, setActiveCase] = useState<ActiveCaseStorageData | null>(() => loadActiveCase());
+	const [mounted, setMounted] = useState<boolean>(false);
+	const [activeCase, setActiveCase] = useState<ActiveCaseStorageData | null>(null);
 	const [modalOpen, setModalOpen] = useState<boolean>(false);
 	const [modalCase, setModalCase] = useState<ICase | null>(null);
 	const [opening, setOpening] = useState<boolean>(false);
@@ -74,6 +75,12 @@ export default function ActiveCaseIndicator() {
 
 		return `${hours}:${minutes}:${seconds}`;
 	};
+
+	useEffect(() => {
+		// Garantir que o componente só renderize após a montagem no cliente
+		setMounted(true);
+		setActiveCase(loadActiveCase());
+	}, []);
 
 	useEffect(() => {
 		if (!activeCase?.startedAt) {
@@ -336,6 +343,12 @@ export default function ActiveCaseIndicator() {
 			</>
 		);
 	})() : null;
+
+	// Não renderizar nada até que o componente esteja montado no cliente
+	// Isso evita erros de hidratação
+	if (!mounted) {
+		return null;
+	}
 
 	return (
 		<>

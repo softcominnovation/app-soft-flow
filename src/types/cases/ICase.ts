@@ -18,6 +18,7 @@ interface Caso {
 	tempos: TemposCaso;
 	textos: TextosCaso;
 	usuarios: UsuariosCaso;
+	anotacoes?: Anotacao[] | null;
 }
 
 interface CamposAdicionais {
