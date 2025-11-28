@@ -28,11 +28,9 @@ const UserBox = () => {
 
 const SideBarContent = () => {
     return (
-        <>
-            <UserBox/>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <AppMenu menuItems={getMenuItems()}/>
-            <div className="clearfix"/>
-        </>
+        </div>
     );
 };
 

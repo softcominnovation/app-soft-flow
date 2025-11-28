@@ -21,11 +21,13 @@ html[data-layout="topnav"] {
     .content-page {
         margin-left: 0;
         padding: 0 0 $topbar-height;
-    }
 
-    .container-fluid {
-        padding-right: $spacer;
-        padding-left: $spacer;
+        .content {
+            .container-fluid {
+                padding-left: 0;
+                padding-right: 0;
+            }
+        }
     }
 
     .topnav {

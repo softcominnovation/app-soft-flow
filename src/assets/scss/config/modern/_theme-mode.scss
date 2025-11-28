@@ -47,11 +47,14 @@ html[data-menu-color="light"] {
 
 // Dark Left Sidebar
 html[data-menu-color="dark"] {
-    --#{$prefix}menu-bg:                                 #{$gray-900};
-    --#{$prefix}menu-item-color:                       #8391a2;
-    --#{$prefix}menu-item-hover-color:                 #bccee4;
+    --#{$prefix}menu-bg:                                 #1F2937;
+    --#{$prefix}menu-item-color:                       #ffffff;
+    --#{$prefix}menu-item-hover-color:                 #ffffff;
     --#{$prefix}menu-item-active-color:                #ffffff;
+    --#{$prefix}menu-item-active-bg:                   #ff6b35;
     --#{$prefix}help-box-bg:                             #{rgba($white, 0.07)};
+    --#{$prefix}menu-separator-color:                  #374151;
+    --#{$prefix}menu-logo-bg:                          transparent;
 }
 
 // Brand Menu
@@ -66,11 +69,14 @@ html[data-menu-color="brand"] {
 // Dark Mode Left Sidebar
 html[data-bs-theme="dark"][data-menu-color="light"],
 html[data-bs-theme="dark"][data-menu-color="dark"] {
-    --#{$prefix}menu-bg:                               #3a444e;
-    --#{$prefix}menu-item-color:                       #8391a2;
-    --#{$prefix}menu-item-hover-color:                 #bccee4;
+    --#{$prefix}menu-bg:                               #1F2937;
+    --#{$prefix}menu-item-color:                       #ffffff;
+    --#{$prefix}menu-item-hover-color:                 #ffffff;
     --#{$prefix}menu-item-active-color:                #ffffff;
+    --#{$prefix}menu-item-active-bg:                   #ff6b35;
     --#{$prefix}help-box-bg:                             #{rgba($white, 0.07)};
+    --#{$prefix}menu-separator-color:                  #374151;
+    --#{$prefix}menu-logo-bg:                          transparent;
 }
 
 
