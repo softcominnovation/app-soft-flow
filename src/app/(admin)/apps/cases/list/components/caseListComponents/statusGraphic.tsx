@@ -53,7 +53,6 @@ const StatusGraphic = ({ projects }: Props) => {
 				<CardTitle
 					containerClass="d-flex align-items-center justify-content-between"
 					title="Status dos Produtos"
-					menuItems={[{ label: 'Weekly Report' }, { label: 'Monthly Report' }, { label: 'Action' }, { label: 'Settings' }]}
 				/>
 
 				<div className="my-3 chartjs-chart" style={{ height: 'clamp(120px, 35vw, 150px)' }}>

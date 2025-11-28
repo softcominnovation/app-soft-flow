@@ -64,7 +64,6 @@ const PrioritizedProducts = ({ projects }: Props) => {
         <CardTitle
           containerClass="d-flex align-items-center justify-content-between mb-2"
           title="Produtos"
-          menuItems={[]}
         />
 
         <Card.Header className="bg-light-lighten border-top border-bottom border-light py-1 text-center pb-2">
