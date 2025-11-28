@@ -73,6 +73,8 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 			setCases(response.data);
 			setPagination(response.pagination ?? null);
 			setCurrentFilters(sanitizedFilters);
+			// Limpa os filtros pendentes após sucesso, pois agora estão confirmados em currentFilters
+			setPendingFilters(undefined);
 		} catch (error) {
 			toast.error('Nao foi possivel obter os dados');
 			// Em caso de erro, limpa os filtros pendentes
