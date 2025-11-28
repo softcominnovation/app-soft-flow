@@ -41,10 +41,10 @@ export default function CasesHeaderForm({ control }: Props) {
 		triggerDefaultLoad: triggerVersionDefaultLoad,
 		isLoading: isLoadingVersions,
 	} = useAsyncSelect<IVersionAssistant>({
-		fetchItems: async () => {
+		fetchItems: async (input) => {
 			if (!selectedProduct) return [];
 			const productId = selectedProduct.value;
-			return fetchVersions({ produto_id: productId });
+			return fetchVersions({ search: input, produto_id: productId });
 		},
 		getOptionLabel: (version) => version.sequencia || 'Sem sequência',
 		getOptionValue: (version) => version.id,
@@ -71,7 +71,7 @@ export default function CasesHeaderForm({ control }: Props) {
 		triggerDefaultLoad: triggerOriginDefaultLoad,
 		isLoading: isLoadingOrigins,
 	} = useAsyncSelect<IOriginAssistant>({
-		fetchItems: async () => fetchOrigins(),
+		fetchItems: async (input) => fetchOrigins({ search: input }),
 		getOptionLabel: (origin) => origin.nome,
 		getOptionValue: (origin) => origin.id,
 		debounceMs: 800,

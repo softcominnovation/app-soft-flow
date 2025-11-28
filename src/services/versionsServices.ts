@@ -9,11 +9,12 @@ export interface IVersionAssistant {
     testador_id: number;
 }
 
-export const assistant = async ({ produto_id }: { produto_id: string }) => {
+export const assistant = async ({ produto_id, search }: { produto_id: string; search?: string }) => {
     try {
         const response = await axios.get(`/api/assistant/versions`, {
             params: {
-                produto_id
+                produto_id,
+                ...(search ? { search } : {})
             }
         });
         return response.data as IVersionAssistant[];
