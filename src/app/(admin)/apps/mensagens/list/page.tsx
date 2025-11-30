@@ -24,9 +24,7 @@ const MensagensList = () => {
 									</Col>
 								</Row>
 							</div>
-							<div className="table-responsive">
-								<MensagensTable data={mensagens} loading={loading} />
-							</div>
+							<MensagensTable data={mensagens} loading={loading} />
 						</CardBody>
 					</Card>
 				</Col>
