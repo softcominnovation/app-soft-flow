@@ -181,6 +181,16 @@ const NotificationDropdown = ({ notifications, onNotificationClick }: Notificati
 							})
 						)}
 					</SimpleBar>
+					<div className="dropdown-item text-center border-top pt-2 pb-2">
+						<Link 
+							href="/apps/mensagens/list" 
+							className="btn btn-sm btn-primary w-100"
+							onClick={() => toggleDropdown()}
+						>
+							<i className="mdi mdi-eye me-1"></i>
+							Visualizar Todas as Notificações
+						</Link>
+					</div>
 				</div>
 			</Dropdown.Menu>
 		</Dropdown>

@@ -18,8 +18,8 @@ type AppEnvironment = 'development' | 'preview' | 'production';
 const currentEnv = (process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.NODE_ENV ?? 'development') as AppEnvironment | string;
 const isProductionEnv = currentEnv === 'production';
 
-const PRODUCTION_SIDEBAR_VISIBLE_KEYS = new Set<string>(['navigation', 'apps-cases', 'cases-list']);
-const PRODUCTION_HORIZONTAL_VISIBLE_KEYS = new Set<string>(['apps-cases', 'cases']);
+const PRODUCTION_SIDEBAR_VISIBLE_KEYS = new Set<string>(['navigation', 'apps-cases', 'cases-list', 'apps-diversos', 'diversos-notificacoes']);
+const PRODUCTION_HORIZONTAL_VISIBLE_KEYS = new Set<string>(['apps-cases', 'cases', 'apps-diversos']);
 
 const filterMenuItemsByVisibleKeys = (items: MenuItemType[], visibleKeys: Set<string>): MenuItemType[] => {
     const filteredItems: MenuItemType[] = [];
@@ -172,6 +172,21 @@ const MENU_ITEMS_BASE: MenuItemType[] = [
             //     url: '/apps/crm/management',
             //     parentKey: 'apps-crm',
             // },
+        ],
+    },
+    {
+        key: 'apps-diversos',
+        label: 'Diversos',
+        isTitle: false,
+        badge: {variant: 'success', text: 'Novo'},
+        icon: 'uil-apps',
+        children: [
+            {
+                key: 'diversos-notificacoes',
+                label: 'Notificações',
+                url: '/apps/mensagens/list',
+                parentKey: 'apps-diversos',
+            },
         ],
     },
     // {
@@ -1204,6 +1219,20 @@ const HORIZONTAL_MENU_ITEMS_BASE: MenuItemType[] = [
                         label: 'Management',
                         url: '/apps/crm/management',
                         parentKey: 'apps-crm',
+                    },
+                ],
+            },
+            {
+                key: 'apps-diversos',
+                label: 'Diversos',
+                parentKey: 'apps',
+                badge: {variant: 'success', text: 'Novo'},
+                children: [
+                    {
+                        key: 'diversos-notificacoes',
+                        label: 'Notificações',
+                        url: '/apps/mensagens/list',
+                        parentKey: 'apps-diversos',
                     },
                 ],
             },
