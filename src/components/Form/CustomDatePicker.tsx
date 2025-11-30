@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import classNames from 'classnames';
 import { registerLocale } from 'react-datepicker';
-import ptBR from 'date-fns/locale/pt-BR';
+import { ptBR } from 'date-fns/locale';
 
 import 'react-datepicker/dist/react-datepicker.min.css';
 

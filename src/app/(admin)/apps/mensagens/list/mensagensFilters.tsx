@@ -90,7 +90,7 @@ const MensagensFilters = () => {
 							control={methods.control}
 							render={({ field }) => (
 								<CustomDatePicker
-									value={field.value}
+									value={field.value || new Date()}
 									onChange={(date) => field.onChange(date)}
 									dateFormat="MMMM yyyy"
 									showMonthYearPicker={true}
