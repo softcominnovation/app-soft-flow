@@ -14,10 +14,12 @@ import { useEffect, useState } from 'react';
 import { assistant as fetchProducts } from '@/services/productsServices';
 import { assistant as fetchProjects } from '@/services/projectsServices';
 import { assistant as fetchUsers } from '@/services/usersServices';
+import { assistant as fetchVersions, IVersionAssistant } from '@/services/versionsServices';
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import IProjectAssistant from '@/types/assistant/IProjectAssistant';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
+import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import CasesModal from './casesModal';
 
 type StatusOption = { value: string; label: string };
@@ -87,6 +89,26 @@ const CaseFilters = () => {
 		debounceMs: 1000,
 	});
 
+	const versaoProdutoId = methods.watch('versao_produto');
+	const {
+		loadOptions: loadVersionOptions,
+		selectedOption: selectedVersion,
+		setSelectedOption: setSelectedVersion,
+		defaultOptions: defaultVersionOptions,
+		triggerDefaultLoad: triggerVersionDefaultLoad,
+		isLoading: isLoadingVersions,
+	} = useAsyncSelect<IVersionAssistant>({
+		fetchItems: async (input) => {
+			if (!produtoId) {
+				return [];
+			}
+			return fetchVersions({ produto_id: produtoId, search: input });
+		},
+		getOptionLabel: (version) => version.versao || 'Versão sem nome',
+		getOptionValue: (version) => version.id,
+		debounceMs: 1000,
+	});
+
 	useEffect(() => {
 		if (!produtoId) {
 			setSelectedProduct(null);
@@ -105,6 +127,19 @@ const CaseFilters = () => {
 		}
 	}, [usuarioId, setSelectedUser]);
 
+	useEffect(() => {
+		if (!produtoId) {
+			setSelectedVersion(null);
+			methods.setValue('versao_produto', '');
+		}
+	}, [produtoId, setSelectedVersion, methods]);
+
+	useEffect(() => {
+		if (!versaoProdutoId) {
+			setSelectedVersion(null);
+		}
+	}, [versaoProdutoId, setSelectedVersion]);
+
 	const onSearch = (data: ICaseFilter) => {
 		const trimmedCaseNumber = data.numero_caso?.trim();
 		console.log(data.usuario_id);
@@ -114,6 +149,7 @@ const CaseFilters = () => {
 							status_descricao: data.status_descricao || undefined,
 							produto_id: data.produto_id || undefined,
 							projeto_id: data.projeto_id || undefined,
+							versao_produto: data.versao_produto || undefined,
 							usuario_dev_id: data.usuario_id && data.usuario_id != "" ? data.usuario_id : Cookies.get('user_id'),
 							sort_by: 'prioridade',
 						};
@@ -200,6 +236,40 @@ const CaseFilters = () => {
 												triggerProductDefaultLoad();
 											}}
 											noOptionsMessage={() => (isLoadingProducts ? 'Carregando...' : 'Nenhum produto encontrado')}
+											loadingMessage={() => 'Carregando...'}
+										/>
+									)}
+								/>
+							</Col>
+							<Col xs={12} sm={6} md={6} lg={3}>
+								<Form.Label className="fw-medium text-muted small">Versões</Form.Label>
+								<Controller
+									name="versao_produto"
+									control={methods.control}
+									render={({ field }) => (
+										<AsyncSelect<AsyncSelectOption<IVersionAssistant>, false>
+											cacheOptions
+											defaultOptions={selectedVersion ? [selectedVersion] : defaultVersionOptions}
+											loadOptions={loadVersionOptions}
+											inputId="versao-produto-id"
+											className="react-select case-status-select"
+											classNamePrefix="react-select"
+											styles={asyncSelectStyles}
+											placeholder={!produtoId ? 'Selecione um produto primeiro' : 'Pesquise uma versão...'}
+											isClearable
+											isDisabled={!produtoId}
+											value={selectedVersion}
+											onChange={(option) => {
+												setSelectedVersion(option);
+												field.onChange(option?.value ?? '');
+											}}
+											onBlur={field.onBlur}
+											onMenuOpen={() => {
+												if (produtoId) {
+													triggerVersionDefaultLoad();
+												}
+											}}
+											noOptionsMessage={() => (isLoadingVersions ? 'Carregando...' : !produtoId ? 'Selecione um produto primeiro' : 'Nenhuma versão encontrada')}
 											loadingMessage={() => 'Carregando...'}
 										/>
 									)}
