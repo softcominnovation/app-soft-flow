@@ -108,9 +108,7 @@ const CasesTable = ({ data, loading }: Props) => {
         try {
             await finalizeCase(caseToFinalize);
             toast.success('Caso finalizado com sucesso!');
-            // Recarregar a listagem
             fetchCases();
-            // Recarregar a página para atualizar o card flutuante se houver
             setTimeout(() => {
                 window.location.reload();
             }, 500);

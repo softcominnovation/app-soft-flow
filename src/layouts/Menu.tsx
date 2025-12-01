@@ -133,6 +133,12 @@ const AppMenu = ({ menuItems }: AppMenuProps) => {
 	 * activate the menuitems
 	 */
 	const activeMenu = useCallback(() => {
+		// Não ativar nenhum item do menu quando estiver na página de notificações
+		if (location === '/apps/mensagens/list') {
+			setActiveMenuItems([]);
+			return;
+		}
+
 		const div = document.getElementById('main-side-menu');
 		let matchingMenuItem = null;
 

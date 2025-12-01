@@ -1,8 +1,13 @@
 import React, { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import classNames from 'classnames';
+import { registerLocale } from 'react-datepicker';
+import { ptBR } from 'date-fns/locale';
 
 import 'react-datepicker/dist/react-datepicker.min.css';
+
+// Registra a localização pt-BR
+registerLocale('pt-BR', ptBR);
 
 type DatepickerInputProps = {
 	onClick?: () => void;
@@ -50,6 +55,7 @@ type HyperDatepickerProps = {
 	showTimeSelectOnly?: boolean;
 	monthsShown?: number;
 	inline?: boolean;
+	showMonthYearPicker?: boolean;
 };
 
 const CustomDatePicker = (props: HyperDatepickerProps) => {
@@ -80,6 +86,8 @@ const CustomDatePicker = (props: HyperDatepickerProps) => {
 				monthsShown={props.monthsShown}
 				showTimeSelectOnly={props.showTimeSelectOnly}
 				inline={props.inline}
+				showMonthYearPicker={props.showMonthYearPicker}
+				locale="pt-BR"
 				autoComplete="off"
 			/>
 		</>
