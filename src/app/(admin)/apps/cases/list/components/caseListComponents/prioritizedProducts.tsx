@@ -31,6 +31,7 @@ const PrioritizedProducts = ({ projects }: Props) => {
     (project: IAgendaDevAssistant, status: StatusType) => {
       const statusId = mapStatusToId(status);
       const userId = Cookies.get('user_id');
+      const currentUserId = Cookies.get('user_id');
 
       const filters: ICaseFilter = {
         produto_id: project.id_produto,
@@ -40,24 +41,27 @@ const PrioritizedProducts = ({ projects }: Props) => {
         ...(statusId && { status_id: statusId }),
       };
 
+      // Só salva no localStorage se for do usuário atual (não foi alterado manualmente)
+      // Verifica se há um flag indicando que o usuário foi alterado manualmente
+      try {
+        const userChangedManually = sessionStorage.getItem('userFilterChangedManually');
+        if (!userChangedManually && userId === currentUserId) {
+          const savedData = {
+            produto_id: project.id_produto,
+            versao_produto: project.versao,
+            status_id: statusId,
+            usuario_dev_id: userId,
+          };
+          localStorage.setItem('lastSelectedProduct', JSON.stringify(savedData));
+        }
+      } catch (error) {
+        console.error('Erro ao salvar no localStorage:', error);
+      }
+
       fetchCases(filters);
     },
     [fetchCases]
   );
-  const totals = projects.reduce(
-    (acc, p) => {
-      const toNum = (v: string | null | undefined) => parseInt(String(v ?? '0'), 10) || 0;
-      const abertos = toNum(p.abertos);
-      const corrigidos = toNum(p.corrigidos);
-      const retornos = toNum(p.retornos);
-      const resolvidos = toNum(p.resolvidos);
-      acc.resolvidos += resolvidos;
-      acc.total += abertos + corrigidos + retornos + resolvidos;
-      return acc;
-    },
-    { resolvidos: 0, total: 0 }
-  );
-
   return (
     <Card style={{ height: 360, overflowY: 'auto' }}>
       <Card.Body>
@@ -66,15 +70,18 @@ const PrioritizedProducts = ({ projects }: Props) => {
           title="Produtos"
         />
 
-        <Card.Header className="bg-light-lighten border-top border-bottom border-light py-1 text-center pb-2">
-          <p className="m-0">
-            <b>{totals.resolvidos}</b> Casos resolvidos de {totals.total}
-          </p>
-        </Card.Header>
-
         {/* Desktop (lg+) - tabela */}
         <div className="d-none d-lg-block">
           <Table responsive hover className="table-centered mb-0">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th className="text-center">Abertos</th>
+                <th className="text-center">Corrigidos</th>
+                <th className="text-center">Resolvidos</th>
+                <th className="text-center">Retornos</th>
+              </tr>
+            </thead>
             <tbody>
               {projects.map((project, index) => (
                 <tr key={index}>
@@ -93,7 +100,6 @@ const PrioritizedProducts = ({ projects }: Props) => {
                     </h5>
                   </td>
                   <td className="text-center py-1">
-                    <span className="text-muted font-13">Abertos</span> <br />
                     <button
                       type="button"
                       className="badge badge-warning-lighten border-0 px-2 py-1 fs-5 fw-bold"
@@ -106,7 +112,6 @@ const PrioritizedProducts = ({ projects }: Props) => {
                     </button>
                   </td>
                   <td className="text-center py-1">
-                    <span className="text-muted font-13">Corrigidos</span> <br />
                     <button
                       type="button"
                       className="badge badge-info-lighten border-0 px-2 py-1 fs-5 fw-bold"
@@ -119,7 +124,6 @@ const PrioritizedProducts = ({ projects }: Props) => {
                     </button>
                   </td>
                   <td className="text-center py-1">
-                    <span className="text-muted font-13">Resolvidos</span> <br />
                     <button
                       type="button"
                       className="badge badge-success-lighten border-0 px-2 py-1 fs-5 fw-bold"
@@ -132,7 +136,6 @@ const PrioritizedProducts = ({ projects }: Props) => {
                     </button>
                   </td>
                   <td className="text-center py-1">
-                    <span className="text-muted font-13">Retornos</span> <br />
                     <button
                       type="button"
                       className="badge badge-danger-lighten border-0 px-2 py-1 fs-5 fw-bold"

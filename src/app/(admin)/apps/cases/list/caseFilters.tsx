@@ -143,6 +143,26 @@ const CaseFilters = () => {
 	const onSearch = (data: ICaseFilter) => {
 		const trimmedCaseNumber = data.numero_caso?.trim();
 		console.log(data.usuario_id);
+		const selectedUserId = data.usuario_id && data.usuario_id != "" ? data.usuario_id : Cookies.get('user_id');
+		const currentUserId = Cookies.get('user_id');
+		
+		// Se o usuário alterou manualmente o filtro de usuário, marca para não salvar
+		if (selectedUserId !== currentUserId) {
+			try {
+				sessionStorage.setItem('userFilterChangedManually', 'true');
+				localStorage.removeItem('lastSelectedProduct');
+			} catch (error) {
+				console.error('Erro ao atualizar sessionStorage:', error);
+			}
+		} else {
+			// Se voltou para o usuário padrão, remove a flag
+			try {
+				sessionStorage.removeItem('userFilterChangedManually');
+			} catch (error) {
+				console.error('Erro ao atualizar sessionStorage:', error);
+			}
+		}
+
 		const payload: ICaseFilter = trimmedCaseNumber
 			? { numero_caso: trimmedCaseNumber }
 					: {
@@ -150,7 +170,7 @@ const CaseFilters = () => {
 							produto_id: data.produto_id || undefined,
 							projeto_id: data.projeto_id || undefined,
 							versao_produto: data.versao_produto || undefined,
-							usuario_dev_id: data.usuario_id && data.usuario_id != "" ? data.usuario_id : Cookies.get('user_id'),
+							usuario_dev_id: selectedUserId,
 							sort_by: 'prioridade',
 						};
 
@@ -252,7 +272,7 @@ const CaseFilters = () => {
 											defaultOptions={selectedVersion ? [selectedVersion] : defaultVersionOptions}
 											loadOptions={loadVersionOptions}
 											inputId="versao-produto-id"
-											className="react-select case-status-select"
+											className="react- case-status-select"
 											classNamePrefix="react-select"
 											styles={asyncSelectStyles}
 											placeholder={!produtoId ? 'Selecione um produto primeiro' : 'Pesquise uma versão...'}

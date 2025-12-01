@@ -38,6 +38,27 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const buildDefaultFilters = useCallback((): ICaseFilter => {
 		const userId = Cookies.get('user_id');
+		
+		// Tenta carregar do localStorage
+		try {
+			const savedData = localStorage.getItem('lastSelectedProduct');
+			if (savedData) {
+				const parsed = JSON.parse(savedData);
+				// Só usa se for do mesmo usuário
+				if (parsed.usuario_dev_id === userId) {
+					return {
+						usuario_dev_id: userId,
+						produto_id: parsed.produto_id,
+						versao_produto: parsed.versao_produto,
+						status_id: parsed.status_id,
+						sort_by: 'prioridade',
+					};
+				}
+			}
+		} catch (error) {
+			console.error('Erro ao carregar do localStorage:', error);
+		}
+		
 		return {
 			usuario_dev_id: userId,
 			sort_by: 'prioridade',
@@ -45,7 +66,7 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 		};
 	}, []);
 
-	const fetchCases = useCallback(async (data?: ICaseFilter) => {
+	const fetchCases = useCallback(async (data?: ICaseFilter, shouldSaveToLocalStorage?: boolean) => {
 		// Atualiza os filtros pendentes imediatamente para que outros componentes possam reagir
 		const caseNumber = data?.numero_caso?.trim();
 		let filters: ICaseFilter;
