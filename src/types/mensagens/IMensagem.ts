@@ -32,3 +32,4 @@ export interface IMensagensResponse {
 	total: number;
 }
 
+
