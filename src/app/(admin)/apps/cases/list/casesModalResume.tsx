@@ -84,7 +84,7 @@ const casesContext = useContext(CasesContext);
 				`}</style>
 			)}
 			<Modal show={open} onHide={handleClose} size="xl" backdrop="static" fullscreen="sm-down">
-				<Modal.Header closeButton className="bg-primary text-white flex-shrink-0">
+				<Modal.Header closeButton className="text-white flex-shrink-0" style={{ backgroundColor: 'var(--bs-menu-bg, #1F2937)' }}>
 					<div className="d-flex align-items-center">
 						<IconifyIcon icon="lucide:file-text" className="me-2" />
 						<Modal.Title className="fw-bold">

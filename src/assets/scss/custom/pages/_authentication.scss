@@ -124,3 +124,10 @@ html[data-theme="dark"] {
         }
     }
 }
+
+// Login header - mesma cor do menu
+.account-pages {
+    .card-header {
+        background-color: var(--#{$prefix}menu-bg, #1F2937) !important;
+    }
+}
