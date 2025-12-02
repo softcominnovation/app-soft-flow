@@ -84,10 +84,10 @@ const casesContext = useContext(CasesContext);
 				`}</style>
 			)}
 			<Modal show={open} onHide={handleClose} size="xl" backdrop="static" fullscreen="sm-down">
-				<Modal.Header closeButton className="text-white flex-shrink-0" style={{ backgroundColor: 'var(--bs-menu-bg, #1F2937)' }}>
+				<Modal.Header closeButton className="bg-light border-bottom flex-shrink-0">
 					<div className="d-flex align-items-center">
-						<IconifyIcon icon="lucide:file-text" className="me-2" />
-						<Modal.Title className="fw-bold">
+						<IconifyIcon icon="lucide:file-text" className="me-2 text-primary" />
+						<Modal.Title className="fw-bold text-body">
 							{!caseData ? (
 								<Placeholder as="span" animation="glow">
 									<Placeholder xs={3} />
