@@ -283,7 +283,7 @@ const CaseFilters = () => {
 											value={selectedVersion}
 											onChange={(option) => {
 												setSelectedVersion(option);
-												field.onChange(option?.data?.versao ?? '');
+												field.onChange(option?.raw?.versao ?? '');
 											}}
 											onBlur={field.onBlur}
 											onMenuOpen={() => {
