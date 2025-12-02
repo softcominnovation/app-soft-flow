@@ -1,279 +1,153 @@
-import { DropdownButton, DropdownItem, Table } from 'react-bootstrap';
-import { ICase } from '@/types/cases/ICase';
-import ListSkelleton from '@/app/(admin)/apps/cases/list/skelletons/listSkelleton';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+'use client';
+import { useEffect, useRef, useCallback } from 'react';
 import { useCasesContext } from '@/contexts/casesContext';
-import CasesModalResume from '@/app/(admin)/apps/cases/list/casesModalResume';
-import { useEffect, useRef, useState } from 'react';
-import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
-import MobileCaseCard from './components/caseListComponents/MobileCaseCard';
-import MobileCaseSkeleton from './components/caseListComponents/MobileCaseSkeleton';
-import { finalizeCase } from '@/services/caseServices';
-import { toast } from 'react-toastify';
+import CasesModalResume from './casesModalResume';
+import CasesTableDesktop from './components/CasesTableDesktop';
+import CasesTableMobile from './components/CasesTableMobile';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { useCaseModal, useCaseModalFromUrl, useCaseFinalization } from './hooks';
+import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
+import { ICase } from '@/types/cases/ICase';
 
 type Props = {
-    data: ICase[] | null;
-    loading: boolean;
+	data: ICase[] | null;
+	loading: boolean;
 };
 
+/**
+ * Componente principal da tabela de casos
+ * Orquestra a renderização e lógica de negócio dos casos
+ */
 const CasesTable = ({ data, loading }: Props) => {
-    const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore, fetchCases } = useCasesContext();
-    const [openResumeModal, setOpenResumeModal] = useState(false);
-    const [especifiedCase, setEspecifiedCase] = useState<ICase | null>(null);
-    const [finalizingCaseId, setFinalizingCaseId] = useState<string | null>(null);
-    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-    const [caseToFinalize, setCaseToFinalize] = useState<string | null>(null);
-    const sentinelRef = useRef<HTMLDivElement | null>(null);
+	const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore, fetchCases } = useCasesContext();
+	const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
+	// Gerencia o estado do modal
+	const { openResumeModal, especifiedCase, openModal, closeModal, setCase } = useCaseModal();
 
-        const handleForceClose = () => {
-            setOpenResumeModal(false);
-        };
+	// Gerencia a finalização de casos
+	const {
+		finalizingCaseId,
+		caseToFinalize,
+		handleFinalizeCaseClick,
+		handleConfirmFinalize,
+		showConfirmDialog,
+		setShowConfirmDialog,
+		setCaseToFinalize,
+	} = useCaseFinalization(fetchCases);
 
-        window.addEventListener(CASE_RESUME_MODAL_FORCE_CLOSE_EVENT, handleForceClose);
-        return () => {
-            window.removeEventListener(CASE_RESUME_MODAL_FORCE_CLOSE_EVENT, handleForceClose);
-        };
-    }, []);
+	// Callback estável para quando o caso for carregado via URL
+	const handleCaseLoadedFromUrl = useCallback(
+		(caseData: ICase) => {
+			setCase(caseData);
+			openModal(caseData);
+		},
+		[setCase, openModal]
+	);
 
-    useEffect(() => {
-        if (!openResumeModal) {
-            setEspecifiedCase(null);
-        }
-    }, [openResumeModal]);
+	// Abre o modal automaticamente se houver um ID de caso nos parâmetros da URL
+	useCaseModalFromUrl({
+		fetchEspecifiedCases,
+		onCaseLoaded: handleCaseLoadedFromUrl,
+	});
 
-    useEffect(() => {
-        const node = sentinelRef.current;
+	// Paginação infinita
+	useEffect(() => {
+		const node = sentinelRef.current;
 
-        if (!node || !pagination?.has_more) {
-            return;
-        }
+		if (!node || !pagination?.has_more) {
+			return;
+		}
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        loadMoreCases();
-                    }
-                });
-            },
-            {
-                root: null,
-                rootMargin: '200px 0px 0px 0px',
-                threshold: 0,
-            },
-        );
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						loadMoreCases();
+					}
+				});
+			},
+			{
+				root: null,
+				rootMargin: '200px 0px 0px 0px',
+				threshold: 0,
+			}
+		);
 
-        observer.observe(node);
+		observer.observe(node);
 
-        return () => {
-            observer.disconnect();
-        };
-    }, [loadMoreCases, pagination?.has_more, pagination?.next_cursor]);
+		return () => {
+			observer.disconnect();
+		};
+	}, [loadMoreCases, pagination?.has_more, pagination?.next_cursor]);
 
-    const caseEspecifiedModal = (id: string) => {
-        if (typeof window !== 'undefined') {
-            window.dispatchEvent(new Event(CASE_CONFLICT_MODAL_CLOSE_EVENT));
-            window.dispatchEvent(new Event(CASE_RESUME_MODAL_FORCE_CLOSE_EVENT));
-        }
-        setEspecifiedCase(null);
-        fetchEspecifiedCases(id).then((response) => {
-            if (response) {
-                setEspecifiedCase(response.data);
-            }
-        });
-        setOpenResumeModal(true);
-    };
+	const handleViewCase = (id: string) => {
+		if (typeof window !== 'undefined') {
+			window.dispatchEvent(new Event(CASE_CONFLICT_MODAL_CLOSE_EVENT));
+			window.dispatchEvent(new Event(CASE_RESUME_MODAL_FORCE_CLOSE_EVENT));
+		}
+		setCase(null);
+		fetchEspecifiedCases(id).then((response) => {
+			if (response?.data) {
+				openModal(response.data);
+			}
+		});
+	};
 
-    const handleFinalizeCaseClick = (caseId: string) => {
-        if (finalizingCaseId) {
-            return;
-        }
-        setCaseToFinalize(caseId);
-        setShowConfirmDialog(true);
-    };
+	const cases = data || [];
 
-    const handleConfirmFinalize = async () => {
-        if (!caseToFinalize || finalizingCaseId) {
-            return;
-        }
+	return (
+		<>
+			<style>{`
+				.cases-table tbody tr:hover {
+					background-color: rgba(0, 0, 0, 0.05) !important;
+					transition: background-color 0.2s ease;
+				}
+			`}</style>
 
-        setFinalizingCaseId(caseToFinalize);
-        setShowConfirmDialog(false);
-        try {
-            await finalizeCase(caseToFinalize);
-            toast.success('Caso finalizado com sucesso!');
-            fetchCases();
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
-        } catch (error: any) {
-            console.error('Erro ao finalizar caso:', error);
-            toast.error(error?.message || 'Erro ao finalizar o caso');
-        } finally {
-            setFinalizingCaseId(null);
-            setCaseToFinalize(null);
-        }
-    };
+			<CasesTableDesktop
+				cases={cases}
+				loading={loading}
+				loadingMore={loadingMore}
+				onViewCase={handleViewCase}
+				onFinalizeCase={handleFinalizeCaseClick}
+				finalizingCaseId={finalizingCaseId}
+			/>
 
-    return (
-        <>
-            <style>{`
-                .cases-table tbody tr:hover {
-                    background-color: rgba(0, 0, 0, 0.05) !important;
-                    transition: background-color 0.2s ease;
-                }
-            `}</style>
-            <div className="d-none d-md-block">
-                <Table responsive size="sm" className="table-centered table-nowrap table-sm align-middle mb-0 cases-table">
-                    <thead className="table-light text-muted">
-                        <tr>
-                            <th className="py-3">Numero do Caso</th>
-                            <th className="py-3">Atribuido</th>
-                            <th className="py-3">Produto</th>
-                            <th className="py-3">Versao</th>
-                            <th className="py-3">Prioridade</th>
-                            <th className="py-3">Descricao / Resumo</th>
-                            <th className="py-3">Status</th>
-                            <th className="py-3 text-center" style={{ width: '125px' }}>Ações</th>
-                        </tr>
-                    </thead>
+			<CasesTableMobile
+				cases={cases}
+				loading={loading}
+				loadingMore={loadingMore}
+				onViewCase={handleViewCase}
+				onFinalizeCase={fetchCases}
+			/>
 
-                    <tbody>
-                        {loading ? (
-                            <ListSkelleton rows={10} />
-                        ) : (data || []).length ? (
-                            <>
-                                {(data || []).map((c, index) => (
-                                    <tr 
-                                        key={`${c.caso.id}-${index}`} 
-                                        className="align-middle"
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => caseEspecifiedModal(`${c.caso.id}`)}
-                                    >
-                                        <td className="py-2">
-                                            <span className="text-body fw-bold">
-                                                {c.caso.id}
-                                            </span>
-                                        </td>
+			<div
+				ref={sentinelRef}
+				style={{
+					height: pagination?.has_more ? 1 : 0,
+					width: '100%',
+				}}
+			/>
 
-                                        <td className="py-2">
-                                            <span className="text-muted">{c.caso.usuarios.desenvolvimento?.nome}</span>
-                                        </td>
+			<CasesModalResume setOpen={closeModal} open={openResumeModal} case={especifiedCase} />
 
-                                        <td className="py-2">
-                                            <span className="text-muted">{c.produto?.nome}</span>
-                                        </td>
-
-                                        <td className="py-2">
-                                            <span className="fw-semibold">{c.produto?.versao || "-"}</span>
-                                        </td>
-
-                                        <td className="py-2">
-                                            <span className="text-muted">{c.caso.caracteristicas.prioridade}</span>
-                                        </td>
-
-                                        <td className="py-2" style={{ maxWidth: 360 }}>
-                                            <p className="mb-0 text-truncate" title={c.caso.textos.descricao_resumo}>
-                                                {c.caso.textos.descricao_resumo}
-                                            </p>
-                                        </td>
-
-                                        <td className="py-2">
-                                            <h5 className="my-0 fs-6">
-                                                {c.caso.status.status_tipo || "-"}
-                                            </h5>
-                                        </td>
-
-                                        <td className="py-2 text-center position-relative" onClick={(e) => e.stopPropagation()}>
-                                            <DropdownButton size="sm" variant="light" title={<IconifyIcon icon={"lucide:align-left"} />}>
-                                                <DropdownItem className="text-center" onClick={() => caseEspecifiedModal(`${c.caso.id}`)}>
-                                                    <IconifyIcon icon="lucide:eye" className="me-2" />
-                                                    Visualização resumida
-                                                </DropdownItem>
-                                                <DropdownItem 
-                                                    className="text-center text-success" 
-                                                    onClick={() => handleFinalizeCaseClick(`${c.caso.id}`)}
-                                                    disabled={finalizingCaseId === `${c.caso.id}`}
-                                                >
-                                                    {finalizingCaseId === `${c.caso.id}` ? (
-                                                        <>
-                                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                            Finalizando...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <IconifyIcon icon="lucide:check-circle" className="me-2" />
-                                                            Finalizar Caso
-                                                        </>
-                                                    )}
-                                                </DropdownItem>
-                                            </DropdownButton>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {loadingMore && <ListSkelleton rows={15} />}
-                            </>
-                        ) : (
-                            <tr>
-                                <td colSpan={9} className="text-center text-muted py-4">
-                                    Nenhum caso encontrado.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </Table>
-            </div>
-
-            <div className="d-md-none">
-                {loading ? (
-                    <MobileCaseSkeleton rows={5} />
-                ) : (data || []).length ? (
-                    <>
-                        {(data || []).map((c, index) => (
-                            <MobileCaseCard 
-                                key={`mobile-case-${c.caso.id}-${index}`} 
-                                item={c} 
-                                onView={caseEspecifiedModal}
-                                onFinalize={fetchCases}
-                            />
-                        ))}
-                        {loadingMore && <MobileCaseSkeleton rows={15} />}
-                    </>
-                ) : (
-                    <p className="text-center text-muted py-4">Nenhum caso encontrado.</p>
-                )}
-            </div>
-
-            <div
-                ref={sentinelRef}
-                style={{
-                    height: pagination?.has_more ? 1 : 0,
-                    width: '100%',
-                }}
-            />
-            <CasesModalResume setOpen={setOpenResumeModal} open={openResumeModal} case={especifiedCase} />
-            <ConfirmDialog
-                show={showConfirmDialog}
-                title="Finalizar Caso"
-                message={caseToFinalize ? `Deseja realmente finalizar o Caso #${caseToFinalize}?` : ''}
-                confirmText="Finalizar"
-                cancelText="Cancelar"
-                confirmVariant="success"
-                onConfirm={handleConfirmFinalize}
-                onCancel={() => {
-                    setShowConfirmDialog(false);
-                    setCaseToFinalize(null);
-                }}
-                loading={!!finalizingCaseId}
-            />
-        </>
-    );
+			<ConfirmDialog
+				show={showConfirmDialog}
+				title="Finalizar Caso"
+				message={caseToFinalize ? `Deseja realmente finalizar o Caso #${caseToFinalize}?` : ''}
+				confirmText="Finalizar"
+				cancelText="Cancelar"
+				confirmVariant="success"
+				onConfirm={handleConfirmFinalize}
+				onCancel={() => {
+					setShowConfirmDialog(false);
+					setCaseToFinalize(null);
+				}}
+				loading={!!finalizingCaseId}
+			/>
+		</>
+	);
 };
 
 export default CasesTable;

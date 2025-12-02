@@ -31,7 +31,17 @@ export default function useLogin() {
 		try {
 			const res: AxiosResponse<User> = await authApi.login(values);
 			if (res.data.token) {
-				navigate.push(queryParams['redirectTo'] ?? '/dashboards/analytics');
+				const caseId = queryParams['caseId'] || queryParams['case_id'] || queryParams['id'];
+				const redirectTo = queryParams['redirectTo'];
+				
+				// Se houver um ID de caso, redireciona para a página de casos com o ID
+				if (caseId) {
+					navigate.push(`/apps/cases/list?caseId=${caseId}`);
+				} else if (redirectTo) {
+					navigate.push(redirectTo);
+				} else {
+					navigate.push('/dashboards/analytics');
+				}
 			}
 		} catch (error: any) {
 			showNotification({ message: error.toString(), type: 'error' });

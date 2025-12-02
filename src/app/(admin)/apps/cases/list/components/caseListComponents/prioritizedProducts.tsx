@@ -41,8 +41,7 @@ const PrioritizedProducts = ({ projects }: Props) => {
         ...(statusId && { status_id: statusId }),
       };
 
-      // Só salva no localStorage se for do usuário atual (não foi alterado manualmente)
-      // Verifica se há um flag indicando que o usuário foi alterado manualmente
+    
       try {
         const userChangedManually = sessionStorage.getItem('userFilterChangedManually');
         if (!userChangedManually && userId === currentUserId) {

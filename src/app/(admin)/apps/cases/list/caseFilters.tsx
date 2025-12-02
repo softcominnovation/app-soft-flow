@@ -166,14 +166,16 @@ const CaseFilters = () => {
 		const payload: ICaseFilter = trimmedCaseNumber
 			? { numero_caso: trimmedCaseNumber }
 					: {
-							status_descricao: data.status_descricao || undefined,
-							produto_id: data.produto_id || undefined,
-							projeto_id: data.projeto_id || undefined,
-							versao_produto: data.versao_produto || undefined,
+							...(data.status_descricao && { status_descricao: data.status_descricao }),
+							...(data.status_id && { status_id: data.status_id }),
+							...(data.produto_id && { produto_id: data.produto_id }),
+							...(data.projeto_id && { projeto_id: data.projeto_id }),
+							...(data.versao_produto && data.versao_produto.trim() !== '' && { versao_produto: data.versao_produto }),
 							usuario_dev_id: selectedUserId,
 							sort_by: 'prioridade',
 						};
 
+		console.log('Payload final:', payload);
 		fetchCases(payload);
 	};
 
@@ -281,7 +283,7 @@ const CaseFilters = () => {
 											value={selectedVersion}
 											onChange={(option) => {
 												setSelectedVersion(option);
-												field.onChange(option?.value ?? '');
+												field.onChange(option?.data?.versao ?? '');
 											}}
 											onBlur={field.onBlur}
 											onMenuOpen={() => {
