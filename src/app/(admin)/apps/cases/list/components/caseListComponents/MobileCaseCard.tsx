@@ -92,7 +92,7 @@ export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
 
 			<div>
 				<p className="mb-1 text-muted small">Resumo</p>
-				<p className="mb-0 text-break">{summary}</p>
+				<p className="mb-0 text-break" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{summary}</p>
 			</div>
 
 			<div className="mt-3 d-flex gap-2" onClick={(e) => e.stopPropagation()}>

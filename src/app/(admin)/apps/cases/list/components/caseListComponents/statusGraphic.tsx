@@ -24,7 +24,7 @@ const StatusGraphic = ({ projects }: Props) => {
 	);
 
 	const labels = ['Abertos', 'Corrigidos', 'Resolvidos', 'Retornos'];
-	const colors = ['#f59e0b', '#0dcaf0', '#0acf97', '#fa5c7c'];
+	const colors = ['#4A5568', '#0dcaf0', '#0acf97', '#fa5c7c'];
 	const donutChartData = {
 		labels,
 		datasets: [

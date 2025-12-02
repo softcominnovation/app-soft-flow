@@ -45,7 +45,7 @@ export default function CaseRow({ case: caseData, index, onView, onFinalize, isF
 			</td>
 
 			<td className="py-2" style={{ maxWidth: 360 }}>
-				<p className="mb-0 text-truncate" title={caseData.caso.textos.descricao_resumo}>
+				<p className="mb-0" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }} title={caseData.caso.textos.descricao_resumo}>
 					{caseData.caso.textos.descricao_resumo}
 				</p>
 			</td>

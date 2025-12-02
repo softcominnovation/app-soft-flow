@@ -233,7 +233,10 @@ export default function ActiveCaseIndicator() {
 			? (caseData.caso.tempos.realizado_minutos ?? 0) > (caseData.caso.tempos.estimado_minutos ?? 0)
 			: false;
 
-		const cardBgClass = isTimeExceeded ? 'bg-danger' : 'bg-primary';
+		const cardBgClass = isTimeExceeded ? 'bg-danger' : '';
+		const cardBgStyle = isTimeExceeded 
+			? {} 
+			: { backgroundColor: 'var(--bs-menu-bg, #1F2937)' };
 
 		return (
 			<>
@@ -248,7 +251,7 @@ export default function ActiveCaseIndicator() {
 					role="button"
 					aria-label="Abrir caso em andamento"
 				>
-					<Card className={`shadow-lg border-0 ${cardBgClass} text-white`}>
+					<Card className={`shadow-lg border-0 ${cardBgClass} text-white`} style={cardBgStyle}>
 						<Card.Body className="d-flex gap-3 align-items-start">
 							<div className="flex-shrink-0 d-flex align-items-center">
 								{opening ? (
@@ -324,6 +327,7 @@ export default function ActiveCaseIndicator() {
 						...basePosition,
 						minWidth: '64px',
 						height: '64px',
+						...(isTimeExceeded ? {} : { backgroundColor: 'var(--bs-menu-bg, #1F2937)' }),
 					}}
 					onClick={handleOpenModal}
 					title={elapsedTime ? `Caso em andamento - ${elapsedTime}` : 'Caso em andamento'}
