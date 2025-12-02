@@ -7,6 +7,10 @@
 }
 
 .button {
+  white-space: nowrap;
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  
   @media (max-width: 575.98px) {
     flex: 1 1 auto;
     width: auto;

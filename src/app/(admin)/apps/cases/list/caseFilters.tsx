@@ -47,17 +47,20 @@ const CaseFilters = ({
 	const { fetchCases, loading } = useCasesContext();
 	const [internalShowFilters, setInternalShowFilters] = useState(false);
 	
-	// Usa controle externo se fornecido, senão usa interno
-	const showFilters = externalShowFilters !== undefined ? externalShowFilters : internalShowFilters;
-	const setShowFilters = externalShowFilters !== undefined 
-		? (onCloseFiltersDrawer || (() => {}))
-		: setInternalShowFilters;
+	// Desktop sempre usa estado interno para o Collapse
+	// Mobile usa estado externo para o Drawer
+	const showFiltersDesktop = internalShowFilters;
+	const showFiltersMobile = externalShowFilters !== undefined ? externalShowFilters : false;
 	
-	const toggleFilters = () => {
-		if (externalShowFilters !== undefined && onOpenFiltersDrawer) {
+	// Função para desktop (sempre usa estado interno)
+	const toggleFiltersDesktop = () => {
+		setInternalShowFilters(prev => !prev);
+	};
+	
+	// Função para mobile (usa estado externo)
+	const toggleFiltersMobile = () => {
+		if (onOpenFiltersDrawer) {
 			onOpenFiltersDrawer();
-		} else {
-			setInternalShowFilters(prev => !prev);
 		}
 	};
 	const produtoId = methods.watch('produto_id');
@@ -213,13 +216,24 @@ const CaseFilters = ({
 							type="button" 
 							variant="outline-secondary" 
 							size="sm" 
-							onClick={toggleFilters}
+							onClick={toggleFiltersDesktop}
 							className="d-none d-lg-inline-flex"
 						>
 							<i className="uil uil-search" />
 						</Button>
 						
-						{!showFilters && (
+						{/* Mobile: botão para abrir drawer */}
+						<Button 
+							type="button" 
+							variant="outline-secondary" 
+							size="sm" 
+							onClick={toggleFiltersMobile}
+							className="d-inline-flex d-lg-none"
+						>
+							<i className="uil uil-search" />
+						</Button>
+						
+						{!showFiltersDesktop && (
 							<>
 								{/* Desktop e telas >= sm: comportamento antigo (sem expandir) */}
 								<Button
@@ -246,7 +260,7 @@ const CaseFilters = ({
 				</div>
 				
 				{/* Desktop: mantém Collapse */}
-				<Collapse in={showFilters} mountOnEnter unmountOnExit className="d-none d-lg-block">
+				<Collapse in={showFiltersDesktop} mountOnEnter unmountOnExit className="d-none d-lg-block">
 					<div>
 						<Row className="g-3 g-lg-4 align-items-end">
 							<Col xs={12} sm={6} md={4} lg={3}>
@@ -420,19 +434,18 @@ const CaseFilters = ({
 				</Collapse>
 				
 				{/* Mobile: Drawer */}
-				<BottomDrawer
-					show={showFilters}
-					onHide={() => {
-						if (externalShowFilters !== undefined && onCloseFiltersDrawer) {
-							onCloseFiltersDrawer();
-						} else {
-							setInternalShowFilters(false);
-						}
-					}}
-					title="Filtros de Casos"
-					icon="lucide:filter"
-					maxHeight="90vh"
-				>
+				<div className="d-lg-none">
+					<BottomDrawer
+						show={showFiltersMobile}
+						onHide={() => {
+							if (onCloseFiltersDrawer) {
+								onCloseFiltersDrawer();
+							}
+						}}
+						title="Filtros de Casos"
+						icon="lucide:filter"
+						maxHeight="90vh"
+					>
 					<Row className="g-3 align-items-end">
 						<Col xs={12}>
 							<Form.Label className="fw-medium text-muted small">Numero do caso</Form.Label>
@@ -615,7 +628,8 @@ const CaseFilters = ({
 							</Button>
 						</Col>
 					</Row>
-				</BottomDrawer>
+					</BottomDrawer>
+				</div>
 			</form>
 		</FormProvider>
 	);
