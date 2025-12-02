@@ -48,22 +48,22 @@ const StatusGraphic = ({ projects }: Props) => {
 	};
 
 	return (
-		<Card style={{ height: 360, overflow: 'hidden' }}>
+		<Card className="d-lg-block">
 			<CardBody>
 				<CardTitle
-					containerClass="d-flex align-items-center justify-content-between"
+					containerClass="d-flex align-items-center justify-content-between mb-3"
 					title="Status dos Produtos"
 				/>
 
-				<div className="my-3 chartjs-chart" style={{ height: 'clamp(120px, 35vw, 150px)' }}>
+				<div className="my-3 chartjs-chart" style={{ height: 'clamp(180px, 45vw, 200px)', minHeight: '180px' }}>
 					<Doughnut data={donutChartData} options={donutChartOpts} />
 				</div>
 
-				<Row className="text-center mt-1 py-1 g-2">
+				<Row className="text-center mt-2 py-2 g-2">
 					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
 							<i className="mdi mdi-folder-open-outline text-warning mt-1 fs-5"></i>
-							<h5 className="fw-normal mb-0">
+							<h5 className="fw-normal mb-0 mt-1">
 								<span>{totals.abertos}</span>
 							</h5>
 							<p className="text-muted mb-0 small">Abertos</p>
@@ -73,7 +73,7 @@ const StatusGraphic = ({ projects }: Props) => {
 					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
 							<i className="mdi mdi-folder-check-outline text-info mt-1 fs-5"></i>
-							<h5 className="fw-normal mb-0">
+							<h5 className="fw-normal mb-0 mt-1">
 								<span>{totals.corrigidos}</span>
 							</h5>
 							<p className="text-muted mb-0 small">Corrigidos</p>
@@ -83,7 +83,7 @@ const StatusGraphic = ({ projects }: Props) => {
 					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
 							<i className="mdi mdi-check-circle-outline text-success mt-1 fs-5"></i>
-							<h5 className="fw-normal mb-0">
+							<h5 className="fw-normal mb-0 mt-1">
 								<span>{totals.resolvidos}</span>
 							</h5>
 							<p className="text-muted mb-0 small">Resolvidos</p>
@@ -93,7 +93,7 @@ const StatusGraphic = ({ projects }: Props) => {
 					<Col xs={6} sm={3}>
 						<div className="my-1 my-sm-0">
 							<i className="mdi mdi-backup-restore text-danger mt-1 fs-5"></i>
-							<h5 className="fw-normal mb-0">
+							<h5 className="fw-normal mb-0 mt-1">
 								<span>{totals.retornos}</span>
 							</h5>
 							<p className="text-muted mb-0 small">Retornos</p>

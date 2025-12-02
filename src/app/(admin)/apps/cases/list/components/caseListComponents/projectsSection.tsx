@@ -9,7 +9,19 @@ import React, { useEffect, useState } from "react";
 import ProjectsSectionSkelleton from "@/app/(admin)/apps/cases/list/skelletons/projectsSectionSkelleton";
 import { useCasesContext } from "@/contexts/casesContext";
 
-export default function ProjectsSection(){
+type ProjectsSectionProps = {
+	onOpenProductsDrawer?: () => void;
+	showProductsDrawer?: boolean;
+	onCloseProductsDrawer?: () => void;
+	mobileOnly?: boolean;
+};
+
+export default function ProjectsSection({
+	onOpenProductsDrawer,
+	showProductsDrawer: externalShowProducts,
+	onCloseProductsDrawer,
+	mobileOnly = false
+}: ProjectsSectionProps = {}){
     const { currentFilters, pendingFilters } = useCasesContext();
     const [projects, setProjects] = useState<IAgendaDevAssistant[]>([]);
     const [loading, setLoading] = useState(true);
@@ -45,12 +57,19 @@ export default function ProjectsSection(){
 
     return (
         <Row className="gy-2 gy-lg-3">	
-            <Col lg={4}>
+            <Col lg={4} xs={12}>
                 <StatusGraphic projects={projects} />
             </Col>
-            <Col lg={8}>
-                <PrioritizedProducts projects={projects}/>		
-            </Col>
+            {!mobileOnly && (
+                <Col lg={8}>
+                    <PrioritizedProducts 
+                      projects={projects}
+                      onOpenDrawer={onOpenProductsDrawer}
+                      showDrawer={externalShowProducts}
+                      onCloseDrawer={onCloseProductsDrawer}
+                    />		
+                </Col>
+            )}
         </Row>
     );
 }

@@ -2,14 +2,19 @@
 import CardTitle from '@/components/CardTitle';
 import IAgendaDevAssistant from '@/types/assistant/IAgendaDevAssistant';
 import Link from 'next/link';
-import { Card, Col, Row, Table } from 'react-bootstrap';
+import { Card, Col, Row, Table, Button } from 'react-bootstrap';
 import { useCasesContext } from '@/contexts/casesContext';
 import ICaseFilter from '@/types/cases/ICaseFilter';
 import Cookies from 'js-cookie';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import ProductsDrawer from './ProductsDrawer';
 
 type Props = {
   projects: IAgendaDevAssistant[];
+  onOpenDrawer?: () => void;
+  showDrawer?: boolean;
+  onCloseDrawer?: () => void;
 };
 
 type StatusType = 'abertos' | 'corrigidos' | 'resolvidos' | 'retornos';
@@ -24,8 +29,20 @@ const mapStatusToId = (status: StatusType): number | number[] | undefined => {
   return statusMap[status];
 };
 
-const PrioritizedProducts = ({ projects }: Props) => {
+const PrioritizedProducts = ({ 
+  projects, 
+  onOpenDrawer, 
+  showDrawer: externalShowDrawer, 
+  onCloseDrawer 
+}: Props) => {
   const { fetchCases, loading } = useCasesContext();
+  const [internalShowDrawer, setInternalShowDrawer] = useState(false);
+  
+  // Usa controle externo se fornecido, senão usa interno
+  const showDrawer = externalShowDrawer !== undefined ? externalShowDrawer : internalShowDrawer;
+  const setShowDrawer = externalShowDrawer !== undefined 
+    ? (onCloseDrawer || (() => {}))
+    : setInternalShowDrawer;
 
   const handleStatusClick = useCallback(
     (project: IAgendaDevAssistant, status: StatusType) => {
@@ -62,12 +79,13 @@ const PrioritizedProducts = ({ projects }: Props) => {
     [fetchCases]
   );
   return (
-    <Card style={{ height: 360, overflowY: 'auto' }}>
-      <Card.Body>
-        <CardTitle
-          containerClass="d-flex align-items-center justify-content-between mb-2"
-          title="Produtos"
-        />
+    <>
+      <Card style={{ height: 360, overflowY: 'auto' }} className="d-none d-lg-block">
+        <Card.Body>
+          <CardTitle
+            containerClass="d-flex align-items-center justify-content-between mb-2"
+            title="Produtos"
+          />
 
         {/* Desktop (lg+) - tabela */}
         <div className="d-none d-lg-block">
@@ -153,93 +171,22 @@ const PrioritizedProducts = ({ projects }: Props) => {
           </Table>
         </div>
 
-        {/* Mobile (< lg) - cards compactos, distintos da listagem de casos */}
-        <div className="d-lg-none">
-          {projects.map((project, index) => (
-            <div key={index} className="border rounded-3 p-3 mb-2 shadow-sm bg-body-tertiary w-100">
-              <div className="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                  <button
-                    type="button"
-                    className="fw-semibold border-0 bg-transparent p-0 text-start"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleStatusClick(project, 'abertos')}
-                    disabled={loading}
-                    title="Filtrar casos abertos deste projeto"
-                  >
-                    {project.produto}
-                  </button>
-                  <div className="text-muted small">Versão {project.versao}</div>
-                </div>
-                <div className="badge bg-light text-muted">ID {project.id_produto}</div>
-              </div>
-              <Row className="text-center g-2">
-                <Col xs={6} className="py-1">
-                  <div className="text-muted small mb-1">Abertos</div>
-                  <div>
-                    <button
-                      type="button"
-                      className="badge badge-warning-lighten border-0 px-2 py-1 fs-5 fw-bold w-100"
-                      style={{ cursor: loading || !project.abertos || project.abertos === '0' ? 'not-allowed' : 'pointer' }}
-                      onClick={() => handleStatusClick(project, 'abertos')}
-                      disabled={loading || !project.abertos || project.abertos === '0'}
-                      title="Filtrar casos abertos deste projeto"
-                    >
-                      {project.abertos}
-                    </button>
-                  </div>
-                </Col>
-                <Col xs={6} className="py-1">
-                  <div className="text-muted small mb-1">Corrigidos</div>
-                  <div>
-                    <button
-                      type="button"
-                      className="badge badge-info-lighten border-0 px-2 py-1 fs-5 fw-bold w-100"
-                      style={{ cursor: loading || !project.corrigidos || project.corrigidos === '0' ? 'not-allowed' : 'pointer' }}
-                      onClick={() => handleStatusClick(project, 'corrigidos')}
-                      disabled={loading || !project.corrigidos || project.corrigidos === '0'}
-                      title="Filtrar casos corrigidos deste projeto"
-                    >
-                      {project.corrigidos}
-                    </button>
-                  </div>
-                </Col>
-                <Col xs={6} className="py-1">
-                  <div className="text-muted small mb-1">Resolvidos</div>
-                  <div>
-                    <button
-                      type="button"
-                      className="badge badge-success-lighten border-0 px-2 py-1 fs-5 fw-bold w-100"
-                      style={{ cursor: loading || !project.resolvidos || project.resolvidos === '0' ? 'not-allowed' : 'pointer' }}
-                      onClick={() => handleStatusClick(project, 'resolvidos')}
-                      disabled={loading || !project.resolvidos || project.resolvidos === '0'}
-                      title="Filtrar casos resolvidos deste projeto"
-                    >
-                      {project.resolvidos}
-                    </button>
-                  </div>
-                </Col>
-                <Col xs={6} className="py-1">
-                  <div className="text-muted small mb-1">Retornos</div>
-                  <div>
-                    <button
-                      type="button"
-                      className="badge badge-danger-lighten border-0 px-2 py-1 fs-5 fw-bold w-100"
-                      style={{ cursor: loading || !project.retornos || project.retornos === '0' ? 'not-allowed' : 'pointer' }}
-                      onClick={() => handleStatusClick(project, 'retornos')}
-                      disabled={loading || !project.retornos || project.retornos === '0'}
-                      title="Filtrar retornos deste projeto"
-                    >
-                      {project.retornos}
-                    </button>
-                  </div>
-                </Col>
-              </Row>
-            </div>
-          ))}
-        </div>
-      </Card.Body>
-    </Card>
+        </Card.Body>
+      </Card>
+      
+      {/* Drawer para mobile */}
+      <ProductsDrawer
+        show={showDrawer}
+        onHide={() => {
+          if (externalShowDrawer !== undefined && onCloseDrawer) {
+            onCloseDrawer();
+          } else {
+            setInternalShowDrawer(false);
+          }
+        }}
+        projects={projects}
+      />
+    </>
   );
 };
 

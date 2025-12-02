@@ -21,6 +21,7 @@ import IUserAssistant from '@/types/assistant/IUserAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import CasesModal from './casesModal';
+import BottomDrawer from '@/components/BottomDrawer';
 
 type StatusOption = { value: string; label: string };
 
@@ -31,11 +32,34 @@ const statusOptions: StatusOption[] = [
 	{ value: 'CONCLUIDO', label: 'CONCLUIDO' },
 ];
 
-const CaseFilters = () => {
+type CaseFiltersProps = {
+	onOpenFiltersDrawer?: () => void;
+	showFiltersDrawer?: boolean;
+	onCloseFiltersDrawer?: () => void;
+};
+
+const CaseFilters = ({ 
+	onOpenFiltersDrawer, 
+	showFiltersDrawer: externalShowFilters, 
+	onCloseFiltersDrawer 
+}: CaseFiltersProps = {}) => {
 	const methods = useForm<ICaseFilter>();
 	const { fetchCases, loading } = useCasesContext();
-	const [showFilters, setShowFilters] = useState(false);
-	const toggleFilters = () => setShowFilters(prev => !prev);
+	const [internalShowFilters, setInternalShowFilters] = useState(false);
+	
+	// Usa controle externo se fornecido, senão usa interno
+	const showFilters = externalShowFilters !== undefined ? externalShowFilters : internalShowFilters;
+	const setShowFilters = externalShowFilters !== undefined 
+		? (onCloseFiltersDrawer || (() => {}))
+		: setInternalShowFilters;
+	
+	const toggleFilters = () => {
+		if (externalShowFilters !== undefined && onOpenFiltersDrawer) {
+			onOpenFiltersDrawer();
+		} else {
+			setInternalShowFilters(prev => !prev);
+		}
+	};
 	const produtoId = methods.watch('produto_id');
 	const projetoId = methods.watch('projeto_id');
 	const usuarioId = methods.watch('usuario_id');
@@ -181,25 +205,22 @@ const CaseFilters = () => {
 
 	return (
 		<FormProvider {...methods}>
-			<form onSubmit={methods.handleSubmit(onSearch)} className="mb-3">
-				<div className="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 mb-3">
+			<form onSubmit={methods.handleSubmit(onSearch)} className="mb-0 mb-lg-3">
+				<div className="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 mb-0 mb-lg-3">
 					<div className="d-flex align-items-center gap-2 w-100 w-sm-auto">
-						<Button type="button" variant="outline-secondary" size="sm" onClick={toggleFilters}>
+						{/* Desktop: mantém Collapse */}
+						<Button 
+							type="button" 
+							variant="outline-secondary" 
+							size="sm" 
+							onClick={toggleFilters}
+							className="d-none d-lg-inline-flex"
+						>
 							<i className="uil uil-search" />
 						</Button>
+						
 						{!showFilters && (
 							<>
-								{/* Mobile: ocupa o restante da linha */}
-								<Button
-									type="submit"
-									variant="primary"
-									size="sm"
-									disabled={loading}
-									className="d-inline-flex d-sm-none flex-grow-1 w-100"
-								>
-									{loading ? 'Pesquisando...' : 'Pesquisar'}
-								</Button>
-
 								{/* Desktop e telas >= sm: comportamento antigo (sem expandir) */}
 								<Button
 									type="submit"
@@ -213,14 +234,19 @@ const CaseFilters = () => {
 							</>
 						)}
 					</div>
-					<CasesModal
-						containerClassName="d-flex ms-sm-auto justify-content-sm-end w-100 w-sm-auto"
-						buttonProps={{
-							size: 'sm',
-						}}
-					/>
+					{/* Desktop: mostra botão de adicionar caso */}
+					<div className="d-none d-lg-block">
+						<CasesModal
+							containerClassName="d-flex ms-sm-auto justify-content-sm-end w-100 w-sm-auto"
+							buttonProps={{
+								size: 'sm',
+							}}
+						/>
+					</div>
 				</div>
-				<Collapse in={showFilters} mountOnEnter unmountOnExit>
+				
+				{/* Desktop: mantém Collapse */}
+				<Collapse in={showFilters} mountOnEnter unmountOnExit className="d-none d-lg-block">
 					<div>
 						<Row className="g-3 g-lg-4 align-items-end">
 							<Col xs={12} sm={6} md={4} lg={3}>
@@ -392,6 +418,204 @@ const CaseFilters = () => {
 						</Row>
 					</div>
 				</Collapse>
+				
+				{/* Mobile: Drawer */}
+				<BottomDrawer
+					show={showFilters}
+					onHide={() => {
+						if (externalShowFilters !== undefined && onCloseFiltersDrawer) {
+							onCloseFiltersDrawer();
+						} else {
+							setInternalShowFilters(false);
+						}
+					}}
+					title="Filtros de Casos"
+					icon="lucide:filter"
+					maxHeight="90vh"
+				>
+					<Row className="g-3 align-items-end">
+						<Col xs={12}>
+							<Form.Label className="fw-medium text-muted small">Numero do caso</Form.Label>
+							<TextInput
+								{...methods.register('numero_caso')}
+								type="text"
+								name="numero_caso"
+								placeholder="Digite o numero..."
+								className="form-control-sm"
+							/>
+						</Col>
+						<Col xs={12}>
+							<Form.Label className="fw-medium text-muted small">Produto</Form.Label>
+							<Controller
+								name="produto_id"
+								control={methods.control}
+								render={({ field }) => (
+									<AsyncSelect<AsyncSelectOption<IProductAssistant>, false>
+										cacheOptions
+										defaultOptions={selectedProduct ? [selectedProduct] : defaultProductOptions}
+										loadOptions={loadProductOptions}
+										inputId="produto-id"
+										className="react-select case-status-select"
+										classNamePrefix="react-select"
+										placeholder="Pesquise um produto..."
+										isClearable
+										value={selectedProduct}
+										onChange={(option) => {
+											setSelectedProduct(option);
+											field.onChange(option?.value ?? '');
+										}}
+										onBlur={field.onBlur}
+										onMenuOpen={() => {
+											triggerProductDefaultLoad();
+										}}
+										noOptionsMessage={() => (isLoadingProducts ? 'Carregando...' : 'Nenhum produto encontrado')}
+										loadingMessage={() => 'Carregando...'}
+									/>
+								)}
+							/>
+						</Col>
+						<Col xs={12}>
+							<Form.Label className="fw-medium text-muted small">Versões</Form.Label>
+							<Controller
+								name="versao_produto"
+								control={methods.control}
+								render={({ field }) => (
+									<AsyncSelect<AsyncSelectOption<IVersionAssistant>, false>
+										cacheOptions
+										defaultOptions={selectedVersion ? [selectedVersion] : defaultVersionOptions}
+										loadOptions={loadVersionOptions}
+										inputId="versao-produto-id"
+										className="react-select case-status-select"
+										classNamePrefix="react-select"
+										styles={asyncSelectStyles}
+										placeholder={!produtoId ? 'Selecione um produto primeiro' : 'Pesquise uma versão...'}
+										isClearable
+										isDisabled={!produtoId}
+										value={selectedVersion}
+										onChange={(option) => {
+											setSelectedVersion(option);
+											field.onChange(option?.raw?.versao ?? '');
+										}}
+										onBlur={field.onBlur}
+										onMenuOpen={() => {
+											if (produtoId) {
+												triggerVersionDefaultLoad();
+											}
+										}}
+										noOptionsMessage={() => (isLoadingVersions ? 'Carregando...' : !produtoId ? 'Selecione um produto primeiro' : 'Nenhuma versão encontrada')}
+										loadingMessage={() => 'Carregando...'}
+									/>
+								)}
+							/>
+						</Col>
+						<Col xs={12}>
+							<Form.Label className="fw-medium text-muted small">Projeto</Form.Label>
+							<Controller
+								name="projeto_id"
+								control={methods.control}
+								render={({ field }) => (
+									<AsyncSelect<AsyncSelectOption<IProjectAssistant>, false>
+										cacheOptions
+										defaultOptions={selectedProject ? [selectedProject] : defaultProjectOptions}
+										loadOptions={loadProjectOptions}
+										inputId="projeto-id"
+										className="react-select case-status-select"
+										classNamePrefix="react-select"
+										placeholder="Pesquise um projeto..."
+										isClearable
+										value={selectedProject}
+										onChange={(option) => {
+											setSelectedProject(option);
+											field.onChange(option?.value ?? '');
+										}}
+										onBlur={field.onBlur}
+										onMenuOpen={() => {
+											triggerProjectDefaultLoad();
+										}}
+										noOptionsMessage={() => (isLoadingProjects ? 'Carregando...' : 'Nenhum projeto encontrado')}
+										loadingMessage={() => 'Carregando...'}
+									/>
+								)}
+							/>
+						</Col>
+						<Col xs={12}>
+							<Form.Label className="fw-medium text-muted small">Usuario</Form.Label>
+							<Controller
+								name="usuario_id"
+								control={methods.control}
+								render={({ field }) => (
+									<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
+										cacheOptions
+										defaultOptions={selectedUser ? [selectedUser] : defaultUserOptions}
+										loadOptions={loadUserOptions}
+										inputId="usuario-id"
+										className="react-select case-status-select"
+										classNamePrefix="react-select"
+										placeholder="Pesquise um usuario..."
+										isClearable
+										value={selectedUser}
+										onChange={(option) => {
+											setSelectedUser(option);
+											field.onChange(option?.value ?? '');
+										}}
+										onBlur={field.onBlur}
+										onMenuOpen={() => {
+											triggerUserDefaultLoad();
+										}}
+										noOptionsMessage={() => (isLoadingUsers ? 'Carregando...' : 'Nenhum usuario encontrado')}
+										loadingMessage={() => 'Carregando...'}
+									/>
+								)}
+							/>
+						</Col>
+						<Col xs={12}>
+							<Form.Label className="fw-medium text-muted small">Status</Form.Label>
+							<Controller
+								name="status_descricao"
+								control={methods.control}
+								render={({ field }) => (
+									<Select
+										inputId="status-descricao"
+										className="react-select case-status-select"
+										classNamePrefix="react-select"
+										options={statusOptions}
+										placeholder="Selecione um status..."
+										isClearable
+										value={statusOptions.find((option) => option.value === field.value) ?? null}
+										onChange={(option) => field.onChange(option?.value ?? '')}
+									/>
+								)}
+							/>
+						</Col>
+						<Col xs={12} className="d-grid mt-2">
+							<Button 
+								type="submit" 
+								variant="primary" 
+								size="sm" 
+								disabled={loading} 
+								className="w-100"
+								onClick={() => {
+									methods.handleSubmit(onSearch)();
+									if (externalShowFilters !== undefined && onCloseFiltersDrawer) {
+										onCloseFiltersDrawer();
+									} else {
+										setInternalShowFilters(false);
+									}
+								}}
+							>
+								{
+									loading ?
+									<span className='text-center d-flex align-items-center justify-content-center gap-2'>
+										<span>Pesquisando</span>
+										<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />
+									</span>
+									:
+									'Pesquisar'
+								}
+							</Button>
+						</Col>
+					</Row>
+				</BottomDrawer>
 			</form>
 		</FormProvider>
 	);
