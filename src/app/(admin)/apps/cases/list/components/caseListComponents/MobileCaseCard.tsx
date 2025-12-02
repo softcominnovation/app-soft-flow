@@ -14,6 +14,17 @@ type Props = {
 	onFinalize?: () => void;
 };
 
+/**
+ * Converte minutos para formato H:M
+ */
+const formatMinutesToHM = (minutes: number): string => {
+	const hours = Math.floor(minutes / 60);
+	const mins = minutes % 60;
+	const paddedHours = hours.toString().padStart(2, '0');
+	const paddedMinutes = mins.toString().padStart(2, '0');
+	return `${paddedHours}:${paddedMinutes}`;
+};
+
 export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
 	const caseId = `${item.caso.id}`;
 	const developerName = item.caso.usuarios.desenvolvimento?.nome || "Nao atribuido";
@@ -22,6 +33,8 @@ export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
 	const priority = item.caso.caracteristicas.prioridade || "N/A";
 	const statusTipo = item.caso.status.status_tipo;
 	const summary = item.caso.textos.descricao_resumo;
+	const estimado = item.caso.tempos?.estimado_minutos ?? 0;
+	const realizado = item.caso.tempos?.realizado_minutos ?? 0;
 	const [finalizing, setFinalizing] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
@@ -82,11 +95,29 @@ export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
 					<p className="mb-1 text-muted small">Versao</p>
 					<p className="mb-0 fw-medium">{version}</p>
 				</div>
+				<div>
+					<p className="mb-1 text-muted small">Projeto</p>
+					<p className="mb-0 fw-medium">{item.projeto?.id || '-'}</p>
+				</div>
 				<div className="text-end">
 					<p className="mb-1 text-muted small">Status</p>
 					<p className="mb-0 fw-semibold">
 						{statusTipo || "-"}
 					</p>
+				</div>
+			</div>
+
+			<div className="mb-2">
+				<p className="mb-1 text-muted small">Tempo</p>
+				<div className="d-flex gap-3">
+					<div>
+						<span className="text-muted small">Est: </span>
+						<span className="fw-semibold">{formatMinutesToHM(estimado)}</span>
+					</div>
+					<div>
+						<span className="text-muted small">Real: </span>
+						<span className="fw-semibold">{formatMinutesToHM(realizado)}</span>
+					</div>
 				</div>
 			</div>
 

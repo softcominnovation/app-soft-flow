@@ -33,9 +33,11 @@ export default function CasesTableDesktop({
 						<th className="py-3">Atribuido</th>
 						<th className="py-3">Produto</th>
 						<th className="py-3">Versao</th>
+						<th className="py-3">Projeto</th>
 						<th className="py-3">Prioridade</th>
 						<th className="py-3">Descricao / Resumo</th>
 						<th className="py-3">Status</th>
+						<th className="py-3">Tempo</th>
 						<th className="py-3 text-center" style={{ width: '125px' }}>
 							Ações
 						</th>
@@ -61,7 +63,7 @@ export default function CasesTableDesktop({
 						</>
 					) : (
 						<tr>
-							<td colSpan={9} className="text-center text-muted py-4">
+							<td colSpan={10} className="text-center text-muted py-4">
 								Nenhum caso encontrado.
 							</td>
 						</tr>

@@ -12,10 +12,23 @@ interface CaseRowProps {
 }
 
 /**
+ * Converte minutos para formato H:M
+ */
+const formatMinutesToHM = (minutes: number): string => {
+	const hours = Math.floor(minutes / 60);
+	const mins = minutes % 60;
+	const paddedHours = hours.toString().padStart(2, '0');
+	const paddedMinutes = mins.toString().padStart(2, '0');
+	return `${paddedHours}:${paddedMinutes}`;
+};
+
+/**
  * Componente que representa uma linha da tabela de casos
  */
 export default function CaseRow({ case: caseData, index, onView, onFinalize, isFinalizing = false }: CaseRowProps) {
 	const caseId = caseData.caso.id.toString();
+	const estimado = caseData.caso.tempos?.estimado_minutos ?? 0;
+	const realizado = caseData.caso.tempos?.realizado_minutos ?? 0;
 
 	return (
 		<tr
@@ -41,6 +54,10 @@ export default function CaseRow({ case: caseData, index, onView, onFinalize, isF
 			</td>
 
 			<td className="py-2">
+				<span className="text-muted">{caseData.projeto?.id || '-'}</span>
+			</td>
+
+			<td className="py-2">
 				<span className="text-muted">{caseData.caso.caracteristicas.prioridade}</span>
 			</td>
 
@@ -52,6 +69,19 @@ export default function CaseRow({ case: caseData, index, onView, onFinalize, isF
 
 			<td className="py-2">
 				<h5 className="my-0 fs-6">{caseData.caso.status.status_tipo || '-'}</h5>
+			</td>
+
+			<td className="py-2">
+				<div className="d-flex flex-column">
+					<div className="small">
+						<span className="text-muted">Est: </span>
+						<span className="fw-semibold">{formatMinutesToHM(estimado)}</span>
+					</div>
+					<div className="small">
+						<span className="text-muted">Real: </span>
+						<span className="fw-semibold">{formatMinutesToHM(realizado)}</span>
+					</div>
+				</div>
 			</td>
 
 			<td className="py-2 text-center position-relative" onClick={(e) => e.stopPropagation()}>
