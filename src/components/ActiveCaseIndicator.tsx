@@ -358,6 +358,12 @@ export default function ActiveCaseIndicator() {
 			cursor: opening ? 'wait' : 'pointer',
 		} as const;
 
+		const mobilePosition = {
+			left: '1.5rem',
+			bottom: '80px', // Mesma altura do FloatingActionButton
+			zIndex: 1080,
+		} as const;
+
 		const isTimeExceeded = caseData?.caso.tempos
 			? (caseData.caso.tempos.realizado_minutos ?? 0) > (caseData.caso.tempos.estimado_minutos ?? 0)
 			: false;
@@ -448,9 +454,10 @@ export default function ActiveCaseIndicator() {
 					type="button"
 					className={`position-fixed d-flex d-md-none flex-column align-items-center justify-content-center gap-1 rounded shadow-lg border-0 ${cardBgClass} text-white px-3 py-2`}
 					style={{
-						...basePosition,
+						...mobilePosition,
 						minWidth: '64px',
 						height: '64px',
+						cursor: opening ? 'wait' : 'pointer',
 						...(isTimeExceeded ? {} : { backgroundColor: 'var(--bs-menu-bg, #1F2937)' }),
 					}}
 					onClick={handleOpenModal}
