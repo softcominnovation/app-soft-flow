@@ -29,11 +29,13 @@ export default function CaseRow({ case: caseData, index, onView, onFinalize, isF
 	const caseId = caseData.caso.id.toString();
 	const estimado = caseData.caso.tempos?.estimado_minutos ?? 0;
 	const realizado = caseData.caso.tempos?.realizado_minutos ?? 0;
+	const statusTempo = caseData.caso.tempos?.status_tempo;
+	const isTimeStarted = statusTempo === 'INICIADO';
 
 	return (
 		<tr
 			key={`${caseData.caso.id}-${index}`}
-			className="align-middle"
+			className={`align-middle ${isTimeStarted ? 'table-success' : ''}`}
 			style={{ cursor: 'pointer' }}
 			onClick={() => onView(caseId)}
 		>

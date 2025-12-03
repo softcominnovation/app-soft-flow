@@ -48,6 +48,8 @@ export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
 	const summary = item.caso.textos.descricao_resumo;
 	const estimado = item.caso.tempos?.estimado_minutos ?? 0;
 	const realizado = item.caso.tempos?.realizado_minutos ?? 0;
+	const statusTempo = item.caso.tempos?.status_tempo;
+	const isTimeStarted = statusTempo === 'INICIADO';
 	const [finalizing, setFinalizing] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
@@ -89,7 +91,7 @@ export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
 
 	return (
 		<div 
-			className="border rounded-3 mb-3 shadow-sm bg-body overflow-hidden"
+			className={`border rounded-3 mb-3 shadow-sm overflow-hidden ${isTimeStarted ? 'border-success border-2 bg-success bg-opacity-10' : 'bg-body'}`}
 			style={{ 
 				cursor: 'pointer',
 				transition: 'all 0.2s ease-in-out',
