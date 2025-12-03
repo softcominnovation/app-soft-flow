@@ -1,13 +1,21 @@
 "use client"
 import IconifyIcon from "@/components/wrappers/IconifyIcon";
 import { Anotacao } from "@/types/cases/ICase";
-import { Card, ListGroup } from "react-bootstrap";
+import { Card, ListGroup, Form, Button } from "react-bootstrap";
+import { useState } from "react";
+import { createAnotacao } from "@/services/caseServices";
+import { toast } from "react-toastify";
 
 type Props = {
     anotacoes: Anotacao[] | null | undefined;
+    registro: number;
+    onAnotacaoCreated?: () => void;
 }
 
-export default function CaseAnnotations({ anotacoes }: Props) {
+export default function CaseAnnotations({ anotacoes, registro, onAnotacaoCreated }: Props) {
+    const [anotacaoText, setAnotacaoText] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+
     const formatDate = (dateString: string) => {
         try {
             const date = new Date(dateString);
@@ -20,6 +28,28 @@ export default function CaseAnnotations({ anotacoes }: Props) {
             }).format(date);
         } catch {
             return dateString;
+        }
+    };
+
+    const handleSave = async () => {
+        if (!anotacaoText.trim()) {
+            toast.error('Por favor, digite uma anotação antes de salvar.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await createAnotacao(registro, anotacaoText.trim());
+            toast.success('Anotação criada com sucesso!');
+            setAnotacaoText("");
+            if (onAnotacaoCreated) {
+                onAnotacaoCreated();
+            }
+        } catch (error: any) {
+            console.error('Erro ao criar anotação:', error);
+            toast.error(error?.message || 'Erro ao criar anotação. Tente novamente.');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -41,6 +71,40 @@ export default function CaseAnnotations({ anotacoes }: Props) {
                 </h5>
             </Card.Header>
             <Card.Body className="p-0">
+                <div className="p-3 border-bottom">
+                    <Form.Group>
+                        <Form.Label className="fw-semibold mb-2">Nova Anotação</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={4}
+                            placeholder="Digite sua anotação aqui..."
+                            style={{ resize: 'vertical' }}
+                            value={anotacaoText}
+                            onChange={(e) => setAnotacaoText(e.target.value)}
+                            disabled={isSaving}
+                        />
+                    </Form.Group>
+                    <div className="d-flex justify-content-end mt-3">
+                        <Button 
+                            variant="success" 
+                            className="d-flex align-items-center"
+                            onClick={handleSave}
+                            disabled={isSaving || !anotacaoText.trim()}
+                        >
+                            {isSaving ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Salvando...
+                                </>
+                            ) : (
+                                <>
+                                    <IconifyIcon icon="lucide:save" className="me-2" />
+                                    Salvar
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
                 <ListGroup variant="flush">
                     {sortedAnotacoes.length > 0 ? (
                         sortedAnotacoes.map((anotacao, index) => (
@@ -91,6 +155,8 @@ export default function CaseAnnotations({ anotacoes }: Props) {
         </Card>
     );
 }
+
+
 
 
 

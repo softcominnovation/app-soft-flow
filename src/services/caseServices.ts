@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { ICaseEspecifiedResponse, ICaseResponse } from '@/types/cases/ICase';
+import { ICaseEspecifiedResponse, ICaseResponse, ICreateAnotacaoResponse } from '@/types/cases/ICase';
 import { ICaseProducaoResponse } from '@/types/cases/ICaseProducao';
 import IAgendaDevAssistant from '@/types/assistant/IAgendaDevAssistant';
 
@@ -99,4 +99,20 @@ export async function diaryDevAssistant(id_colaborador: string): Promise<IAgenda
             throw new Error(String(err));
         }
     }
+}
+
+export async function createAnotacao(registro: number, anotacoes: string): Promise<ICreateAnotacaoResponse> {
+	try {
+		const res: AxiosResponse<ICreateAnotacaoResponse> = await axios.post('/api/cases/anotacoes', {
+			registro,
+			anotacoes,
+		});
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
 }

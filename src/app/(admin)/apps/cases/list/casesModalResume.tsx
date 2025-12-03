@@ -7,9 +7,9 @@ import CaseAnnotations from './components/CaseAnnotations';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import TimetrackerSkelleton from "./skelletons/timetrackerSkelleton";
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
-import { finalizeCase } from '@/services/caseServices';
+import { finalizeCase, findCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { CasesContext } from '@/contexts/casesContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
@@ -17,13 +17,36 @@ interface Props {
 	open: boolean;
 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 	case: ICase | null;
+	setCase?: React.Dispatch<React.SetStateAction<ICase | null>>;
 }
 
-export default function CasesModalResume({ setOpen, open, case: caseData }: Props) {
+export default function CasesModalResume({ setOpen, open, case: caseData, setCase }: Props) {
 	const [finalizing, setFinalizing] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-const casesContext = useContext(CasesContext);
+	const [localCaseData, setLocalCaseData] = useState<ICase | null>(caseData);
+	const casesContext = useContext(CasesContext);
 	const fetchCases = casesContext?.fetchCases;
+
+	// Atualizar estado local quando caseData mudar
+	useEffect(() => {
+		setLocalCaseData(caseData);
+	}, [caseData]);
+
+	const handleAnotacaoCreated = async () => {
+		if (!caseData?.caso.id) return;
+		
+		try {
+			const response = await findCase(caseData.caso.id.toString());
+			if (response?.data) {
+				setLocalCaseData(response.data);
+				if (setCase) {
+					setCase(response.data);
+				}
+			}
+		} catch (error) {
+			console.error('Erro ao recarregar dados do caso:', error);
+		}
+	};
 
 	const handleClose = () => {
 		if (typeof window !== 'undefined') {
@@ -34,21 +57,21 @@ const casesContext = useContext(CasesContext);
 	};
 
 	const handleFinalizeCaseClick = () => {
-		if (!caseData?.caso.id || finalizing) {
+		if (!displayCaseData?.caso.id || finalizing) {
 			return;
 		}
 		setShowConfirmDialog(true);
 	};
 
 	const handleConfirmFinalize = async () => {
-		if (!caseData?.caso.id || finalizing) {
+		if (!displayCaseData?.caso.id || finalizing) {
 			return;
 		}
 
 		setFinalizing(true);
 		setShowConfirmDialog(false);
 		try {
-			await finalizeCase(caseData.caso.id.toString());
+			await finalizeCase(displayCaseData.caso.id.toString());
 			toast.success('Caso finalizado com sucesso!');
 			handleClose();
 			// Recarregar a listagem de casos se o contexto estiver disponível
@@ -67,7 +90,8 @@ const casesContext = useContext(CasesContext);
 		}
 	};
 
-	const hasAnotacoes = caseData?.caso.anotacoes && caseData.caso.anotacoes.length > 0;
+	const displayCaseData = localCaseData || caseData;
+	const hasAnotacoes = displayCaseData?.caso.anotacoes && displayCaseData.caso.anotacoes.length > 0;
 
 	return (
 		<>
@@ -98,12 +122,12 @@ const casesContext = useContext(CasesContext);
 					<div className="d-flex align-items-center">
 						<IconifyIcon icon="lucide:file-text" className="me-2 text-primary" />
 						<Modal.Title className="fw-bold text-body">
-							{!caseData ? (
+							{!displayCaseData ? (
 								<Placeholder as="span" animation="glow">
 									<Placeholder xs={3} />
 								</Placeholder>
 							) : (
-								`Caso #${caseData.caso.id}`
+								`Caso #${displayCaseData.caso.id}`
 							)}
 						</Modal.Title>
 					</div>
@@ -137,9 +161,9 @@ const casesContext = useContext(CasesContext);
 												style={hasAnotacoes ? { color: '#dc3545' } : {}}
 											/>
 											<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
-											{hasAnotacoes && caseData?.caso?.anotacoes && (
+											{hasAnotacoes && displayCaseData?.caso?.anotacoes && (
 												<span className="badge bg-danger ms-2" style={{ fontSize: '0.65rem' }}>
-													{caseData.caso.anotacoes.length}
+													{displayCaseData.caso.anotacoes.length}
 												</span>
 											)}
 										</Nav.Link>
@@ -154,11 +178,15 @@ const casesContext = useContext(CasesContext);
 								<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
 									<Tab.Content>
 										<Tab.Pane eventKey="resumo">
-											<ResumeForm caseData={caseData}/>
+											<ResumeForm caseData={displayCaseData}/>
 										</Tab.Pane>
 										<Tab.Pane eventKey="detalhes">
-											{caseData ? (
-												<CaseAnnotations anotacoes={caseData.caso.anotacoes || []} />
+											{displayCaseData ? (
+												<CaseAnnotations 
+													anotacoes={displayCaseData.caso.anotacoes || []} 
+													registro={displayCaseData.caso.id}
+													onAnotacaoCreated={handleAnotacaoCreated}
+												/>
 											) : (
 												<div className="text-center py-5">
 													<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
@@ -167,10 +195,10 @@ const casesContext = useContext(CasesContext);
 											)}
 										</Tab.Pane>
 										<Tab.Pane eventKey="tempo">
-											{!caseData ? (
+											{!displayCaseData ? (
 												<TimetrackerSkelleton/>
 											) : (
-												<CaseTimeTracker key={caseData.caso.id} caseData={caseData} />
+												<CaseTimeTracker key={displayCaseData.caso.id} caseData={displayCaseData} />
 											)}
 										</Tab.Pane>
 									</Tab.Content>
@@ -220,11 +248,15 @@ const casesContext = useContext(CasesContext);
 									<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
 										<Tab.Content>
 											<Tab.Pane eventKey="resumo">
-												<ResumeForm caseData={caseData}/>
+												<ResumeForm caseData={displayCaseData}/>
 											</Tab.Pane>
 											<Tab.Pane eventKey="detalhes">
-												{caseData ? (
-													<CaseAnnotations anotacoes={caseData.caso.anotacoes || []} />
+												{displayCaseData ? (
+													<CaseAnnotations 
+														anotacoes={displayCaseData.caso.anotacoes || []} 
+														registro={displayCaseData.caso.id}
+														onAnotacaoCreated={handleAnotacaoCreated}
+													/>
 												) : (
 													<div className="text-center py-5">
 														<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
@@ -257,7 +289,7 @@ const casesContext = useContext(CasesContext);
 					<Button 
 						variant="success" 
 						onClick={handleFinalizeCaseClick} 
-						disabled={finalizing || !caseData}
+						disabled={finalizing || !displayCaseData}
 						className="d-flex align-items-center"
 					>
 						{finalizing ? (
@@ -278,11 +310,11 @@ const casesContext = useContext(CasesContext);
 					</Button>
 				</Modal.Footer>
 			</Modal>
-			{caseData && (
+			{displayCaseData && (
 				<ConfirmDialog
 					show={showConfirmDialog}
 					title="Finalizar Caso"
-					message={`Deseja realmente finalizar o Caso #${caseData.caso.id}?`}
+					message={`Deseja realmente finalizar o Caso #${displayCaseData.caso.id}?`}
 					confirmText="Finalizar"
 					cancelText="Cancelar"
 					confirmVariant="success"

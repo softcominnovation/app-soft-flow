@@ -174,3 +174,14 @@ export interface Anotacao {
 	anotacoes: string | null;
 	usuario: string | null;
 }
+
+export interface ICreateAnotacaoResponse {
+	message: string;
+	data: {
+		sequencia: number;
+		registro: number;
+		data_anotacao: string;
+		usuario: string;
+		anotacoes: string;
+	};
+}
