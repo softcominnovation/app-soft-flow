@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, Spinner } from 'react-bootstrap';
+import { Card, Spinner, Button } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import CaseDescriptionCollapse from './ActiveCaseIndicator/CaseDescriptionCollapse';
+import CaseTimeControls from './ActiveCaseIndicator/CaseTimeControls';
 import { ACTIVE_CASE_EVENT, ACTIVE_CASE_STORAGE_KEY, CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT, ActiveCaseStorageData } from '@/constants/caseTimeTracker';
 import CasesModalResume from '@/app/(admin)/apps/cases/list/casesModalResume';
 import { ICase } from '@/types/cases/ICase';
 import { findCase, finalizeCase, startTimeCase, stopTimeCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
-import { Button } from 'react-bootstrap';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 const loadActiveCase = (): ActiveCaseStorageData | null => {
@@ -58,6 +59,7 @@ export default function ActiveCaseIndicator() {
 	const [caseData, setCaseData] = useState<ICase | null>(null);
 	const [timeLoading, setTimeLoading] = useState<boolean>(false);
 	const [isTimeRunning, setIsTimeRunning] = useState<boolean>(false);
+	const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
 	const formatElapsedTime = (startedAt: string) => {
 		const start = new Date(startedAt).getTime();
@@ -210,6 +212,8 @@ export default function ActiveCaseIndicator() {
 	useEffect(() => {
 		if (activeCase?.caseId) {
 			// Sempre recarregar os dados quando há um caso ativo
+			// Resetar o estado de expansão quando o caso muda
+			setIsExpanded(false);
 			findCase(activeCase.caseId)
 				.then((response) => {
 					if (response?.data) {
@@ -221,6 +225,7 @@ export default function ActiveCaseIndicator() {
 				});
 		} else {
 			setCaseData(null);
+			setIsExpanded(false);
 		}
 	}, [activeCase?.caseId]);
 
@@ -375,156 +380,66 @@ export default function ActiveCaseIndicator() {
 					aria-label="Abrir caso em andamento"
 				>
 					<Card className={`shadow-lg border-0 ${cardBgClass} text-white`} style={cardBgStyle}>
-						<Card.Body className="d-flex gap-3 align-items-start position-relative">
-							<Button
-								variant="link"
-								className="position-absolute top-0 end-0 p-2 text-white-50"
-								style={{
-									zIndex: 10,
-									textDecoration: 'none',
-									lineHeight: 1,
-									minWidth: 'auto',
-									width: '40px',
-									height: '40px',
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-								}}
-								onClick={handleCloseCard}
-								aria-label="Fechar card"
-							>
-								<IconifyIcon icon="lucide:x" style={{ fontSize: '24px' }} />
-							</Button>
-							<div className="flex-shrink-0 d-flex align-items-center">
-								{opening ? (
-									<Spinner animation="border" variant="light" size="sm" />
-								) : (
-									<IconifyIcon icon="lucide:timer" className="fs-3" />
-								)}
-							</div>
-							<div className="d-flex flex-column flex-grow-1" onClick={handleOpenModal} style={{ cursor: opening ? 'wait' : 'pointer' }}>
-								<strong className="small text-uppercase text-white-50">Caso em andamento</strong>
-								<span className="fw-semibold">Caso #{caseId}</span>
-								<small className="text-white-75">Iniciado em {startedLabel}</small>
-								{elapsedTime && (
-									<small className="text-white-75">Tempo decorrido: {elapsedTime}</small>
-								)}
-								{caseData?.caso.tempos && (() => {
-									const estimado = caseData.caso.tempos.estimado_minutos ?? 0;
-									const realizado = caseData.caso.tempos.realizado_minutos ?? 0;
-									const restante = Math.max(estimado - realizado, 0);
-									return (
-										<small className="text-white-75">Tempo restante: {formatMinutesToHours(restante)}</small>
-									);
-								})()}
-								<small className="text-white-50 mt-1">Clique para visualizar</small>
-								<div className="d-flex gap-2 mt-2">
-									{isTimeRunning ? (
-										<Button
-											variant="outline-light"
-											size="sm"
-											className="fw-semibold flex-grow-1"
-											onClick={handleStopTime}
-											disabled={timeLoading}
-											style={{ 
-												fontSize: '0.75rem',
-												borderWidth: '2px',
-												backgroundColor: 'rgba(255, 255, 255, 0.2)',
-												borderColor: 'rgba(255, 255, 255, 0.5)',
-												color: '#ffffff',
-												backdropFilter: 'blur(4px)'
-											}}
-											onMouseEnter={(e) => {
-												if (!timeLoading) {
-													e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-													e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.7)';
-												}
-											}}
-											onMouseLeave={(e) => {
-												if (!timeLoading) {
-													e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-													e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-												}
-											}}
-										>
-											{timeLoading ? (
-												<>
-													<Spinner animation="border" size="sm" className="me-1" variant="light" />
-													Parando...
-												</>
-											) : (
-												<>
-													<IconifyIcon icon="lucide:square" className="me-1" />
-													Parar tempo
-												</>
-											)}
-										</Button>
+						<Card.Body className="d-flex flex-column gap-2 position-relative">
+							<div className="d-flex gap-3 align-items-start">
+								<Button
+									variant="link"
+									className="position-absolute top-0 end-0 p-2 text-white-50"
+									style={{
+										zIndex: 10,
+										textDecoration: 'none',
+										lineHeight: 1,
+										minWidth: 'auto',
+										width: '40px',
+										height: '40px',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+									}}
+									onClick={handleCloseCard}
+									aria-label="Fechar card"
+								>
+									<IconifyIcon icon="lucide:x" style={{ fontSize: '24px' }} />
+								</Button>
+								<div className="flex-shrink-0 d-flex align-items-center">
+									{opening ? (
+										<Spinner animation="border" variant="light" size="sm" />
 									) : (
-										<Button
-											variant="success"
-											size="sm"
-											className="fw-semibold flex-grow-1"
-											onClick={handleStartTime}
-											disabled={timeLoading}
-											style={{ 
-												fontSize: '0.75rem',
-												borderWidth: '2px',
-											}}
-										>
-											{timeLoading ? (
-												<>
-													<Spinner animation="border" size="sm" className="me-1" variant="light" />
-													Iniciando...
-												</>
-											) : (
-												<>
-													<IconifyIcon icon="lucide:play" className="me-1" />
-													Iniciar tempo
-												</>
-											)}
-										</Button>
+										<IconifyIcon icon="lucide:timer" className="fs-3" />
 									)}
-									<Button
-										variant="outline-light"
-										size="sm"
-										className="fw-semibold"
-										onClick={handleFinalizeCaseClick}
-										disabled={finalizing}
-										style={{ 
-											fontSize: '0.75rem',
-											borderWidth: '2px',
-											backgroundColor: 'rgba(255, 255, 255, 0.2)',
-											borderColor: 'rgba(255, 255, 255, 0.5)',
-											color: '#ffffff',
-											backdropFilter: 'blur(4px)'
-										}}
-										onMouseEnter={(e) => {
-											if (!finalizing) {
-												e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-												e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.7)';
-											}
-										}}
-										onMouseLeave={(e) => {
-											if (!finalizing) {
-												e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-												e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-											}
-										}}
-									>
-										{finalizing ? (
-											<>
-												<Spinner animation="border" size="sm" className="me-1" variant="light" />
-												Finalizando...
-											</>
-										) : (
-											<>
-												<IconifyIcon icon="lucide:check-circle" className="me-1" />
-												Finalizar
-											</>
-										)}
-									</Button>
+								</div>
+								<div className="d-flex flex-column flex-grow-1" onClick={handleOpenModal} style={{ cursor: opening ? 'wait' : 'pointer' }}>
+									<strong className="small text-uppercase text-white-50">Caso em andamento</strong>
+									<span className="fw-semibold">Caso #{caseId}</span>
+									<small className="text-white-75">Iniciado em {startedLabel}</small>
+									{elapsedTime && (
+										<small className="text-white-75">Tempo decorrido: {elapsedTime}</small>
+									)}
+									{caseData?.caso.tempos && (() => {
+										const estimado = caseData.caso.tempos.estimado_minutos ?? 0;
+										const realizado = caseData.caso.tempos.realizado_minutos ?? 0;
+										const restante = Math.max(estimado - realizado, 0);
+										return (
+											<small className="text-white-75">Tempo restante: {formatMinutesToHours(restante)}</small>
+										);
+									})()}
+									<small className="text-white-50 mt-1">Clique para visualizar</small>
 								</div>
 							</div>
+							<CaseTimeControls
+								isTimeRunning={isTimeRunning}
+								timeLoading={timeLoading}
+								finalizing={finalizing}
+								isExpanded={isExpanded}
+								onStartTime={handleStartTime}
+								onStopTime={handleStopTime}
+								onFinalize={handleFinalizeCaseClick}
+								onToggleExpand={(e) => {
+									e.stopPropagation();
+									setIsExpanded(!isExpanded);
+								}}
+							/>
+							<CaseDescriptionCollapse caseData={caseData} isExpanded={isExpanded} />
 						</Card.Body>
 					</Card>
 				</div>
