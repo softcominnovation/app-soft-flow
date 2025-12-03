@@ -9,6 +9,7 @@ interface CasesTableMobileProps {
 	loadingMore: boolean;
 	onViewCase: (id: string) => void;
 	onFinalizeCase: () => void;
+	loadingCaseId: string | null;
 }
 
 /**
@@ -20,6 +21,7 @@ export default function CasesTableMobile({
 	loadingMore,
 	onViewCase,
 	onFinalizeCase,
+	loadingCaseId,
 }: CasesTableMobileProps) {
 	return (
 		<div className="d-md-none">
@@ -33,6 +35,7 @@ export default function CasesTableMobile({
 							item={caseData}
 							onView={onViewCase}
 							onFinalize={onFinalizeCase}
+							isLoading={loadingCaseId === caseData.caso.id.toString()}
 						/>
 					))}
 					{loadingMore && <MobileCaseSkeleton rows={15} />}

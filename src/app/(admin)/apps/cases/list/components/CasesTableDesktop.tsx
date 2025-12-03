@@ -11,6 +11,7 @@ interface CasesTableDesktopProps {
 	onViewCase: (id: string) => void;
 	onFinalizeCase: (id: string) => void;
 	finalizingCaseId: string | null;
+	loadingCaseId: string | null;
 }
 
 /**
@@ -23,6 +24,7 @@ export default function CasesTableDesktop({
 	onViewCase,
 	onFinalizeCase,
 	finalizingCaseId,
+	loadingCaseId,
 }: CasesTableDesktopProps) {
 	return (
 		<div className="d-none d-md-block">
@@ -57,6 +59,7 @@ export default function CasesTableDesktop({
 									onView={onViewCase}
 									onFinalize={onFinalizeCase}
 									isFinalizing={finalizingCaseId === caseData.caso.id.toString()}
+									isLoading={loadingCaseId === caseData.caso.id.toString()}
 								/>
 							))}
 							{loadingMore && <ListSkelleton rows={15} />}

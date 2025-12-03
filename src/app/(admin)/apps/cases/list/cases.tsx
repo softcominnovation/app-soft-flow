@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useCasesContext } from '@/contexts/casesContext';
 import CasesModalResume from './casesModalResume';
 import CasesTableDesktop from './components/CasesTableDesktop';
@@ -21,6 +21,7 @@ type Props = {
 const CasesTable = ({ data, loading }: Props) => {
 	const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore, fetchCases } = useCasesContext();
 	const sentinelRef = useRef<HTMLDivElement | null>(null);
+	const [loadingCaseId, setLoadingCaseId] = useState<string | null>(null);
 
 	// Gerencia o estado do modal
 	const { openResumeModal, especifiedCase, openModal, closeModal, setCase } = useCaseModal();
@@ -87,10 +88,13 @@ const CasesTable = ({ data, loading }: Props) => {
 			window.dispatchEvent(new Event(CASE_RESUME_MODAL_FORCE_CLOSE_EVENT));
 		}
 		setCase(null);
+		setLoadingCaseId(id);
 		fetchEspecifiedCases(id).then((response) => {
 			if (response?.data) {
 				openModal(response.data);
 			}
+		}).finally(() => {
+			setLoadingCaseId(null);
 		});
 	};
 
@@ -112,6 +116,7 @@ const CasesTable = ({ data, loading }: Props) => {
 				onViewCase={handleViewCase}
 				onFinalizeCase={handleFinalizeCaseClick}
 				finalizingCaseId={finalizingCaseId}
+				loadingCaseId={loadingCaseId}
 			/>
 
 			<CasesTableMobile
@@ -120,6 +125,7 @@ const CasesTable = ({ data, loading }: Props) => {
 				loadingMore={loadingMore}
 				onViewCase={handleViewCase}
 				onFinalizeCase={fetchCases}
+				loadingCaseId={loadingCaseId}
 			/>
 
 			<div

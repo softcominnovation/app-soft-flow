@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Badge } from "react-bootstrap";
+import { Button, Badge, Placeholder } from "react-bootstrap";
 import { ICase } from "@/types/cases/ICase";
 import { finalizeCase } from "@/services/caseServices";
 import { toast } from "react-toastify";
@@ -14,6 +14,7 @@ type Props = {
 	item: ICase;
 	onView: (caseId: string) => void;
 	onFinalize?: () => void;
+	isLoading?: boolean;
 };
 
 /**
@@ -38,7 +39,7 @@ const getPriorityBadgeVariant = (priority: string): string => {
 	return 'secondary';
 };
 
-export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
+export default function MobileCaseCard({ item, onView, onFinalize, isLoading = false }: Props) {
 	const caseId = `${item.caso.id}`;
 	const developerName = item.caso.usuarios.desenvolvimento?.nome || "Não atribuído";
 	const productName = item.produto?.nome || "-";
@@ -88,6 +89,87 @@ export default function MobileCaseCard({ item, onView, onFinalize }: Props) {
 			setFinalizing(false);
 		}
 	};
+
+	if (isLoading) {
+		return (
+			<div 
+				className={`border rounded-3 mb-3 shadow-sm overflow-hidden ${isTimeStarted ? 'border-success border-2 bg-success bg-opacity-10' : 'bg-body'}`}
+				style={{ 
+					cursor: 'wait',
+				}}
+			>
+				{/* Header Skeleton */}
+				<div className="bg-body-tertiary border-bottom p-3">
+					<div className="d-flex justify-content-between align-items-center mb-2">
+						<div className="flex-grow-1">
+							<Placeholder as="div" animation="glow" className="mb-1">
+								<Placeholder xs={4} style={{ height: '16px' }} />
+							</Placeholder>
+							<Placeholder as="div" animation="glow">
+								<Placeholder xs={6} style={{ height: '12px' }} />
+							</Placeholder>
+						</div>
+					</div>
+					<div className="d-flex gap-2">
+						<Placeholder as="div" animation="glow" style={{ width: '80px', height: '24px', borderRadius: '4px' }} />
+						<Placeholder as="div" animation="glow" style={{ width: '100px', height: '24px', borderRadius: '4px' }} />
+					</div>
+				</div>
+				{/* Content Skeleton */}
+				<div className="p-3">
+					<div className="mb-3">
+						<Placeholder as="div" animation="glow" className="mb-2">
+							<Placeholder xs={3} style={{ height: '12px' }} />
+						</Placeholder>
+						<Placeholder as="div" animation="glow" className="mb-1">
+							<Placeholder xs={8} style={{ height: '15px' }} />
+						</Placeholder>
+						<Placeholder as="div" animation="glow">
+							<Placeholder xs={5} style={{ height: '12px' }} />
+						</Placeholder>
+					</div>
+					<div className="mb-3 p-2 bg-body-tertiary rounded">
+						<Placeholder as="div" animation="glow" className="mb-2">
+							<Placeholder xs={3} style={{ height: '12px' }} />
+						</Placeholder>
+						<div className="d-flex gap-4">
+							<div>
+								<Placeholder as="div" animation="glow" className="mb-1">
+									<Placeholder xs={4} style={{ height: '10px' }} />
+								</Placeholder>
+								<Placeholder as="div" animation="glow">
+									<Placeholder xs={3} style={{ height: '16px' }} />
+								</Placeholder>
+							</div>
+							<div>
+								<Placeholder as="div" animation="glow" className="mb-1">
+									<Placeholder xs={4} style={{ height: '10px' }} />
+								</Placeholder>
+								<Placeholder as="div" animation="glow">
+									<Placeholder xs={3} style={{ height: '16px' }} />
+								</Placeholder>
+							</div>
+						</div>
+					</div>
+					<div className="mb-3">
+						<Placeholder as="div" animation="glow" className="mb-2">
+							<Placeholder xs={3} style={{ height: '12px' }} />
+						</Placeholder>
+						<Placeholder as="div" animation="glow">
+							<Placeholder xs={12} style={{ height: '14px' }} />
+						</Placeholder>
+						<Placeholder as="div" animation="glow" className="mt-1">
+							<Placeholder xs={10} style={{ height: '14px' }} />
+						</Placeholder>
+					</div>
+					<div className="d-flex gap-2 mt-3 pt-3 border-top">
+						<Placeholder as="div" animation="glow" className="flex-grow-1" style={{ height: '32px', borderRadius: '4px' }} />
+						<Placeholder as="div" animation="glow" className="flex-grow-1" style={{ height: '32px', borderRadius: '4px' }} />
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div 

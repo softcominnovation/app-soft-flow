@@ -1,5 +1,5 @@
 'use client';
-import { DropdownButton, DropdownItem, Table } from 'react-bootstrap';
+import { DropdownButton, DropdownItem, Table, Placeholder } from 'react-bootstrap';
 import { ICase } from '@/types/cases/ICase';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
@@ -9,6 +9,7 @@ interface CaseRowProps {
 	onView: (id: string) => void;
 	onFinalize: (id: string) => void;
 	isFinalizing?: boolean;
+	isLoading?: boolean;
 }
 
 /**
@@ -25,18 +26,88 @@ const formatMinutesToHM = (minutes: number): string => {
 /**
  * Componente que representa uma linha da tabela de casos
  */
-export default function CaseRow({ case: caseData, index, onView, onFinalize, isFinalizing = false }: CaseRowProps) {
+export default function CaseRow({ case: caseData, index, onView, onFinalize, isFinalizing = false, isLoading = false }: CaseRowProps) {
 	const caseId = caseData.caso.id.toString();
 	const estimado = caseData.caso.tempos?.estimado_minutos ?? 0;
 	const realizado = caseData.caso.tempos?.realizado_minutos ?? 0;
 	const statusTempo = caseData.caso.tempos?.status_tempo;
 	const isTimeStarted = statusTempo === 'INICIADO';
 
+	if (isLoading) {
+		return (
+			<tr
+				key={`${caseData.caso.id}-${index}-loading`}
+				className={`align-middle ${isTimeStarted ? 'table-success' : ''}`}
+				style={{ 
+					cursor: 'wait',
+				}}
+			>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={3} />
+					</Placeholder>
+				</td>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={8} />
+					</Placeholder>
+				</td>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={10} />
+					</Placeholder>
+				</td>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={5} />
+					</Placeholder>
+				</td>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={4} />
+					</Placeholder>
+				</td>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={6} />
+					</Placeholder>
+				</td>
+				<td className="py-2" style={{ maxWidth: 360 }}>
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={12} />
+					</Placeholder>
+				</td>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={7} />
+					</Placeholder>
+				</td>
+				<td className="py-2">
+					<div className="d-flex flex-column gap-1">
+						<Placeholder as="span" animation="glow">
+							<Placeholder xs={4} />
+						</Placeholder>
+						<Placeholder as="span" animation="glow">
+							<Placeholder xs={4} />
+						</Placeholder>
+					</div>
+				</td>
+				<td className="py-2 text-center">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={3} style={{ height: '24px' }} />
+					</Placeholder>
+				</td>
+			</tr>
+		);
+	}
+
 	return (
 		<tr
 			key={`${caseData.caso.id}-${index}`}
 			className={`align-middle ${isTimeStarted ? 'table-success' : ''}`}
-			style={{ cursor: 'pointer' }}
+			style={{ 
+				cursor: 'pointer',
+			}}
 			onClick={() => onView(caseId)}
 		>
 			<td className="py-2">
