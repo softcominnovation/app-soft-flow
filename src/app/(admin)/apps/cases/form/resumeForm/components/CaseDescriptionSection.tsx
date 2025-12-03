@@ -33,10 +33,10 @@ export default function CaseDescriptionSection({
 			</Card.Header>
 			<Collapse in={isOpen}>
 				<div>
-					<Card.Body>
+					<Card.Body style={{ padding: '1.5rem' }}>
 						<Row>
-							<Form.Group style={{marginBottom: '18px'}}>
-								<Form.Label className="fw-semibold">Resumo do Caso</Form.Label>
+							<Form.Group style={{marginBottom: '24px'}}>
+								<Form.Label className="fw-semibold mb-2">Resumo do Caso</Form.Label>
 								<Form.Control
 									as="textarea"
 									name="resumo"
@@ -47,8 +47,8 @@ export default function CaseDescriptionSection({
 									value={caseData.caso.textos.descricao_resumo || ''}
 								/>
 							</Form.Group>
-							<Form.Group style={{marginBottom: '18px'}}>
-								<Form.Label className="fw-semibold">Descrição Completa</Form.Label>
+							<Form.Group style={{marginBottom: '24px'}}>
+								<Form.Label className="fw-semibold mb-2">Descrição Completa</Form.Label>
 								<Form.Control
 									as="textarea"
 									name="descricao_completa"
@@ -59,8 +59,8 @@ export default function CaseDescriptionSection({
 									value={caseData.caso.textos.descricao_completa || ''}
 								/>
 							</Form.Group>
-							<Form.Group style={{marginBottom: '18px'}}>
-								<Form.Label className="fw-semibold">Anexo</Form.Label>
+							<Form.Group style={{marginBottom: '0'}}>
+								<Form.Label className="fw-semibold mb-2">Anexo</Form.Label>
 								<Form.Control
 									as="input"
 									name="anexo"

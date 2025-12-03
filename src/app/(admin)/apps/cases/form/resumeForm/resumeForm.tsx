@@ -47,7 +47,7 @@ export default function ResumeForm({ caseData }: ResumeFormProps) {
 				!caseData ? (
 					<FormResumeSkelleton />
 				) : (
-					<div className="d-flex flex-column gap-4">
+					<div className="d-flex flex-column" style={{ gap: '1.5rem' }}>
 						<CaseInfoSection 
 							isOpen={activeKeys.includes('0')}
 							onToggle={handleToggle}

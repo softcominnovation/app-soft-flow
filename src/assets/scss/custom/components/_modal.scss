@@ -14,6 +14,62 @@
     max-width: none;
 }
 
+// Modal extra large
+.modal-extra-large {
+    width: 95%;
+    max-width: 1400px;
+    
+    // Barras de rolagem mais sutis
+    .modal-body {
+        // Custom scrollbar para Webkit (Chrome, Safari, Edge)
+        &::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            
+            &:hover {
+                background: rgba(0, 0, 0, 0.3);
+            }
+        }
+        
+        // Custom scrollbar para Firefox
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+    
+    // Scrollbar customizada para áreas internas
+    .custom-scrollbar {
+        &::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+            
+            &:hover {
+                background: rgba(0, 0, 0, 0.25);
+            }
+        }
+        
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    }
+}
+
 // Modal Positions
 .modal-top {
     margin: 0 auto;

@@ -28,7 +28,7 @@ export default function CaseInfoSection({ isOpen, onToggle }: CaseInfoSectionPro
 			</Card.Header>
 			<Collapse in={isOpen}>
 				<div>
-					<Card.Body>
+					<Card.Body style={{ padding: '1.5rem' }}>
 						<Row className="g-3">
 							{/* Primeira linha: Código, Versão, Status, Prioridade */}
 							<Col md={3}>

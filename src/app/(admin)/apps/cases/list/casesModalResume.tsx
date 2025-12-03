@@ -71,8 +71,8 @@ const casesContext = useContext(CasesContext);
 
 	return (
 		<>
-			{hasAnotacoes && (
-				<style>{`
+			<style>{`
+				${hasAnotacoes ? `
 					.nav-tabs .nav-link[data-event-key="detalhes"].active,
 					.nav-tabs .nav-link[data-event-key="detalhes"]:hover,
 					.nav-tabs .nav-link[data-event-key="detalhes"] {
@@ -81,9 +81,19 @@ const casesContext = useContext(CasesContext);
 					.nav-tabs .nav-link[data-event-key="detalhes"].active {
 						border-bottom-color: #dc3545 !important;
 					}
-				`}</style>
-			)}
-			<Modal show={open} onHide={handleClose} size="xl" backdrop="static" fullscreen="sm-down">
+				` : ''}
+				
+				.modal-extra-large .modal-body {
+					padding: 0;
+				}
+			`}</style>
+			<Modal 
+				show={open} 
+				onHide={handleClose} 
+				backdrop="static" 
+				fullscreen="sm-down"
+				dialogClassName="modal-extra-large"
+			>
 				<Modal.Header closeButton className="bg-light border-bottom flex-shrink-0">
 					<div className="d-flex align-items-center">
 						<IconifyIcon icon="lucide:file-text" className="me-2 text-primary" />
@@ -99,70 +109,149 @@ const casesContext = useContext(CasesContext);
 					</div>
 				</Modal.Header>
 				<Modal.Body className="p-0 d-flex flex-column" style={{ maxHeight: 'calc(100vh - 180px)', overflow: 'hidden' }}>
-					<Tab.Container defaultActiveKey="resumo">
-						<div className="d-flex flex-column h-100" style={{ minHeight: 0 }}>
-							<Nav variant="tabs" className="nav nav-tabs nav-bordered border-bottom flex-shrink-0">
-								<Nav.Item>
-									<Nav.Link eventKey="resumo" className="d-flex align-items-center">
-										<IconifyIcon icon="lucide:info" className="me-2" />
-										<span>Resumo</span>
-									</Nav.Link>
-								</Nav.Item>
-								<Nav.Item>
-									<Nav.Link 
-										eventKey="detalhes" 
-										className={`d-flex align-items-center ${hasAnotacoes ? 'fw-bold' : ''}`}
-										style={hasAnotacoes ? { 
-											'--bs-nav-link-color': '#dc3545',
-											'--bs-nav-link-hover-color': '#dc3545',
-											color: '#dc3545',
-											borderBottomColor: '#dc3545'
-										} as React.CSSProperties : {}}
-									>
-										<IconifyIcon 
-											icon="lucide:file-text" 
-											className="me-2" 
-											style={hasAnotacoes ? { color: '#dc3545' } : {}}
-										/>
-										<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
-										{hasAnotacoes && caseData?.caso?.anotacoes && (
-											<span className="badge bg-danger ms-2" style={{ fontSize: '0.65rem' }}>
-												{caseData.caso.anotacoes.length}
-											</span>
-										)}
-									</Nav.Link>
-								</Nav.Item>
-								<Nav.Item>
-									<Nav.Link eventKey="tempo" className="d-flex align-items-center">
-										<IconifyIcon icon="lucide:clock" className="me-2" />
-										<span>Tempo</span>
-									</Nav.Link>
-								</Nav.Item>
-							</Nav>
-							<div className="p-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
-								<Tab.Content>
-									<Tab.Pane eventKey="resumo">
-										<ResumeForm caseData={caseData}/>
-									</Tab.Pane>
-									<Tab.Pane eventKey="detalhes">
-										{caseData ? (
-											<CaseAnnotations anotacoes={caseData.caso.anotacoes || []} />
-										) : (
-											<div className="text-center py-5">
-												<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
-												<h5 className="text-muted">Carregando caso...</h5>
-											</div>
-										)}
-									</Tab.Pane>
-									<Tab.Pane eventKey="tempo">
-										{
-											!caseData ? <TimetrackerSkelleton/> : <CaseTimeTracker key={caseData.caso.id} caseData={caseData} />
-										}
-									</Tab.Pane>
-								</Tab.Content>
+					{/* Layout Mobile: Abas incluindo Tempo */}
+					<div className="d-flex d-lg-none flex-column h-100" style={{ minHeight: 0 }}>
+						<Tab.Container defaultActiveKey="resumo">
+							<div className="d-flex flex-column h-100" style={{ minHeight: 0 }}>
+								<Nav variant="tabs" className="nav nav-tabs nav-bordered border-bottom flex-shrink-0 px-4" style={{ marginTop: 0 }}>
+									<Nav.Item>
+										<Nav.Link eventKey="resumo" className="d-flex align-items-center">
+											<IconifyIcon icon="lucide:info" className="me-2" />
+											<span>Resumo</span>
+										</Nav.Link>
+									</Nav.Item>
+									<Nav.Item>
+										<Nav.Link 
+											eventKey="detalhes" 
+											className={`d-flex align-items-center ${hasAnotacoes ? 'fw-bold' : ''}`}
+											style={hasAnotacoes ? { 
+												'--bs-nav-link-color': '#dc3545',
+												'--bs-nav-link-hover-color': '#dc3545',
+												color: '#dc3545',
+												borderBottomColor: '#dc3545'
+											} as React.CSSProperties : {}}
+										>
+											<IconifyIcon 
+												icon="lucide:file-text" 
+												className="me-2" 
+												style={hasAnotacoes ? { color: '#dc3545' } : {}}
+											/>
+											<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
+											{hasAnotacoes && caseData?.caso?.anotacoes && (
+												<span className="badge bg-danger ms-2" style={{ fontSize: '0.65rem' }}>
+													{caseData.caso.anotacoes.length}
+												</span>
+											)}
+										</Nav.Link>
+									</Nav.Item>
+									<Nav.Item>
+										<Nav.Link eventKey="tempo" className="d-flex align-items-center">
+											<IconifyIcon icon="lucide:clock" className="me-2" />
+											<span>Tempo</span>
+										</Nav.Link>
+									</Nav.Item>
+								</Nav>
+								<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
+									<Tab.Content>
+										<Tab.Pane eventKey="resumo">
+											<ResumeForm caseData={caseData}/>
+										</Tab.Pane>
+										<Tab.Pane eventKey="detalhes">
+											{caseData ? (
+												<CaseAnnotations anotacoes={caseData.caso.anotacoes || []} />
+											) : (
+												<div className="text-center py-5">
+													<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
+													<h5 className="text-muted">Carregando caso...</h5>
+												</div>
+											)}
+										</Tab.Pane>
+										<Tab.Pane eventKey="tempo">
+											{!caseData ? (
+												<TimetrackerSkelleton/>
+											) : (
+												<CaseTimeTracker key={caseData.caso.id} caseData={caseData} />
+											)}
+										</Tab.Pane>
+									</Tab.Content>
+								</div>
+							</div>
+						</Tab.Container>
+					</div>
+
+					{/* Layout Desktop: Duas colunas com tempo sempre visível */}
+					<div className="d-none d-lg-flex h-100" style={{ minHeight: 0 }}>
+						{/* Coluna esquerda - Conteúdo principal (Abas) */}
+						<div className="d-flex flex-column" style={{ flex: '1 1 auto', minWidth: 0 }}>
+							<Tab.Container defaultActiveKey="resumo">
+								<div className="d-flex flex-column h-100" style={{ minHeight: 0 }}>
+									<Nav variant="tabs" className="nav nav-tabs nav-bordered border-bottom flex-shrink-0 px-4" style={{ marginTop: 0 }}>
+										<Nav.Item>
+											<Nav.Link eventKey="resumo" className="d-flex align-items-center">
+												<IconifyIcon icon="lucide:info" className="me-2" />
+												<span>Resumo</span>
+											</Nav.Link>
+										</Nav.Item>
+										<Nav.Item>
+											<Nav.Link 
+												eventKey="detalhes" 
+												className={`d-flex align-items-center ${hasAnotacoes ? 'fw-bold' : ''}`}
+												style={hasAnotacoes ? { 
+													'--bs-nav-link-color': '#dc3545',
+													'--bs-nav-link-hover-color': '#dc3545',
+													color: '#dc3545',
+													borderBottomColor: '#dc3545'
+												} as React.CSSProperties : {}}
+											>
+												<IconifyIcon 
+													icon="lucide:file-text" 
+													className="me-2" 
+													style={hasAnotacoes ? { color: '#dc3545' } : {}}
+												/>
+												<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
+												{hasAnotacoes && caseData?.caso?.anotacoes && (
+													<span className="badge bg-danger ms-2" style={{ fontSize: '0.65rem' }}>
+														{caseData.caso.anotacoes.length}
+													</span>
+												)}
+											</Nav.Link>
+										</Nav.Item>
+									</Nav>
+									<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
+										<Tab.Content>
+											<Tab.Pane eventKey="resumo">
+												<ResumeForm caseData={caseData}/>
+											</Tab.Pane>
+											<Tab.Pane eventKey="detalhes">
+												{caseData ? (
+													<CaseAnnotations anotacoes={caseData.caso.anotacoes || []} />
+												) : (
+													<div className="text-center py-5">
+														<IconifyIcon icon="lucide:loader-2" className="text-muted mb-3" style={{ fontSize: '3rem' }} />
+														<h5 className="text-muted">Carregando caso...</h5>
+													</div>
+												)}
+											</Tab.Pane>
+										</Tab.Content>
+									</div>
+								</div>
+							</Tab.Container>
+						</div>
+
+						{/* Separador vertical sutil */}
+						<div className="border-start border-secondary" style={{ width: '1px', margin: '12px 0', opacity: 0.3 }} />
+
+						{/* Coluna direita - Tempo (sempre visível) */}
+						<div className="d-flex flex-column" style={{ width: '480px', minWidth: '480px', maxWidth: '480px' }}>
+							<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden' }}>
+								{!caseData ? (
+									<TimetrackerSkelleton/>
+								) : (
+									<CaseTimeTracker key={caseData.caso.id} caseData={caseData} />
+								)}
 							</div>
 						</div>
-					</Tab.Container>
+					</div>
 				</Modal.Body>
 				<Modal.Footer className="bg-light border-top">
 					<Button 

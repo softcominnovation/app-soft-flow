@@ -15,15 +15,13 @@ export default function CaseTimeTrackerHistory({historyEntries}:Props) {
     const badgeBaseClass = "d-inline-flex align-items-center gap-1 text-capitalize py-1 px-2 rounded-2";
 
     return (
-        <Card className="border-0 shadow-sm">
-				<Card.Header className="bg-light border-bottom">
-					<h5 className="mb-0 d-flex align-items-center">
+        <Card className="border-0 shadow-sm mb-0">
+				<Card.Body style={{ padding: '1.5rem' }}>
+					<h5 className="mb-3 d-flex align-items-center">
 						<IconifyIcon icon="lucide:list" className="me-2 text-primary" />
 						Historico de Tempos
 					</h5>
-				</Card.Header>
-				<Card.Body className="p-0">
-					<ListGroup variant="flush">
+					<ListGroup variant="flush" className="border-top">
 						{historyEntries.length ? (
 							historyEntries.map((entry, index) => {
 								const duration = getAberturaFechamentoDuration(entry.datas.abertura, entry.datas.fechamento);
@@ -31,13 +29,13 @@ export default function CaseTimeTrackerHistory({historyEntries}:Props) {
 								return (
 									<ListGroup.Item
 										key={index}
-										className="d-flex flex-column flex-md-row gap-2 justify-content-between align-items-start align-items-md-center py-3 px-3"
+										className={`d-flex flex-column flex-md-row gap-2 justify-content-between align-items-start align-items-md-center py-3 px-0 ${index < historyEntries.length - 1 ? 'border-bottom' : ''}`}
 									>
 										<div className="d-flex flex-column gap-1">
 											<Badge
 												bg={getTipoBadgeVariant(entry.tipo)}
 												className={badgeBaseClass}
-												style={{ fontSize: '0.78rem', width: '60%' }}
+												style={{ fontSize: '0.78rem', width: 'fit-content' }}
 											>
 												<IconifyIcon icon={getTipoIcon(entry.tipo)}/>
 												{formatTipoLabel(entry.tipo)}
@@ -56,7 +54,7 @@ export default function CaseTimeTrackerHistory({historyEntries}:Props) {
 								);
 							})
 						) : (
-							<ListGroup.Item className="py-4 text-center text-muted">
+							<ListGroup.Item className="py-4 text-center text-muted" style={{ borderBottom: 'none' }}>
 								Nenhum historico de tempo registrado.
 							</ListGroup.Item>
 						)}
