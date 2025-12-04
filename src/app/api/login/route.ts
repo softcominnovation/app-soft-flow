@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 			cookieStore.set(name, value, {
 				httpOnly: httpOnly,
 				path: '/',
-				maxAge: 60 * 60 * 2, //2
+				maxAge: 60 * 60 * 24, // 24 horas (86400 segundos) - tempo de expiração da sessão
 			});
 		};
 
