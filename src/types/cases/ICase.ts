@@ -111,6 +111,7 @@ interface TextosCaso {
 	anexo: string;
 	passos_para_reproduzir: string;
 	descricao_commit: string | null;
+	informacoes_adicionais?: string | null;
 }
 
 interface UsuariosCaso {

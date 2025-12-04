@@ -2,6 +2,7 @@ import { Card, Collapse, Row, Form } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import AccordionToggle from './AccordionToggle';
 import { ICase } from '@/types/cases/ICase';
+import { useMemo } from 'react';
 
 interface CaseDescriptionSectionProps {
 	caseData: ICase;
@@ -15,6 +16,30 @@ export default function CaseDescriptionSection({
 	onToggle 
 }: CaseDescriptionSectionProps) {
 	const eventKey = '1';
+
+	// Processa o valor do anexo: remove # do início e fim, e verifica se é URL válida
+	const processedAnexo = useMemo(() => {
+		const anexo = caseData.caso.textos.anexo || '';
+		if (!anexo) return { value: '', isUrl: false };
+
+		// Remove # do início e fim se existirem
+		let processedValue = anexo.trim();
+		if (processedValue.startsWith('#') && processedValue.endsWith('#')) {
+			processedValue = processedValue.slice(1, -1).trim();
+		}
+
+		// Verifica se é uma URL válida
+		const urlPattern = /^(https?:\/\/|www\.)[\w\-]+(\.[\w\-]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/i;
+		const isUrl = urlPattern.test(processedValue);
+
+		// Garante que URLs sem protocolo tenham https://
+		let url = processedValue;
+		if (isUrl && !processedValue.startsWith('http://') && !processedValue.startsWith('https://')) {
+			url = `https://${processedValue}`;
+		}
+
+		return { value: processedValue, isUrl, url };
+	}, [caseData.caso.textos.anexo]);
 
 	return (
 		<Card className="border-0 shadow-sm mb-0">
@@ -59,15 +84,42 @@ export default function CaseDescriptionSection({
 									value={caseData.caso.textos.descricao_completa || ''}
 								/>
 							</Form.Group>
-							<Form.Group style={{marginBottom: '0'}}>
+							<Form.Group style={{marginBottom: '24px'}}>
 								<Form.Label className="fw-semibold mb-2">Anexo</Form.Label>
+								{processedAnexo.value && processedAnexo.isUrl ? (
+									<Form.Control
+										as="input"
+										name="anexo"
+										placeholder="Esse caso não possui anexos"
+										readOnly
+										className="bg-light text-primary"
+										value={processedAnexo.value}
+										style={{ cursor: 'pointer' }}
+										onClick={() => {
+											window.open(processedAnexo.url, '_blank', 'noopener,noreferrer');
+										}}
+									/>
+								) : (
+									<Form.Control
+										as="input"
+										name="anexo"
+										placeholder="Esse caso não possui anexos"
+										disabled
+										className="bg-light"
+										value={processedAnexo.value || ''}
+									/>
+								)}
+							</Form.Group>
+							<Form.Group style={{marginBottom: '0'}}>
+								<Form.Label className="fw-semibold mb-2">Informações Adicionais</Form.Label>
 								<Form.Control
-									as="input"
-									name="anexo"
-									placeholder="Esse caso não possui anexos"
+									as="textarea"
+									name="informacoes_adicionais"
+									placeholder="Informações adicionais do caso"
 									disabled
+									rows={2}
 									className="bg-light"
-									value={caseData.caso.textos.anexo || ''}
+									value={caseData.caso.textos.informacoes_adicionais || ''}
 								/>
 							</Form.Group>
 						</Row>
