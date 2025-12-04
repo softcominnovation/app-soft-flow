@@ -1,7 +1,7 @@
 ﻿"use client";
 import { useState, useEffect, useCallback } from 'react';
 import { ICase } from '@/types/cases/ICase';
-import { startTimeCase, stopTimeCase } from '@/services/caseServices';
+import { startTimeCase, stopTimeCase, findCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
 import TimetrackerSkelleton from '../skelletons/timetrackerSkelleton';
 import { ACTIVE_CASE_EVENT, ACTIVE_CASE_STORAGE_KEY, CASE_CONFLICT_MODAL_CLOSE_EVENT, ActiveCaseStorageData } from '@/constants/caseTimeTracker';
@@ -11,6 +11,7 @@ import CaseTimeTrackerTimeControl from './caseTimeTrackerComponents.tsx/caseTime
 
 interface CaseTimeTrackerProps {
 	caseData?: ICase | null;
+	onCaseUpdated?: (updatedCase: ICase) => void;
 }
 
 type PendingAction = {
@@ -18,7 +19,7 @@ type PendingAction = {
 	caseId: string;
 };
 
-export default function CaseTimeTracker({ caseData }: CaseTimeTrackerProps) {
+export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTrackerProps) {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [localCase, setLocalCase] = useState<ICase | null>(caseData ?? null);
 	const [elapsedMinutes, setElapsedMinutes] = useState<number | null>(null);
@@ -27,6 +28,23 @@ export default function CaseTimeTracker({ caseData }: CaseTimeTrackerProps) {
 	const [conflictMessage, setConflictMessage] = useState<string | null>(null);
 	const [conflictLoading, setConflictLoading] = useState(false);
 	const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+
+	const handleCaseUpdate = useCallback(async () => {
+		const currentCase = localCase ?? caseData ?? null;
+		if (!currentCase?.caso.id) return;
+		
+		try {
+			const response = await findCase(currentCase.caso.id.toString());
+			if (response?.data) {
+				setLocalCase(response.data);
+				if (onCaseUpdated) {
+					onCaseUpdated(response.data);
+				}
+			}
+		} catch (error) {
+			console.error('Erro ao recarregar dados do caso:', error);
+		}
+	}, [localCase, caseData, onCaseUpdated]);
 
 	const closeConflictModalState = useCallback((options?: { preservePendingAction?: boolean }) => {
 		setConflictModalOpen(false);
@@ -422,6 +440,7 @@ export default function CaseTimeTracker({ caseData }: CaseTimeTrackerProps) {
 					stopCurrentTime={stopCurrentTime}
 					estimadoMinutos={estimadoMinutos}
 					realizadoMinutos={realizadoMinutos}
+					onCaseUpdated={handleCaseUpdate}
 				/>
 				<CaseTimeTrackerHistory historyEntries={historyEntries} />
 			</div>

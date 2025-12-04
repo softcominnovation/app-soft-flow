@@ -198,7 +198,16 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 											{!displayCaseData ? (
 												<TimetrackerSkelleton/>
 											) : (
-												<CaseTimeTracker key={displayCaseData.caso.id} caseData={displayCaseData} />
+												<CaseTimeTracker 
+													key={displayCaseData.caso.id} 
+													caseData={displayCaseData}
+													onCaseUpdated={(updatedCase) => {
+														setLocalCaseData(updatedCase);
+														if (setCase) {
+															setCase(updatedCase);
+														}
+													}}
+												/>
 											)}
 										</Tab.Pane>
 									</Tab.Content>
@@ -279,7 +288,16 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								{!caseData ? (
 									<TimetrackerSkelleton/>
 								) : (
-									<CaseTimeTracker key={caseData.caso.id} caseData={caseData} />
+									<CaseTimeTracker 
+										key={caseData.caso.id} 
+										caseData={caseData}
+										onCaseUpdated={(updatedCase) => {
+											setLocalCaseData(updatedCase);
+											if (setCase) {
+												setCase(updatedCase);
+											}
+										}}
+									/>
 								)}
 							</div>
 						</div>

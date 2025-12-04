@@ -116,3 +116,16 @@ export async function createAnotacao(registro: number, anotacoes: string): Promi
 		}
 	}
 }
+
+export async function updateCase(id: string, data: any): Promise<any> {
+	try {
+		const res = await axios.patch(`/api/cases/${id}`, data);
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
