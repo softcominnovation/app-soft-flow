@@ -400,9 +400,13 @@ html[data-sidenav-user="true"] {
 
 // Enlarge Menu (Condensed md size left sidebar )
 html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
+    overflow-x: hidden;
+
+    body {
+        overflow-x: hidden !important;
+    }
 
     .wrapper {
-
         .navbar-custom {
             z-index: 1005;
             margin-left: $leftbar-width-sm;
@@ -410,16 +414,31 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
 
         // Side menu
         .leftside-menu {
-            position: absolute;
+            position: fixed;
             width: $leftbar-width-sm;
             min-width: $leftbar-width-sm;
+            z-index: 1040;
+            overflow: visible;
+            overflow-y: visible;
 
             .simplebar-mask,
             .simplebar-content-wrapper {
                 overflow: visible !important;
             }
+            
+            .simplebar-content {
+                overflow: visible !important;
+            }
+            
+            .simplebar-content-wrapper {
+                overflow: visible !important;
+            }
 
             .simplebar-scrollbar {
+                display: none !important;
+            }
+            
+            .simplebar-track {
                 display: none !important;
             }
 
@@ -455,6 +474,9 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
 
             // Sidebar Menu
             .side-nav {
+                overflow: visible !important;
+                overflow-y: visible !important;
+                overflow-x: visible !important;
 
                 .collapse,
                 .collapsing {
@@ -489,6 +511,7 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
 
                 .side-nav-item {
                     position: relative;
+                    z-index: 1;
 
                     .side-nav-link {
                         transition: all 0.2s ease;
@@ -540,39 +563,89 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
                             background-color: var(--#{$prefix}menu-item-active-bg, #ff6b35);
                             color: $white;
                             box-shadow: 0 2px 4px rgba(255, 107, 53, 0.2);
-
-                            i {
-                                color: $white;
-                            }
-                        }
-                    }
-
-                    &:hover {
-                        .side-nav-link {
-                            position: relative;
-                            color: $white;
-                            background: var(--#{$prefix}menu-item-active-bg, #ff6b35);
                             width: calc(#{$leftbar-width} + 20px);
-                            z-index: 1050;
+                            padding: 14px 12px 14px 8px;
+                            display: flex;
+                            align-items: center;
+                            flex-wrap: nowrap;
+                            box-sizing: border-box;
+                            overflow: hidden;
                             border-radius: 8px;
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-                            padding-right: 20px;
 
-                            span {
+                            > span:not(.badge) {
                                 visibility: visible;
                                 position: relative;
                                 left: auto;
                                 margin-left: 12px;
+                                flex: 0 1 auto;
+                                min-width: 0;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                max-width: 100%;
                             }
 
                             i {
+                                color: $white;
                                 margin-left: 0;
+                                flex-shrink: 0;
                             }
 
                             .badge {
                                 display: inline-block;
                                 visibility: visible;
                                 margin-left: 8px;
+                                position: relative;
+                                flex-shrink: 0;
+                                white-space: nowrap;
+                            }
+                        }
+                    }
+
+                    &:hover {
+                        z-index: 1060;
+                        
+                        .side-nav-link {
+                            position: relative;
+                            color: $white;
+                            background: var(--#{$prefix}menu-item-active-bg, #ff6b35);
+                            width: calc(#{$leftbar-width} + 20px);
+                            max-width: calc(#{$leftbar-width} + 20px);
+                            z-index: 1060;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+                            padding: 14px 12px 14px 8px;
+                            display: flex;
+                            align-items: center;
+                            flex-wrap: nowrap;
+                            box-sizing: border-box;
+                            overflow: hidden;
+
+                            > span:not(.badge) {
+                                visibility: visible;
+                                position: relative;
+                                left: auto;
+                                margin-left: 12px;
+                                flex: 0 1 auto;
+                                min-width: 0;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                max-width: 100%;
+                            }
+
+                            i {
+                                margin-left: 0;
+                                flex-shrink: 0;
+                            }
+
+                            .badge {
+                                display: inline-block;
+                                visibility: visible;
+                                margin-left: 8px;
+                                position: relative;
+                                flex-shrink: 0;
+                                white-space: nowrap;
                             }
                         }
 
@@ -583,17 +656,24 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
 
                             >ul {
                                 display: block !important;
-                                left: $leftbar-width-sm;
+                                left: 0;
                                 position: absolute;
                                 background: $menu-bg;
                                 box-shadow: $box-shadow-lg;
-                                width: calc(#{$leftbar-width} - #{$leftbar-width-sm});
+                                width: calc(#{$leftbar-width} + 20px);
+                                max-width: calc(#{$leftbar-width} + 20px);
+                                z-index: 1060;
+                                margin-top: 0;
+                                top: 100%;
+                                box-sizing: border-box;
 
                                 a {
                                     box-shadow: none;
                                     position: relative;
-                                    width: calc(#{$leftbar-width} - #{$leftbar-width-sm});
+                                    width: 100%;
+                                    max-width: 100%;
                                     padding: calc($menu-item-padding-y * 0.6) calc($menu-item-padding-x * 2);
+                                    box-sizing: border-box;
 
                                     &:hover {
                                         color: $menu-item-hover-color;
@@ -613,8 +693,9 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
                                                 display: block !important;
                                                 position: absolute !important;
                                                 top: 0;
-                                                left: calc(#{$leftbar-width} - #{$leftbar-width-sm});
-                                                width: calc(#{$leftbar-width} - #{$leftbar-width-sm});
+                                                left: calc(#{$leftbar-width} + 20px);
+                                                width: calc(#{$leftbar-width} + 20px);
+                                                z-index: 1070;
                                             }
                                         }
                                     }
@@ -643,6 +724,8 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
         .content-page {
             margin-left: $leftbar-width-sm;
             min-height: $leftbar-condensed-height; // 1800px
+            z-index: 1;
+            position: relative;
         }
     }
 }
@@ -1079,3 +1162,4 @@ html[data-layout-mode="detached"]:not([data-layout="topnav"]) {
         }
     }
 }
+
