@@ -65,6 +65,49 @@
     }
 }
 
+// Sortable table header styles
+.sortable-header {
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba(var(--#{$prefix}primary-rgb), 0.08) !important;
+        
+        svg {
+            opacity: 1 !important;
+            color: var(--#{$prefix}primary) !important;
+            background-color: rgba(var(--#{$prefix}primary-rgb), 0.1) !important;
+        }
+    }
+
+    &--active {
+        background-color: rgba(var(--#{$prefix}primary-rgb), 0.12) !important;
+
+        &:hover {
+            background-color: rgba(var(--#{$prefix}primary-rgb), 0.16) !important;
+        }
+
+        span {
+            color: var(--#{$prefix}primary) !important;
+            font-weight: 600;
+        }
+
+        svg {
+            opacity: 1 !important;
+            color: var(--#{$prefix}primary) !important;
+            background-color: rgba(var(--#{$prefix}primary-rgb), 0.15) !important;
+            font-weight: 600;
+        }
+    }
+
+    svg {
+        transition: all 0.2s ease;
+        opacity: 0.7;
+        color: var(--#{$prefix}secondary);
+    }
+}
+
 .cases-table__actions .dropdown-menu {
     min-width: 8rem;
 }

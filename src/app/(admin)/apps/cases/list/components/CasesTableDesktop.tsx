@@ -3,6 +3,8 @@ import { Table } from 'react-bootstrap';
 import { ICase } from '@/types/cases/ICase';
 import ListSkelleton from '../skelletons/listSkelleton';
 import CaseRow from './CaseRow';
+import SortableTableHeader, { SortDirection } from '@/components/table/SortableTableHeader';
+import { CASE_SORT_FIELDS } from '@/constants/caseSortFields';
 
 interface CasesTableDesktopProps {
 	cases: ICase[];
@@ -12,10 +14,14 @@ interface CasesTableDesktopProps {
 	onFinalizeCase: (id: string) => void;
 	finalizingCaseId: string | null;
 	loadingCaseId: string | null;
+	currentSortKey?: string | null;
+	currentSortDirection?: SortDirection;
+	onSort: (sortKey: string, direction: SortDirection) => void;
 }
 
 /**
  * Componente da tabela de casos para desktop
+ * Implementa ordenação nas colunas especificadas seguindo boas práticas de componentização
  */
 export default function CasesTableDesktop({
 	cases,
@@ -25,21 +31,87 @@ export default function CasesTableDesktop({
 	onFinalizeCase,
 	finalizingCaseId,
 	loadingCaseId,
+	currentSortKey,
+	currentSortDirection,
+	onSort,
 }: CasesTableDesktopProps) {
 	return (
 		<div className="d-none d-md-block">
 			<Table responsive size="sm" className="table-centered table-nowrap table-sm align-middle mb-0 cases-table">
 				<thead className="table-light text-muted">
 					<tr>
-						<th className="py-3">Numero do Caso</th>
-						<th className="py-3">Atribuido</th>
-						<th className="py-3">Produto</th>
-						<th className="py-3">Versao</th>
-						<th className="py-3">Projeto</th>
-						<th className="py-3">Prioridade</th>
-						<th className="py-3">Descricao / Resumo</th>
-						<th className="py-3">Status</th>
-						<th className="py-3">Tempo</th>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.NUMERO_CASO}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Numero do Caso
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.ATRIBUIDO}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Atribuido
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.PRODUTO}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Produto
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.VERSAO}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Versao
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.PROJETO}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Projeto
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.PRIORIDADE}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Prioridade
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.DESCRICAO_RESUMO}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Descricao / Resumo
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.STATUS}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Status
+						</SortableTableHeader>
+						<SortableTableHeader
+							sortKey={CASE_SORT_FIELDS.TEMPO}
+							currentSortKey={currentSortKey}
+							currentSortDirection={currentSortDirection}
+							onSort={onSort}
+						>
+							Tempo
+						</SortableTableHeader>
 						<th className="py-3 text-center" style={{ width: '125px' }}>
 							Ações
 						</th>

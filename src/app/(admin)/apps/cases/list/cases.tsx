@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { useCasesContext } from '@/contexts/casesContext';
 import CasesModalResume from './casesModalResume';
 import CasesTableDesktop from './components/CasesTableDesktop';
@@ -8,6 +8,8 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { useCaseModal, useCaseModalFromUrl, useCaseFinalization } from './hooks';
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
 import { ICase } from '@/types/cases/ICase';
+import { SortDirection } from '@/components/table/SortableTableHeader';
+import { sortCases } from '@/utils/caseSorting';
 
 type Props = {
 	data: ICase[] | null;
@@ -22,6 +24,16 @@ const CasesTable = ({ data, loading }: Props) => {
 	const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore, fetchCases } = useCasesContext();
 	const sentinelRef = useRef<HTMLDivElement | null>(null);
 	const [loadingCaseId, setLoadingCaseId] = useState<string | null>(null);
+	
+	// Estado local para ordenação (não persiste na API)
+	const [localSortKey, setLocalSortKey] = useState<string | null>(null);
+	const [localSortDirection, setLocalSortDirection] = useState<SortDirection>(null);
+
+	// Handler para ordenação local - não faz requisição à API
+	const handleSort = useCallback((sortKey: string, direction: SortDirection) => {
+		setLocalSortKey(direction ? sortKey : null);
+		setLocalSortDirection(direction);
+	}, []);
 
 	// Gerencia o estado do modal
 	const { openResumeModal, especifiedCase, openModal, closeModal, setCase } = useCaseModal();
@@ -98,7 +110,11 @@ const CasesTable = ({ data, loading }: Props) => {
 		});
 	};
 
-	const cases = data || [];
+	// Ordena os casos localmente baseado no estado de ordenação
+	const sortedCases = useMemo(() => {
+		const cases = data || [];
+		return sortCases(cases, localSortKey, localSortDirection);
+	}, [data, localSortKey, localSortDirection]);
 
 	return (
 		<>
@@ -110,17 +126,20 @@ const CasesTable = ({ data, loading }: Props) => {
 			`}</style>
 
 			<CasesTableDesktop
-				cases={cases}
+				cases={sortedCases}
 				loading={loading}
 				loadingMore={loadingMore}
 				onViewCase={handleViewCase}
 				onFinalizeCase={handleFinalizeCaseClick}
 				finalizingCaseId={finalizingCaseId}
 				loadingCaseId={loadingCaseId}
+				currentSortKey={localSortKey}
+				currentSortDirection={localSortDirection}
+				onSort={handleSort}
 			/>
 
 			<CasesTableMobile
-				cases={cases}
+				cases={sortedCases}
 				loading={loading}
 				loadingMore={loadingMore}
 				onViewCase={handleViewCase}

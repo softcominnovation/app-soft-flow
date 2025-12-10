@@ -8,5 +8,6 @@ export default interface ICaseFilter {
 	usuario_id?: string,
 	versao_produto?: string,
 	sort_by?: string,
+	sort_order?: 'asc' | 'desc',
 	cursor?: string,
 }
