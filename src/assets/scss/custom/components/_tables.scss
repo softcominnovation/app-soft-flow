@@ -134,4 +134,47 @@
         --#{$prefix}table-bg: var(--#{$prefix}light);
         --#{$prefix}table-border-color: var(--#{$prefix}border-color);
     }
+
+    .sortable-header {
+        &:hover {
+            background-color: rgba(var(--#{$prefix}primary-rgb), 0.15) !important;
+            
+            svg {
+                opacity: 1 !important;
+                color: var(--#{$prefix}primary) !important;
+                background-color: rgba(var(--#{$prefix}primary-rgb), 0.2) !important;
+            }
+        }
+
+        &--active {
+            background-color: rgba(var(--#{$prefix}primary-rgb), 0.5) !important;
+            border-bottom: 3px solid var(--#{$prefix}primary) !important;
+
+            &:hover {
+                background-color: rgba(var(--#{$prefix}primary-rgb), 0.6) !important;
+            }
+
+            span {
+                color: inherit !important;
+                font-weight: 600;
+            }
+
+            svg {
+                opacity: 1 !important;
+                color: var(--#{$prefix}secondary) !important;
+                background-color: rgba(var(--#{$prefix}primary-rgb), 0.5) !important;
+            }
+        }
+
+        svg {
+            opacity: 0.85;
+            color: var(--#{$prefix}secondary);
+        }
+    }
+
+    .cases-table {
+        tbody tr {
+            border-color: rgba(var(--#{$prefix}dark-rgb), 0.15);
+        }
+    }
 }

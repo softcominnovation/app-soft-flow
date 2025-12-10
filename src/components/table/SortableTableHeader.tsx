@@ -74,7 +74,7 @@ export default function SortableTableHeader({
 		};
 
 		if (isActive) {
-			baseStyle.color = 'var(--bs-primary)';
+			baseStyle.color = 'var(--bs-secondary)';
 			baseStyle.backgroundColor = 'rgba(var(--bs-primary-rgb), 0.18)';
 			baseStyle.opacity = 1;
 			baseStyle.fontWeight = 600;
