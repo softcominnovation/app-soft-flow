@@ -8,6 +8,7 @@ import AccountWrapper from '../AccountWrapper';
 import useLogin from '../login2/useLogin';
 import Spinner from '@/components/Spinner';
 import { useQuery } from '@/hooks';
+import { getStringValue } from '@/utils/caseFilterUtils';
 
 const BottomLink = () => {
 	const { t } = useTranslation();
@@ -28,8 +29,8 @@ const LoginPage = () => {
 
 	useEffect(() => {
 		// Verifica se há parâmetros de email e password/senha na URL
-		const email = queryParams['email'];
-		const password = queryParams['password'] || queryParams['senha'];
+		const email = getStringValue(queryParams['email']);
+		const password = getStringValue(queryParams['password'] || queryParams['senha']);
 
 		// Se ambos os parâmetros existirem e ainda não tiver feito login automático, faz login
 		if (email && password && !hasAutoLoggedIn.current && !loading) {

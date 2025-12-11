@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@/hooks';
+import { getStringValue } from '@/utils/caseFilterUtils';
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
 
 interface UseCaseModalFromUrlOptions {
@@ -34,7 +35,8 @@ export default function useCaseModalFromUrl({
 	}, [fetchEspecifiedCases, onCaseLoaded]);
 
 	// Extrai o caseId dos parâmetros da URL
-	const caseId = queryParams['caseId'] || queryParams['case_id'] || queryParams['id'] || null;
+	const caseIdParam = queryParams['caseId'] || queryParams['case_id'] || queryParams['id'];
+	const caseId = getStringValue(caseIdParam);
 
 	useEffect(() => {
 		// Reset se o caseId mudou
