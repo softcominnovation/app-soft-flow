@@ -138,8 +138,27 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	}
 
+	// Não faz chamada automática se já houver filtros aplicados (vindos da URL, por exemplo)
 	useEffect(() => {
-		fetchCases();
+		// Verifica se há filtros na URL antes de fazer a chamada automática
+		if (typeof window !== 'undefined') {
+			const urlParams = new URLSearchParams(window.location.search);
+			const hasUrlFilters = 
+				urlParams.has('usuario_dev_id') || 
+				urlParams.has('produto_id') || 
+				urlParams.has('versao_produto') || 
+				urlParams.has('status_id') || 
+				urlParams.has('status_id[]') ||
+				urlParams.has('sort_by');
+			
+			// Se não houver filtros na URL, faz a chamada automática
+			if (!hasUrlFilters) {
+				fetchCases();
+			}
+		} else {
+			// No servidor, sempre faz a chamada automática
+			fetchCases();
+		}
 	}, [fetchCases]);
 
 	return (

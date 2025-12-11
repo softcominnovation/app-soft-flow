@@ -3,11 +3,12 @@ import { authApi } from '@/common/api';
 import { useNotificationContext } from '@/common/context';
 import { useState } from 'react';
 import { useAuthContext } from '@/common/context/useAuthContext';
+import { useQuery } from '@/hooks';
+import { buildFilterQueryString, extractCaseFiltersFromUrl, getStringValue } from '@/utils/caseFilterUtils';
 import type { User } from '@/types/User';
 import { AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
 import * as yup from 'yup';
-import { useQuery } from '@/hooks';
 
 export const loginFormSchema = yup.object({
 	email: yup.string().email('Please enter valid email').required('Please enter email'),
@@ -28,17 +29,26 @@ export default function useLogin() {
 		setLoading(true);
 		try {
 			const res: AxiosResponse<User> = await authApi.login(values);
-			showNotification({message: "Usuário logado com sucesso", type: 'success'});
+			showNotification({ message: "Usuário logado com sucesso", type: 'success' });
 			saveSession(true);
-			
-			const caseId = queryParams['caseId'] || queryParams['case_id'] || queryParams['id'];
-			const redirectTo = queryParams['redirectTo'];
-			
-			// Se houver um ID de caso, redireciona para a página de casos com o ID
+
+			const caseId = getStringValue(
+				queryParams['caseId'] || queryParams['case_id'] || queryParams['id']
+			);
+			const redirectTo = getStringValue(queryParams['redirectTo']);
+
+			// Extrai filtros da URL usando utilitário centralizado
+			const filters = extractCaseFiltersFromUrl(queryParams);
+			const filterQueryString = buildFilterQueryString(filters);
+			const filterQueryParam = filterQueryString ? `&${filterQueryString}` : '';
+
+			// Determina o destino após login seguindo ordem de prioridade
 			if (caseId) {
-				navigate.push(`/apps/cases/list?caseId=${caseId}`);
+				navigate.push(`/apps/cases/list?caseId=${caseId}${filterQueryParam}`);
 			} else if (redirectTo) {
 				navigate.push(redirectTo);
+			} else if (filterQueryString) {
+				navigate.push(`/apps/cases/list?${filterQueryString}`);
 			} else {
 				navigate.push('/apps/cases/list');
 			}

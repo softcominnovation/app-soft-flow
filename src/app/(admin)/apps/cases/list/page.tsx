@@ -7,6 +7,7 @@ import { ToastContainer } from 'react-toastify';
 import ProjectsSection from './components/caseListComponents/projectsSection';
 import CasesFAB from './components/CasesFAB';
 import { useState } from 'react';
+import { useApplyUrlCaseFilters } from '@/hooks';
 
 const CasesList = () => {
 	const { cases, loading } = useCasesContext();
@@ -74,9 +75,18 @@ const CasesList = () => {
 	);
 };
 
+/**
+ * Componente wrapper que aplica filtros da URL automaticamente
+ * Segue o princípio Single Responsibility - apenas aplica filtros da URL
+ */
+const CasesListWithFilters = () => {
+	useApplyUrlCaseFilters();
+	return <CasesList />;
+};
+
 const CasesListWithProvider = () => (
 	<CasesProvider>
-		<CasesList />
+		<CasesListWithFilters />
 	</CasesProvider>
 );
 

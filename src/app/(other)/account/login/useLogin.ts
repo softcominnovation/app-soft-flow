@@ -2,9 +2,9 @@
 import { authApi } from '@/common/api';
 import { useNotificationContext } from '@/common/context';
 import { useState } from 'react';
-// import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/common/context/useAuthContext';
 import { useQuery } from '@/hooks';
+import { buildFilterQueryString, extractCaseFiltersFromUrl, getStringValue } from '@/utils/caseFilterUtils';
 import type { User } from '@/types/User';
 import { AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
@@ -31,14 +31,23 @@ export default function useLogin() {
 		try {
 			const res: AxiosResponse<User> = await authApi.login(values);
 			if (res.data.token) {
-				const caseId = queryParams['caseId'] || queryParams['case_id'] || queryParams['id'];
-				const redirectTo = queryParams['redirectTo'];
-				
-				// Se houver um ID de caso, redireciona para a página de casos com o ID
+				const caseId = getStringValue(
+					queryParams['caseId'] || queryParams['case_id'] || queryParams['id']
+				);
+				const redirectTo = getStringValue(queryParams['redirectTo']);
+
+				// Extrai filtros da URL usando utilitário centralizado
+				const filters = extractCaseFiltersFromUrl(queryParams);
+				const filterQueryString = buildFilterQueryString(filters);
+				const filterQueryParam = filterQueryString ? `&${filterQueryString}` : '';
+
+				// Determina o destino após login seguindo ordem de prioridade
 				if (caseId) {
-					navigate.push(`/apps/cases/list?caseId=${caseId}`);
+					navigate.push(`/apps/cases/list?caseId=${caseId}${filterQueryParam}`);
 				} else if (redirectTo) {
 					navigate.push(redirectTo);
+				} else if (filterQueryString) {
+					navigate.push(`/apps/cases/list?${filterQueryString}`);
 				} else {
 					navigate.push('/dashboards/analytics');
 				}
