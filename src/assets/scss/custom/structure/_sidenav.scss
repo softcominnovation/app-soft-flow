@@ -656,7 +656,7 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
 
                             >ul {
                                 display: block !important;
-                                left: 0;
+                                left: $leftbar-width-sm;
                                 position: absolute;
                                 background: $menu-bg;
                                 box-shadow: $box-shadow-lg;
@@ -693,7 +693,7 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
                                                 display: block !important;
                                                 position: absolute !important;
                                                 top: 0;
-                                                left: calc(#{$leftbar-width} + 20px);
+                                                left: calc(#{$leftbar-width-sm} + #{$leftbar-width} + 20px);
                                                 width: calc(#{$leftbar-width} + 20px);
                                                 z-index: 1070;
                                             }

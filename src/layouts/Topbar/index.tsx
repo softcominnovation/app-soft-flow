@@ -346,9 +346,9 @@ const Topbar = ({topbarDark, toggleMenu, navOpen}: TopbarProps) => {
                             onNotificationClick={handleNotificationClick}
                         />
                     </li>
-                    <li className="dropdown d-none d-sm-inline-block">
+                    {/* <li className="dropdown d-none d-sm-inline-block">
                         <AppsDropdown/>
-                    </li>
+                    </li> */}
                     <li className="d-inline-block">
                         <div className="nav-link" id="light-dark-mode" onClick={toggleDarkMode}>
                             <i className="ri-moon-line font-22"/>

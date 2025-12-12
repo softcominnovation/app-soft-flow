@@ -178,7 +178,7 @@ const MENU_ITEMS_BASE: MenuItemType[] = [
         key: 'apps-diversos',
         label: 'Diversos',
         isTitle: false,
-        badge: {variant: 'success', text: 'Novo'},
+        // badge: {variant: 'success', text: 'Novo'},
         icon: 'uil-apps',
         children: [
             {
@@ -1226,7 +1226,7 @@ const HORIZONTAL_MENU_ITEMS_BASE: MenuItemType[] = [
                 key: 'apps-diversos',
                 label: 'Diversos',
                 parentKey: 'apps',
-                badge: {variant: 'success', text: 'Novo'},
+                // badge: {variant: 'success', text: 'Novo'},
                 children: [
                     {
                         key: 'diversos-notificacoes',
