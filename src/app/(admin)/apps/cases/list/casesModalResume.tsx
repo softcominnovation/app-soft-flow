@@ -1,7 +1,7 @@
 "use client";
 import { Card, Button, Modal, Placeholder, Nav, Tab } from "react-bootstrap";
 import { ICase } from '@/types/cases/ICase';
-import ResumeForm from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
+import ResumeForm, { ResumeFormRef } from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
 import CaseTimeTracker from './components/CaseTimeTracker';
 import CaseAnnotations from './components/CaseAnnotations';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
@@ -9,7 +9,7 @@ import TimetrackerSkelleton from "./skelletons/timetrackerSkelleton";
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
 import { finalizeCase, findCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { CasesContext } from '@/contexts/casesContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
@@ -24,8 +24,10 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 	const [finalizing, setFinalizing] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 	const [localCaseData, setLocalCaseData] = useState<ICase | null>(caseData);
+	const [saving, setSaving] = useState(false);
 	const casesContext = useContext(CasesContext);
 	const fetchCases = casesContext?.fetchCases;
+	const resumeFormRef = useRef<ResumeFormRef>(null);
 
 	// Atualizar estado local quando caseData mudar
 	useEffect(() => {
@@ -87,6 +89,21 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 			toast.error(error?.message || 'Erro ao finalizar o caso');
 		} finally {
 			setFinalizing(false);
+		}
+	};
+
+	const handleSave = async () => {
+		if (!resumeFormRef.current || saving) {
+			return;
+		}
+
+		setSaving(true);
+		try {
+			await resumeFormRef.current.save();
+		} catch (error) {
+			console.error('Erro ao salvar:', error);
+		} finally {
+			setSaving(false);
 		}
 	};
 
@@ -178,7 +195,16 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
 									<Tab.Content>
 										<Tab.Pane eventKey="resumo">
-											<ResumeForm caseData={displayCaseData}/>
+											<ResumeForm 
+												ref={resumeFormRef}
+												caseData={displayCaseData}
+												onCaseUpdated={(updatedCase) => {
+													setLocalCaseData(updatedCase);
+													if (setCase) {
+														setCase(updatedCase);
+													}
+												}}
+											/>
 										</Tab.Pane>
 										<Tab.Pane eventKey="detalhes">
 											{displayCaseData ? (
@@ -257,7 +283,16 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 									<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
 										<Tab.Content>
 											<Tab.Pane eventKey="resumo">
-												<ResumeForm caseData={displayCaseData}/>
+												<ResumeForm 
+													ref={resumeFormRef}
+													caseData={displayCaseData}
+													onCaseUpdated={(updatedCase) => {
+														setLocalCaseData(updatedCase);
+														if (setCase) {
+															setCase(updatedCase);
+														}
+													}}
+												/>
 											</Tab.Pane>
 											<Tab.Pane eventKey="detalhes">
 												{displayCaseData ? (
@@ -304,6 +339,25 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 					</div>
 				</Modal.Body>
 				<Modal.Footer className="bg-light border-top">
+					<Button 
+						variant="primary" 
+						onClick={handleSave} 
+						disabled={saving || !displayCaseData}
+						className="d-flex align-items-center"
+						style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
+					>
+						{saving ? (
+							<>
+								<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+								Salvando...
+							</>
+						) : (
+							<>
+								<IconifyIcon icon="lucide:save" className="me-1" />
+								Salvar
+							</>
+						)}
+					</Button>
 					<Button 
 						variant="success" 
 						onClick={handleFinalizeCaseClick} 

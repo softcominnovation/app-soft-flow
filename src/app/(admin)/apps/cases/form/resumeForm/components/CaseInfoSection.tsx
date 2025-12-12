@@ -2,24 +2,138 @@ import { Card, Collapse, Row, Col, Form } from 'react-bootstrap';
 import { TextInput } from '@/components/Form';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import AccordionToggle from './AccordionToggle';
+import { Controller, useFormContext } from 'react-hook-form';
+import AsyncSelect from 'react-select/async';
+import Select from 'react-select';
+import { ICase } from '@/types/cases/ICase';
+import { useCaseFormInitialization } from '../hooks/useCaseFormInitialization';
+import { STATUS_OPTIONS, findStatusOption } from '../hooks/useStatusNormalization';
+import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
+import IProductAssistant from '@/types/assistant/IProductAssistant';
+import IUserAssistant from '@/types/assistant/IUserAssistant';
+import IProjectAssistant from '@/types/assistant/IProjectAssistant';
+import type { ICategoryAssistant } from '@/services/categoriesServices';
+import { IOriginAssistant } from '@/services/originsServices';
+import { IVersionAssistant } from '@/services/versionsServices';
+import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 
 interface CaseInfoSectionProps {
 	isOpen: boolean;
 	onToggle: (eventKey: string) => void;
+	caseData?: ICase | null;
 }
 
-export default function CaseInfoSection({ isOpen, onToggle }: CaseInfoSectionProps) {
+const PRIORITY_OPTIONS = Array.from({ length: 10 }, (_, i) => ({
+	value: String(i + 1),
+	label: String(i + 1),
+}));
+
+export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfoSectionProps) {
 	const eventKey = '0';
+	const methods = useFormContext();
+	const produtoId = methods.watch('produto_id');
+
+	const {
+		// Produto
+		loadProductOptions,
+		selectedProduct,
+		setSelectedProduct,
+		defaultProductOptions,
+		triggerProductDefaultLoad,
+		isLoadingProducts,
+		// Versão
+		loadVersionOptions,
+		selectedVersion,
+		setSelectedVersion,
+		defaultVersionOptions,
+		triggerVersionDefaultLoad,
+		isLoadingVersions,
+		// Usuário (Desenvolvedor)
+		loadUserOptions,
+		selectedUser,
+		setSelectedUser,
+		defaultUserOptions,
+		triggerUserDefaultLoad,
+		isLoadingUsers,
+		// QA
+		loadQaOptions,
+		selectedQa,
+		setSelectedQa,
+		defaultQaOptions,
+		triggerQaDefaultLoad,
+		isLoadingQa,
+		// Projeto
+		loadProjectOptions,
+		selectedProject,
+		setSelectedProject,
+		defaultProjectOptions,
+		triggerProjectDefaultLoad,
+		isLoadingProjects,
+		// Origem
+		loadOriginOptions,
+		selectedOrigin,
+		setSelectedOrigin,
+		defaultOriginOptions,
+		triggerOriginDefaultLoad,
+		isLoadingOrigins,
+		// Categoria
+		loadCategoryOptions,
+		selectedCategory,
+		setSelectedCategory,
+		defaultCategoryOptions,
+		triggerCategoryDefaultLoad,
+		isLoadingCategories,
+	} = useCaseFormInitialization({
+		caseData: caseData || null,
+		methods,
+		produtoId,
+	});
+
+	const handleProductChange = (option: AsyncSelectOption<IProductAssistant> | null) => {
+		setSelectedProduct(option);
+		methods.setValue('produto_id', option?.value ?? '');
+		methods.setValue('produto', option?.raw?.nome_projeto || option?.raw?.setor || '');
+	};
+
+	const handleVersionChange = (option: AsyncSelectOption<IVersionAssistant> | null) => {
+		setSelectedVersion(option);
+		methods.setValue('versao', option?.raw?.versao ?? '');
+	};
+
+	const handleUserChange = (option: AsyncSelectOption<IUserAssistant> | null) => {
+		setSelectedUser(option);
+		methods.setValue('desenvolvedor_id', option?.value ?? '');
+		methods.setValue('desenvolvedor', option?.raw?.nome_suporte || option?.raw?.setor || '');
+	};
+
+	const handleQaChange = (option: AsyncSelectOption<IUserAssistant> | null) => {
+		setSelectedQa(option);
+		methods.setValue('qa_id', option?.value ?? '');
+		methods.setValue('qa', option?.raw?.nome_suporte || option?.raw?.setor || '');
+	};
+
+	const handleProjectChange = (option: AsyncSelectOption<IProjectAssistant> | null) => {
+		setSelectedProject(option);
+		methods.setValue('projeto_id', option?.value ?? '');
+		methods.setValue('projeto', option?.raw?.nome_projeto || '');
+	};
+
+	const handleOriginChange = (option: AsyncSelectOption<IOriginAssistant> | null) => {
+		setSelectedOrigin(option);
+		methods.setValue('origem_id', option?.value ?? '');
+		methods.setValue('origem', option?.raw?.nome || '');
+	};
+
+	const handleCategoryChange = (option: AsyncSelectOption<ICategoryAssistant> | null) => {
+		setSelectedCategory(option);
+		methods.setValue('categoria_id', option?.value ?? '');
+		methods.setValue('categoria', option?.raw?.tipo_categoria || '');
+	};
 
 	return (
 		<Card className="border-0 shadow-sm mb-0">
 			<Card.Header className="bg-light border-bottom p-0">
-				<AccordionToggle 
-					eventKey={eventKey} 
-					className="p-3"
-					isOpen={isOpen}
-					onToggle={onToggle}
-				>
+				<AccordionToggle eventKey={eventKey} className="p-3" isOpen={isOpen} onToggle={onToggle}>
 					<h5 className="mb-0 d-flex align-items-center text-body">
 						<IconifyIcon icon="lucide:info" className="me-2 text-primary" />
 						Informações do Caso
@@ -30,8 +144,8 @@ export default function CaseInfoSection({ isOpen, onToggle }: CaseInfoSectionPro
 				<div>
 					<Card.Body style={{ padding: '1.5rem' }}>
 						<Row className="g-3">
-							{/* Primeira linha: Código, Versão, Status, Prioridade */}
-							<Col md={3}>
+							{/* Primeira linha: Código, Status, Prioridade */}
+							<Col md={4}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:hash" className="me-2 text-muted" />
@@ -46,79 +160,305 @@ export default function CaseInfoSection({ isOpen, onToggle }: CaseInfoSectionPro
 									/>
 								</Form.Group>
 							</Col>
+							<Col md={4}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:activity" className="me-2 text-muted" />
+										Status
+									</Form.Label>
+									<Controller
+										name="status"
+										control={methods.control}
+										render={({ field }) => {
+											const selectedOption = findStatusOption(field.value);
+											return (
+												<Select
+													inputId="status-descricao"
+													className="react-select case-status-select"
+													classNamePrefix="react-select"
+													options={STATUS_OPTIONS}
+													placeholder="Selecione um status..."
+													value={selectedOption}
+													onChange={(option) => {
+														field.onChange(option?.value ?? '');
+													}}
+													onBlur={field.onBlur}
+												/>
+											);
+										}}
+									/>
+								</Form.Group>
+							</Col>
+							<Col md={4}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:alert-triangle" className="me-2 text-muted" />
+										Prioridade
+									</Form.Label>
+									<Controller
+										name="prioridade"
+										control={methods.control}
+										render={({ field }) => (
+											<Select
+												inputId="prioridade-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												options={PRIORITY_OPTIONS}
+												placeholder="Selecione uma prioridade..."
+												value={PRIORITY_OPTIONS.find((opt) => opt.value === field.value) || null}
+												onChange={(option) => {
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
+
+							{/* Segunda linha: Projeto, Categoria, Origem */}
+							<Col md={4}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:folder" className="me-2 text-muted" />
+										Projeto
+									</Form.Label>
+									<Controller
+										name="projeto_id"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IProjectAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedProject ? [selectedProject] : defaultProjectOptions}
+												loadOptions={loadProjectOptions}
+												inputId="projeto-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder="Pesquise um projeto..."
+												value={selectedProject}
+												onChange={(option) => {
+													handleProjectChange(option);
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={triggerProjectDefaultLoad}
+												noOptionsMessage={() =>
+													isLoadingProjects ? 'Carregando...' : 'Nenhum projeto encontrado'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
+							<Col md={4}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:tag" className="me-2 text-muted" />
+										Categoria
+									</Form.Label>
+									<Controller
+										name="categoria_id"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<ICategoryAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedCategory ? [selectedCategory] : defaultCategoryOptions}
+												loadOptions={loadCategoryOptions}
+												inputId="categoria-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder="Pesquise uma categoria..."
+												value={selectedCategory}
+												onChange={(option) => {
+													handleCategoryChange(option);
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={triggerCategoryDefaultLoad}
+												noOptionsMessage={() =>
+													isLoadingCategories ? 'Carregando...' : 'Nenhuma categoria encontrada'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
+							<Col md={4}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:arrow-right" className="me-2 text-muted" />
+										Origem
+									</Form.Label>
+									<Controller
+										name="origem_id"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IOriginAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedOrigin ? [selectedOrigin] : defaultOriginOptions}
+												loadOptions={loadOriginOptions}
+												inputId="origem-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder="Pesquise uma origem..."
+												value={selectedOrigin}
+												onChange={(option) => {
+													handleOriginChange(option);
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={triggerOriginDefaultLoad}
+												noOptionsMessage={() =>
+													isLoadingOrigins ? 'Carregando...' : 'Nenhuma origem encontrada'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
+							{/* Terceira linha: Produto, Versão, Desenvolvedor, QA */}
+							<Col md={3}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:package" className="me-2 text-muted" />
+										Produto
+									</Form.Label>
+									<Controller
+										name="produto_id"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IProductAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedProduct ? [selectedProduct] : defaultProductOptions}
+												loadOptions={loadProductOptions}
+												inputId="produto-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder="Pesquise um produto..."
+												value={selectedProduct}
+												onChange={(option) => {
+													handleProductChange(option);
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={triggerProductDefaultLoad}
+												noOptionsMessage={() =>
+													isLoadingProducts ? 'Carregando...' : 'Nenhum produto encontrado'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
 							<Col md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:tag" className="me-2 text-muted" />
 										Versão
 									</Form.Label>
-									<TextInput
-										type="text"
+									<Controller
 										name="versao"
-										placeholder="Versão"
-										disabled
-										className="bg-light"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IVersionAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedVersion ? [selectedVersion] : defaultVersionOptions}
+												loadOptions={loadVersionOptions}
+												inputId="versao-produto-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												styles={asyncSelectStyles}
+												placeholder={!produtoId ? 'Selecione um produto primeiro' : 'Pesquise uma versão...'}
+												isDisabled={!produtoId}
+												value={selectedVersion}
+												onChange={(option) => {
+													handleVersionChange(option);
+													field.onChange(option?.raw?.versao ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={() => {
+													if (produtoId) {
+														triggerVersionDefaultLoad();
+													}
+												}}
+												noOptionsMessage={() =>
+													isLoadingVersions ? 'Carregando...' : 'Nenhuma versão encontrada'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
 									/>
 								</Form.Group>
 							</Col>
 							<Col md={3}>
-								<Form.Group>
-									<Form.Label className="fw-semibold d-flex align-items-center">
-										<IconifyIcon icon="lucide:activity" className="me-2 text-muted" />
-										Status
-									</Form.Label>
-									<TextInput
-										type="text"
-										name="status"
-										placeholder="Status"
-										disabled
-										className="bg-light"
-									/>
-								</Form.Group>
-							</Col>
-							<Col md={3}>
-								<Form.Group>
-									<Form.Label className="fw-semibold d-flex align-items-center">
-										<IconifyIcon icon="lucide:alert-triangle" className="me-2 text-muted" />
-										Prioridade
-									</Form.Label>
-									<TextInput
-										type="text"
-										name="prioridade"
-										placeholder="Prioridade"
-										disabled
-										className="bg-light"
-									/>
-								</Form.Group>
-							</Col>
-							{/* Segunda linha: Produto e Desenvolvedor */}
-							<Col md={6}>
-								<Form.Group>
-									<Form.Label className="fw-semibold d-flex align-items-center">
-										<IconifyIcon icon="lucide:package" className="me-2 text-muted" />
-										Produto
-									</Form.Label>
-									<TextInput
-										type="text"
-										name="produto"
-										placeholder="Nome do produto"
-										disabled
-										className="bg-light"
-									/>
-								</Form.Group>
-							</Col>
-							<Col md={6}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:user" className="me-2 text-muted" />
 										Desenvolvedor
 									</Form.Label>
-									<TextInput
-										type="text"
-										name="desenvolvedor"
-										placeholder="Nome do desenvolvedor"
-										disabled
-										className="bg-light"
+									<Controller
+										name="desenvolvedor_id"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedUser ? [selectedUser] : defaultUserOptions}
+												loadOptions={loadUserOptions}
+												inputId="usuario-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder="Pesquise um desenvolvedor..."
+												value={selectedUser}
+												onChange={(option) => {
+													handleUserChange(option);
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={triggerUserDefaultLoad}
+												noOptionsMessage={() =>
+													isLoadingUsers ? 'Carregando...' : 'Nenhum desenvolvedor encontrado'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
+							<Col md={3}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:test-tube" className="me-2 text-muted" />
+										QA
+									</Form.Label>
+									<Controller
+										name="qa_id"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedQa ? [selectedQa] : defaultQaOptions}
+												loadOptions={loadQaOptions}
+												inputId="qa-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder="Pesquise um QA..."
+												value={selectedQa}
+												onChange={(option) => {
+													handleQaChange(option);
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={triggerQaDefaultLoad}
+												noOptionsMessage={() =>
+													isLoadingQa ? 'Carregando...' : 'Nenhum QA encontrado'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
 									/>
 								</Form.Group>
 							</Col>
@@ -129,4 +469,3 @@ export default function CaseInfoSection({ isOpen, onToggle }: CaseInfoSectionPro
 		</Card>
 	);
 }
-

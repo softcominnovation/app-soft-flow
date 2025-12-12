@@ -1,5 +1,6 @@
 export default interface IProjectAssistant {
-	id: string;
+	id: number;
+	numero_projeto: number;
 	nome_projeto: string;
 	data_inicial: string;
 	data_final: string;

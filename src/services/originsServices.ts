@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 export interface IOriginAssistant {
-    id: string;
-    nome: string;
+	id: number;
+	nome: string;
 }
 
 export const assistant = async ({ search }: { search?: string } = {}) => {
