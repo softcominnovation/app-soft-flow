@@ -41,7 +41,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 				Anexo: values.anexo || '',
 				...(values.versao !== undefined && { VersaoProduto: values.versao || '' }),
 				...(values.prioridade !== undefined && { Prioridade: values.prioridade || '' }),
-				...(values.status !== undefined && { Status: values.status || '' }),
+				...(values.status !== undefined && { Status: values.status?.value ?? values.status ?? '' }),
 				...(values.qa_id !== undefined && { QaId: values.qa_id || '' }),
 				...(values.projeto_id !== undefined && { Projeto: values.projeto_id || '' }),
 				...(values.categoria_id !== undefined && { Categoria: values.categoria_id || '' }),
@@ -78,7 +78,8 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 					},
 					status: {
 						...caseData.caso.status,
-						status_tipo: values.status || caseData.caso.status.status_tipo,
+						status_tipo: values.status?.value ?? values.status ?? caseData.caso.status.status_tipo,
+						...(values.status?.value && { registro: Number(values.status.value) }),
 					},
 					usuarios: {
 						...caseData.caso.usuarios,

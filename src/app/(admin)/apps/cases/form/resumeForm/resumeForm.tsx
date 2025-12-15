@@ -4,7 +4,6 @@ import { useEffect, useState, useImperativeHandle, forwardRef, useRef, useMemo }
 import { ICase } from '@/types/cases/ICase';
 import CaseInfoSection from './components/CaseInfoSection';
 import CaseDescriptionSection, { CaseDescriptionSectionRef } from './components/CaseDescriptionSection';
-import { normalizeStatus } from './hooks/useStatusNormalization';
 
 interface ResumeFormProps {
 	caseData: ICase | null;
@@ -58,11 +57,9 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 			anexoValue = anexoValue.slice(1, -1).trim();
 		}
 
-		// Normaliza o status
-		const statusTipo = caseData.caso.status.status_tipo || '';
-		const statusDescricao = caseData.caso.status.descricao || '';
-		const statusValue = statusTipo || statusDescricao;
-		const normalizedStatus = normalizeStatus(statusValue);
+		// Status será inicializado pelo hook useCaseFormInitialization
+		// O status_id pode ser usado para buscar o status correto
+		const statusId = caseData.caso.status?.status_id || caseData.caso.status?.id || '';
 
 		// Obter a versão
 		const versaoValue = caseData.produto?.versao || caseData.caso.caracteristicas.versao_produto || '';
@@ -90,7 +87,7 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 			resumo: caseData.caso.textos.descricao_resumo || '',
 			descricao_completa: caseData.caso.textos.descricao_completa || '',
 			anexo: anexoValue,
-			status: normalizedStatus,
+			status: statusId ? String(statusId) : '',
 			informacoes_adicionais: caseData.caso.textos.informacoes_adicionais || '',
 		};
 	}, [caseData]);

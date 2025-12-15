@@ -61,6 +61,7 @@ export default function CaseWizard() {
             Cronograma_id: data.project?.value ?? data.project ?? null,
             VersaoProduto: data.version?.value ?? data.version ?? null,
             Categoria: data.category?.value ?? data.category ?? undefined,
+            status: data.status?.value ?? data.status ?? undefined,
             DescricaoResumo: descricaoResumo ?? undefined,
             DescricaoCompleta: descricaoCompleta ?? undefined,
             Anexo: data.anexo ?? undefined,

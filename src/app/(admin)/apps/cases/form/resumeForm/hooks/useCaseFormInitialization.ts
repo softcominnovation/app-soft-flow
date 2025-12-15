@@ -13,10 +13,10 @@ import { assistant as fetchVersions, IVersionAssistant } from '@/services/versio
 import { assistant as fetchProjects } from '@/services/projectsServices';
 import { assistant as fetchOrigins, IOriginAssistant } from '@/services/originsServices';
 import { assistant as fetchCategories, type ICategoryAssistant } from '@/services/categoriesServices';
+import { assistant as fetchStatus, IStatusAssistant } from '@/services/statusServices';
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
 import IProjectAssistant from '@/types/assistant/IProjectAssistant';
-import { normalizeStatus } from './useStatusNormalization';
 import Cookies from 'js-cookie';
 
 interface UseCaseFormInitializationParams {
@@ -143,6 +143,20 @@ export function useCaseFormInitialization({
 		getOptionLabel: (category) => category.tipo_categoria || 'Categoria sem nome',
 		getOptionValue: (category) => String(category.id),
 		debounceMs: 1000,
+	});
+
+	const {
+		loadOptions: loadStatusOptions,
+		selectedOption: selectedStatus,
+		setSelectedOption: setSelectedStatus,
+		defaultOptions: defaultStatusOptions,
+		triggerDefaultLoad: triggerStatusDefaultLoad,
+		isLoading: isLoadingStatus,
+	} = useAsyncSelect<IStatusAssistant>({
+		fetchItems: async (input) => fetchStatus({ search: input }),
+		getOptionLabel: (status) => status.descricao || status.tipo || 'Status sem nome',
+		getOptionValue: (status) => String(status.Registro),
+		debounceMs: 800,
 	});
 
 	// Limpar versão quando produto mudar
@@ -309,16 +323,25 @@ export function useCaseFormInitialization({
 		}
 
 		// Inicializar status
-		const statusTipo = caseData.caso.status.status_tipo;
-		const statusDescricao = caseData.caso.status.descricao;
-		const statusValue = statusTipo || statusDescricao;
-		if (statusValue) {
-			const normalizedStatus = normalizeStatus(statusValue);
-			if (normalizedStatus) {
-				methods.setValue('status', normalizedStatus, { shouldValidate: false, shouldDirty: false });
-			}
+		const statusId = caseData.caso.status?.status_id || caseData.caso.status?.id || '';
+		if (statusId) {
+			loadStatusOptions('').then((options) => {
+				const foundStatus = options.find((opt: any) => 
+					opt.value === String(statusId) || 
+					opt.raw?.Registro === Number(statusId)
+				);
+				if (foundStatus) {
+					setSelectedStatus(foundStatus);
+					methods.setValue('status', { value: foundStatus.value, label: foundStatus.label }, { shouldValidate: false, shouldDirty: false });
+				}
+			}).catch(() => {
+				// Se falhar, não fazer nada
+			});
+		} else {
+			setSelectedStatus(null);
+			methods.setValue('status', null);
 		}
-	}, [caseData, methods, setSelectedProduct, setSelectedUser]);
+	}, [caseData, methods, setSelectedProduct, setSelectedUser, loadStatusOptions, setSelectedStatus]);
 
 	// Inicializar versão quando produto estiver disponível
 	useEffect(() => {
@@ -433,6 +456,14 @@ export function useCaseFormInitialization({
 		defaultCategoryOptions,
 		triggerCategoryDefaultLoad,
 		isLoadingCategories,
+
+		// Status
+		loadStatusOptions,
+		selectedStatus,
+		setSelectedStatus,
+		defaultStatusOptions,
+		triggerStatusDefaultLoad,
+		isLoadingStatus,
 	};
 }
 

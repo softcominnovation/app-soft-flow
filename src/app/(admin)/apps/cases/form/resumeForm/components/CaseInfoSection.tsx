@@ -7,7 +7,6 @@ import AsyncSelect from 'react-select/async';
 import Select from 'react-select';
 import { ICase } from '@/types/cases/ICase';
 import { useCaseFormInitialization } from '../hooks/useCaseFormInitialization';
-import { STATUS_OPTIONS, findStatusOption } from '../hooks/useStatusNormalization';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
@@ -15,6 +14,7 @@ import IProjectAssistant from '@/types/assistant/IProjectAssistant';
 import type { ICategoryAssistant } from '@/services/categoriesServices';
 import { IOriginAssistant } from '@/services/originsServices';
 import { IVersionAssistant } from '@/services/versionsServices';
+import { IStatusAssistant } from '@/services/statusServices';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 
 interface CaseInfoSectionProps {
@@ -48,6 +48,13 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 		defaultVersionOptions,
 		triggerVersionDefaultLoad,
 		isLoadingVersions,
+		// Status
+		loadStatusOptions,
+		selectedStatus,
+		setSelectedStatus,
+		defaultStatusOptions,
+		triggerStatusDefaultLoad,
+		isLoadingStatus,
 		// Usuário (Desenvolvedor)
 		loadUserOptions,
 		selectedUser,
@@ -169,23 +176,35 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									<Controller
 										name="status"
 										control={methods.control}
-										render={({ field }) => {
-											const selectedOption = findStatusOption(field.value);
-											return (
-												<Select
+										render={({ field, fieldState }) => (
+											<>
+												<AsyncSelect<AsyncSelectOption<IStatusAssistant>, false>
+													cacheOptions
+													defaultOptions={selectedStatus ? [selectedStatus] : defaultStatusOptions}
+													loadOptions={loadStatusOptions}
 													inputId="status-descricao"
-													className="react-select case-status-select"
+													className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
+													{...({ isInvalid: Boolean(fieldState.error) } as any)}
 													classNamePrefix="react-select"
-													options={STATUS_OPTIONS}
-													placeholder="Selecione um status..."
-													value={selectedOption}
+													placeholder="Pesquise um status..."
+													isClearable
+													value={selectedStatus}
 													onChange={(option) => {
-														field.onChange(option?.value ?? '');
+														setSelectedStatus(option as any);
+														field.onChange(option ? { value: (option as any).value, label: (option as any).label } : null);
 													}}
 													onBlur={field.onBlur}
+													onMenuOpen={() => triggerStatusDefaultLoad()}
+													noOptionsMessage={() => (isLoadingStatus ? 'Carregando...' : 'Nenhum status encontrado')}
+													loadingMessage={() => 'Carregando...'}
 												/>
-											);
-										}}
+												{fieldState.error && (
+													<Form.Control.Feedback type="invalid" className="d-block">
+														{String(fieldState.error.message)}
+													</Form.Control.Feedback>
+												)}
+											</>
+										)}
 									/>
 								</Form.Group>
 							</Col>

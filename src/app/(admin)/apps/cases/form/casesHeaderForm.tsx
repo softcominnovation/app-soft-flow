@@ -7,6 +7,7 @@ import { useAsyncSelect } from '@/hooks';
 import { assistant as fetchProducts } from '@/services/productsServices';
 import { assistant as fetchVersions, IVersionAssistant } from '@/services/versionsServices';
 import { assistant as fetchOrigins, IOriginAssistant } from '@/services/originsServices';
+import { assistant as fetchStatus, IStatusAssistant } from '@/services/statusServices';
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { asyncSelectStyles, filterOption } from '@/components/Form/asyncSelectStyles';
@@ -46,22 +47,40 @@ export default function CasesHeaderForm({ control }: Props) {
 			const productId = selectedProduct.value;
 			return fetchVersions({ search: input, produto_id: productId });
 		},
-		getOptionLabel: (version) => version.sequencia || 'Sem sequência',
+		getOptionLabel: (version) => version.versao || version.sequencia || 'Sem versão',
 		getOptionValue: (version) => version.id,
 		debounceMs: 800,
 	});
 
-	useEffect(() => {
-		const formValues = getValues();
-		if (formValues.product && !selectedProduct) {
-			setSelectedProduct(formValues.product as any);
-		}
-		if (formValues.version && !selectedVersion) {
-			setSelectedVersion(formValues.version as any);
-		}
-	}, [getValues, selectedProduct, selectedVersion, setSelectedProduct, setSelectedVersion]);
+	const priorityOptions = Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
 
-		const priorityOptions = Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
+	const {
+		loadOptions: loadStatusOptions,
+		selectedOption: selectedStatus,
+		setSelectedOption: setSelectedStatus,
+		defaultOptions: defaultStatusOptions,
+		triggerDefaultLoad: triggerStatusDefaultLoad,
+		isLoading: isLoadingStatus,
+	} = useAsyncSelect<IStatusAssistant>({
+		fetchItems: async (input) => fetchStatus({ search: input }),
+		getOptionLabel: (status) => status.descricao || status.tipo || 'Status sem nome',
+		getOptionValue: (status) => String(status.Registro),
+		debounceMs: 800,
+	});
+
+	useEffect(() => {
+		try {
+			const formValues = getValues ? getValues() : undefined;
+			if (formValues) {
+				if (formValues.product && !selectedProduct) setSelectedProduct(formValues.product as any);
+				if (formValues.version && !selectedVersion) setSelectedVersion(formValues.version as any);
+				if (formValues.status && !selectedStatus) setSelectedStatus(formValues.status as any);
+			}
+		} catch (e) {
+			// ignore if getValues unavailable
+		}
+	}, [getValues, selectedProduct, selectedVersion, selectedStatus, setSelectedProduct, setSelectedVersion, setSelectedStatus]);
+
 
 	const {
 		loadOptions: loadOriginOptions,
@@ -96,7 +115,7 @@ export default function CasesHeaderForm({ control }: Props) {
 			<Card className="shadow-sm rounded-3">
 				<Card.Body>
 					<div className="row mb-3">
-						<div className="col-md-6 mb-3 mb-md-0">
+						<div className="col-md-4 mb-3 mb-md-0">
 							<Form.Label className="fw-semibold">Produto*</Form.Label>
 							<Controller
 								name="product"
@@ -140,7 +159,7 @@ export default function CasesHeaderForm({ control }: Props) {
 							/>
 						</div>
 
-						<div className="col-md-6">
+						<div className="col-md-4">
 							<Form.Label className="fw-semibold">Prioridade</Form.Label>
 							<Controller
 								name="priority"
@@ -171,10 +190,43 @@ export default function CasesHeaderForm({ control }: Props) {
 								}}
 							/>
 						</div>
-						
-						
-						
-						
+
+						<div className="col-md-4">
+							<Form.Label className="fw-semibold">Status</Form.Label>
+							<Controller
+								name="status"
+								control={control}
+								render={({ field, fieldState }) => (
+									<>
+										<AsyncSelect<AsyncSelectOption<IStatusAssistant>, false>
+											cacheOptions
+											defaultOptions={selectedStatus ? [selectedStatus] : defaultStatusOptions}
+											loadOptions={loadStatusOptions}
+											inputId="status-id"
+											className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
+											{...({ isInvalid: Boolean(fieldState.error) } as any)}
+											classNamePrefix="react-select"
+											placeholder="Pesquise um status..."
+											isClearable
+											value={selectedStatus}
+											onChange={(option) => {
+												setSelectedStatus(option as any);
+												field.onChange(option ? { value: (option as any).value, label: (option as any).label } : null);
+											}}
+											onBlur={field.onBlur}
+											onMenuOpen={() => triggerStatusDefaultLoad()}
+											noOptionsMessage={() => (isLoadingStatus ? 'Carregando...' : 'Nenhum status encontrado')}
+											loadingMessage={() => 'Carregando...'}
+										/>
+										{fieldState.error && (
+											<Form.Control.Feedback type="invalid" className="d-block">
+												{String(fieldState.error.message)}
+											</Form.Control.Feedback>
+										)}
+									</>
+								)}
+							/>
+						</div>
 					</div>
 					<div className="row mb-3">
 						<div className="col-md-6 mb-3 mb-md-0">
