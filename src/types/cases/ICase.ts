@@ -151,8 +151,10 @@ export interface Producao {
 	};
 	tipo: string;
 	usuario_id: number;
+	usuario_nome: string | null;
 	projeto_id: number;
 	valeu_usuario_id: number;
+	valeu_usuario_nome: string | null;
 }
 
 export interface ICaseResponse {
