@@ -40,9 +40,24 @@ export async function GET(request: Request) {
 		});
 
 		return NextResponse.json(response.data, { status: 200 });
-	} catch (error) {
-		console.log(error);
-		return NextResponse.json('Houve um erro ao se conectar com a API', { status: 500 });
+	} catch (error: any) {
+		console.error('Erro ao buscar casos via /api/cases:', error);
+		
+		// Se for um erro do axios com resposta da API, retorna a resposta original
+		if (axios.isAxiosError(error) && error.response) {
+			console.error('Resposta da API:', error.response.data);
+			console.error('Status da API:', error.response.status);
+			return NextResponse.json(
+				error.response.data || { message: 'Erro ao buscar casos na API externa' }, 
+				{ status: error.response.status }
+			);
+		}
+		
+		// Se for um erro de conexão ou outro tipo de erro
+		return NextResponse.json(
+			{ message: 'Houve um erro ao se conectar com a API', error: error.message }, 
+			{ status: 500 }
+		);
 	}
 }
 

@@ -312,115 +312,62 @@ export function useCaseFormInitialization({
 			methods.setValue('categoria_id', '');
 		}
 
-		// Inicializar status
-		const statusId = caseData.caso.status?.status_id || caseData.caso.status?.id || '';
+		// Inicializar status usando os dados que já vêm na resposta da API
+		// Não precisa fazer requisição, os dados já estão em caseData.caso.status
+		const statusId = caseData.caso.status?.codigo || caseData.caso.status?.status_id || caseData.caso.status?.id || '';
 		const statusDescricao = caseData.caso.status?.descricao || '';
 		
-		if (statusId) {
-			loadStatusOptions('').then((options) => {
-				const foundStatus = options.find((opt: any) => 
-					opt.value === String(statusId) || 
-					opt.raw?.Registro === Number(statusId) ||
-					String(opt.raw?.Registro) === String(statusId)
-				);
-				if (foundStatus) {
-					setSelectedStatus(foundStatus);
-					methods.setValue('status', { value: foundStatus.value, label: foundStatus.label }, { shouldValidate: false, shouldDirty: false });
-				} else {
-					// Se não encontrar, criar opção manual usando os dados do caso
-					const statusOption: AsyncSelectOption<IStatusAssistant> = {
-						value: String(statusId),
-						label: statusDescricao || `Status ${statusId}`,
-						raw: {
-							Registro: Number(statusId),
-							descricao: statusDescricao || '',
-							tipo: caseData.caso.status?.status_tipo || '',
-						} as IStatusAssistant,
-					};
-					setSelectedStatus(statusOption);
-					methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
-				}
-			}).catch((error) => {
-				console.error('Erro ao carregar status:', error);
-				// Em caso de erro, criar opção manual usando os dados do caso
-				if (statusId) {
-					const statusOption: AsyncSelectOption<IStatusAssistant> = {
-						value: String(statusId),
-						label: statusDescricao || `Status ${statusId}`,
-						raw: {
-							Registro: Number(statusId),
-							descricao: statusDescricao || '',
-							tipo: caseData.caso.status?.status_tipo || '',
-						} as IStatusAssistant,
-					};
-					setSelectedStatus(statusOption);
-					methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
-				}
-			});
+		if (statusId && statusDescricao) {
+			// Criar opção diretamente usando os dados que já vêm na resposta
+			const statusOption: AsyncSelectOption<IStatusAssistant> = {
+				value: String(statusId),
+				label: statusDescricao,
+				raw: {
+					Registro: Number(statusId),
+					descricao: statusDescricao,
+					tipo: caseData.caso.status?.status_tipo || caseData.caso.status?.estado || '',
+				} as IStatusAssistant,
+			};
+			setSelectedStatus(statusOption);
+			methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
 		} else {
 			setSelectedStatus(null);
 			methods.setValue('status', null);
 		}
-	}, [caseData, methods, setSelectedProduct, setSelectedUser, loadStatusOptions, setSelectedStatus]);
+	}, [caseData, methods, setSelectedStatus]);
 
 	// Garantir que o status seja definido após o reset do formulário
 	useEffect(() => {
 		if (!caseData?.caso?.id) return;
 		
-		const statusId = caseData.caso.status?.status_id || caseData.caso.status?.id || '';
+		const statusId = caseData.caso.status?.codigo || caseData.caso.status?.status_id || caseData.caso.status?.id || '';
 		const statusDescricao = caseData.caso.status?.descricao || '';
 		const currentStatus = methods.getValues('status');
 		
 		// Se o status não estiver definido ou estiver como null/string vazia, definir novamente
-		if (statusId && (!currentStatus || (typeof currentStatus === 'string' && currentStatus === '') || currentStatus === null)) {
+		// Usando os dados que já vêm na resposta, sem fazer requisição
+		if (statusId && statusDescricao && (!currentStatus || (typeof currentStatus === 'string' && currentStatus === '') || currentStatus === null)) {
 			// Aguardar um pouco para garantir que o reset já foi executado
 			const timeoutId = setTimeout(() => {
-				loadStatusOptions('').then((options) => {
-					const foundStatus = options.find((opt: any) => 
-						opt.value === String(statusId) || 
-						opt.raw?.Registro === Number(statusId) ||
-						String(opt.raw?.Registro) === String(statusId)
-					);
-					if (foundStatus) {
-						setSelectedStatus(foundStatus);
-						methods.setValue('status', { value: foundStatus.value, label: foundStatus.label }, { shouldValidate: false, shouldDirty: false });
-					} else if (statusId) {
-						// Se não encontrar, criar opção manual usando os dados do caso
-						const statusOption: AsyncSelectOption<IStatusAssistant> = {
-							value: String(statusId),
-							label: statusDescricao || `Status ${statusId}`,
-							raw: {
-								Registro: Number(statusId),
-								descricao: statusDescricao || '',
-								tipo: caseData.caso.status?.status_tipo || '',
-							} as IStatusAssistant,
-						};
-						setSelectedStatus(statusOption);
-						methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
-					}
-				}).catch(() => {
-					// Em caso de erro, criar opção manual
-					if (statusId) {
-						const statusOption: AsyncSelectOption<IStatusAssistant> = {
-							value: String(statusId),
-							label: statusDescricao || `Status ${statusId}`,
-							raw: {
-								Registro: Number(statusId),
-								descricao: statusDescricao || '',
-								tipo: caseData.caso.status?.status_tipo || '',
-							} as IStatusAssistant,
-						};
-						setSelectedStatus(statusOption);
-						methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
-					}
-				});
+				const statusOption: AsyncSelectOption<IStatusAssistant> = {
+					value: String(statusId),
+					label: statusDescricao,
+					raw: {
+						Registro: Number(statusId),
+						descricao: statusDescricao,
+						tipo: caseData.caso.status?.status_tipo || caseData.caso.status?.estado || '',
+					} as IStatusAssistant,
+				};
+				setSelectedStatus(statusOption);
+				methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
 			}, 100);
 			
 			return () => clearTimeout(timeoutId);
 		}
-	}, [caseData, methods, loadStatusOptions, setSelectedStatus]);
+	}, [caseData, methods, setSelectedStatus]);
 
-	// Inicializar versão quando produto estiver disponível
+	// Inicializar versão usando os dados que já vêm na resposta da API
+	// Não precisa fazer requisição, os dados já estão em caseData.produto.versao ou caseData.caso.caracteristicas.versao_produto
 	useEffect(() => {
 		if (!caseData?.caso?.id || !produtoId || !selectedProduct) return;
 
@@ -434,48 +381,21 @@ export function useCaseFormInitialization({
 
 		versionInitializedRef.current = versaoKey;
 
-		loadVersionOptions('')
-			.then((options) => {
-				const foundVersion = options.find(
-					(opt: any) =>
-						opt.raw?.versao === versaoValue ||
-						opt.label === versaoValue ||
-						opt.raw?.sequencia === versaoValue
-				);
-
-				if (foundVersion) {
-					setSelectedVersion(foundVersion);
-					methods.setValue('versao', foundVersion.raw?.versao || foundVersion.label || versaoValue);
-				} else {
-					// Criar opção manual se não encontrar
-					const versionOption: AsyncSelectOption<IVersionAssistant> = {
-						value: versaoValue,
-						label: versaoValue,
-						raw: {
-							id: versaoValue,
-							versao: versaoValue,
-							sequencia: versaoValue,
-						} as IVersionAssistant,
-					};
-					setSelectedVersion(versionOption);
-					methods.setValue('versao', versaoValue);
-				}
-			})
-			.catch(() => {
-				// Em caso de erro, criar opção manual
-				const versionOption: AsyncSelectOption<IVersionAssistant> = {
-					value: versaoValue,
-					label: versaoValue,
-					raw: {
-						id: versaoValue,
-						versao: versaoValue,
-						sequencia: versaoValue,
-					} as IVersionAssistant,
-				};
-				setSelectedVersion(versionOption);
-				methods.setValue('versao', versaoValue);
-			});
-	}, [caseData, produtoId, selectedProduct, loadVersionOptions, methods, setSelectedVersion]);
+		// Criar opção diretamente usando o texto da versão que já vem na resposta
+		// Não precisa fazer requisição, apenas usar o texto da versão
+		const versionOption: AsyncSelectOption<IVersionAssistant> = {
+			value: versaoValue, // Usar o texto como value também
+			label: versaoValue,
+			raw: {
+				id: versaoValue,
+				versao: versaoValue,
+				sequencia: versaoValue,
+			} as IVersionAssistant,
+		};
+		setSelectedVersion(versionOption);
+		// Salvar o texto da versão, não o ID
+		methods.setValue('versao', versaoValue);
+	}, [caseData, produtoId, selectedProduct, methods, setSelectedVersion]);
 
 	return {
 		// Produto

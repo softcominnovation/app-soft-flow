@@ -2,11 +2,12 @@ import { Card, Collapse, Row, Form } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import AccordionToggle from './AccordionToggle';
 import { ICase } from '@/types/cases/ICase';
-import { useState, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react';
+import { useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { TextAreaInput, TextInput } from '@/components/Form';
 import { updateCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
+import { createUpdatedCase } from '../utils/caseUpdateUtils';
 
 interface CaseDescriptionSectionProps {
 	caseData: ICase;
@@ -60,24 +61,12 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 		// Sempre inclui todos os campos no payload, mesmo que vazios
 		// Mapeamento dos campos do formulário para os campos da API
 		// Para Categoria: sempre usa categoria_id (deve ser um número), nunca o texto
-		// A API exige um número inteiro para Categoria
-		let categoriaId = '';
-		if (values.categoria_id) {
-			const categoriaIdStr = toString(values.categoria_id);
-			// Valida se é um número válido (não pode ser texto como "BUG")
-			const categoriaIdNum = Number(categoriaIdStr);
-			if (!isNaN(categoriaIdNum) && categoriaIdNum > 0) {
-				categoriaId = String(categoriaIdNum);
-			} else {
-				console.warn('⚠️ Categoria ID inválido (não é número):', categoriaIdStr, 'Valor original:', values.categoria_id);
-			}
-		}
-		console.log('🔍 Categoria - categoria_id:', values.categoria_id, 'categoria (texto):', values.categoria, 'ID validado:', categoriaId);
+		
 		
 		return {
 			Anexo: toString(values.anexo),
 			AtribuidoPara: toString(values.desenvolvedor_id),
-			Categoria: categoriaId,
+			Categoria: toString(values.categoria_id),
 			Cronograma_id: toString(values.projeto_id), // projeto_id é o Cronograma_id
 			DescricaoCompleta: toString(values.descricao_completa),
 			DescricaoResumo: toString(values.resumo),
@@ -91,59 +80,6 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			VersaoProduto: toString(values.versao),
 		};
 	}, [getValues]);
-
-		/**
-		 * Cria um objeto de caso atualizado com os novos valores
-		 */
-		const createUpdatedCase = useCallback(
-			(values: any): ICase => ({
-				...caseData,
-				produto: caseData.produto,
-				projeto: values.projeto_id
-					? {
-							id: Number(values.projeto_id),
-							descricao: values.projeto || caseData.projeto?.descricao || null,
-							datas: {
-								inicial: caseData.projeto?.datas?.inicial || null,
-								final: caseData.projeto?.datas?.final || null,
-							},
-						}
-					: caseData.projeto,
-				caso: {
-					...caseData.caso,
-					caracteristicas: {
-						...caseData.caso.caracteristicas,
-						prioridade: values.prioridade || caseData.caso.caracteristicas.prioridade,
-						versao_produto: values.versao || caseData.caso.caracteristicas.versao_produto,
-						tipo_categoria: values.categoria || values.categoria_id || caseData.caso.caracteristicas.tipo_categoria,
-						id_origem: values.origem_id ? Number(values.origem_id) : caseData.caso.caracteristicas.id_origem,
-						tipo_origem: values.origem || caseData.caso.caracteristicas.tipo_origem,
-					},
-					status: {
-						...caseData.caso.status,
-						status_tipo: values.status?.value ?? values.status ?? caseData.caso.status.status_tipo,
-						...(values.status?.value && { registro: Number(values.status.value) }),
-					},
-					usuarios: {
-						...caseData.caso.usuarios,
-						...(values.qa_id && {
-							qa: {
-								id: values.qa_id,
-								nome: values.qa || caseData.caso.usuarios.qa?.nome || null,
-							},
-						}),
-					},
-					textos: {
-						...caseData.caso.textos,
-						descricao_resumo: values.resumo || '',
-						descricao_completa: values.descricao_completa || '',
-						informacoes_adicionais: values.informacoes_adicionais || '',
-						anexo: values.anexo || '',
-					},
-				},
-			}),
-			[caseData]
-		);
 
 		/**
 		 * Salva as alterações do formulário
@@ -164,7 +100,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 				toast.success('Campos atualizados com sucesso!');
 
 				if (onCaseUpdated) {
-					const updatedCase = createUpdatedCase(values);
+					const updatedCase = createUpdatedCase(caseData, values);
 					onCaseUpdated(updatedCase);
 				}
 			} catch (error: any) {
@@ -173,7 +109,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			} finally {
 				setIsSaving(false);
 			}
-		}, [isSaving, getValues, caseData, prepareUpdateData, createUpdatedCase, onCaseUpdated]);
+		}, [isSaving, getValues, caseData, prepareUpdateData, onCaseUpdated]);
 
 		// Expõe a função de salvamento através da ref
 		useImperativeHandle(
