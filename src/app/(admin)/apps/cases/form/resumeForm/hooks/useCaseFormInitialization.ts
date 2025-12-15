@@ -290,32 +290,22 @@ export function useCaseFormInitialization({
 				);
 				if (foundCategory) {
 					setSelectedCategory(foundCategory);
+					// Usar o ID numérico da categoria encontrada
 					methods.setValue('categoria_id', foundCategory.value);
 				} else {
-					// Se não encontrar, criar opção manual
-					const categoryOption: AsyncSelectOption<ICategoryAssistant> = {
-						value: categoryValue,
-						label: categoryValue,
-						raw: {
-							id: 0,
-							tipo_categoria: categoryValue,
-						} as ICategoryAssistant,
-					};
-					setSelectedCategory(categoryOption);
-					methods.setValue('categoria_id', categoryValue);
+					// Se não encontrar, não definir categoria_id (deixar vazio)
+					// O usuário precisará selecionar a categoria manualmente
+					setSelectedCategory(null);
+					methods.setValue('categoria_id', '');
+					// Ainda manter o texto da categoria para exibição
+					methods.setValue('categoria', categoryValue);
 				}
 			}).catch(() => {
-				// Em caso de erro, usar o valor diretamente
-				const categoryOption: AsyncSelectOption<ICategoryAssistant> = {
-					value: categoryValue,
-					label: categoryValue,
-					raw: {
-						id: 0,
-						tipo_categoria: categoryValue,
-					} as ICategoryAssistant,
-				};
-				setSelectedCategory(categoryOption);
-				methods.setValue('categoria_id', categoryValue);
+				// Em caso de erro, não definir categoria_id
+				setSelectedCategory(null);
+				methods.setValue('categoria_id', '');
+				// Ainda manter o texto da categoria para exibição
+				methods.setValue('categoria', categoryValue);
 			});
 		} else {
 			setSelectedCategory(null);

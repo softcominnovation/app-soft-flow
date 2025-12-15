@@ -29,25 +29,68 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 		const { getValues } = useFormContext();
 		const [isSaving, setIsSaving] = useState(false);
 
-		/**
-		 * Prepara os dados para atualização do caso
-		 */
-		const prepareUpdateData = useCallback(() => {
-			const values = getValues();
-			return {
-				DescricaoResumo: values.resumo || '',
-				DescricaoCompleta: values.descricao_completa || '',
-				InformacoesAdicionais: values.informacoes_adicionais || '',
-				Anexo: values.anexo || '',
-				...(values.versao !== undefined && { VersaoProduto: values.versao || '' }),
-				...(values.prioridade !== undefined && { Prioridade: values.prioridade || '' }),
-				...(values.status !== undefined && { Status: values.status?.value ?? values.status ?? '' }),
-				...(values.qa_id !== undefined && { QaId: values.qa_id || '' }),
-				...(values.projeto_id !== undefined && { Projeto: values.projeto_id || '' }),
-				...(values.categoria_id !== undefined && { Categoria: values.categoria_id || '' }),
-				...(values.origem_id !== undefined && { Id_Origem: values.origem_id || '' }),
-			};
-		}, [getValues]);
+	/**
+	 * Prepara os dados para atualização do caso
+	 */
+	const prepareUpdateData = useCallback(() => {
+		const values = getValues();
+		
+		// Função auxiliar para converter valores para string, mantendo vazio se não existir
+		const toString = (value: any): string => {
+			if (value === null || value === undefined) return '';
+			if (typeof value === 'string') return value;
+			if (typeof value === 'number') return String(value);
+			if (typeof value === 'object' && value !== null) {
+				// Se for um objeto (como do react-select), extrai o value
+				return value.value ? String(value.value) : '';
+			}
+			return String(value);
+		};
+		
+		// Extrai o valor do status (pode ser objeto ou string)
+		let statusValue = '';
+		if (values.status) {
+			if (typeof values.status === 'object' && values.status !== null) {
+				statusValue = toString(values.status.value ?? values.status);
+			} else {
+				statusValue = toString(values.status);
+			}
+		}
+		
+		// Sempre inclui todos os campos no payload, mesmo que vazios
+		// Mapeamento dos campos do formulário para os campos da API
+		// Para Categoria: sempre usa categoria_id (deve ser um número), nunca o texto
+		// A API exige um número inteiro para Categoria
+		let categoriaId = '';
+		if (values.categoria_id) {
+			const categoriaIdStr = toString(values.categoria_id);
+			// Valida se é um número válido (não pode ser texto como "BUG")
+			const categoriaIdNum = Number(categoriaIdStr);
+			if (!isNaN(categoriaIdNum) && categoriaIdNum > 0) {
+				categoriaId = String(categoriaIdNum);
+			} else {
+				console.warn('⚠️ Categoria ID inválido (não é número):', categoriaIdStr, 'Valor original:', values.categoria_id);
+			}
+		}
+		console.log('🔍 Categoria - categoria_id:', values.categoria_id, 'categoria (texto):', values.categoria, 'ID validado:', categoriaId);
+		
+		return {
+			Anexo: toString(values.anexo),
+			AtribuidoPara: toString(values.desenvolvedor_id),
+			Categoria: categoriaId,
+			Cronograma_id: toString(values.projeto_id), // projeto_id é o Cronograma_id
+			DescricaoCompleta: toString(values.descricao_completa),
+			DescricaoResumo: toString(values.resumo),
+			Id_Origem: toString(values.origem_id),
+			InformacoesAdicionais: toString(values.informacoes_adicionais),
+			Prioridade: toString(values.prioridade),
+			Projeto: toString(values.produto_id), // produto_id é o Projeto (id do Produto)
+			QaId: toString(values.qa_id),
+			Relator: toString(values.relator_id || values.desenvolvedor_id), // Relator pode ser o desenvolvedor se não houver relator específico
+			Status: statusValue,
+			VersaoProduto: toString(values.versao),
+		};
+	}, [getValues]);
 
 		/**
 		 * Cria um objeto de caso atualizado com os novos valores
@@ -112,6 +155,10 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			try {
 				const values = getValues();
 				const updateData = prepareUpdateData();
+
+				console.log('🔍 Valores do formulário:', values);
+				console.log('📤 Payload enviado para API:', updateData);
+				console.log('📊 Total de campos no payload:', Object.keys(updateData).length);
 
 				await updateCase(caseData.caso.id.toString(), updateData);
 				toast.success('Campos atualizados com sucesso!');
