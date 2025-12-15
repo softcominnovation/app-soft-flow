@@ -280,36 +280,28 @@ export function useCaseFormInitialization({
 			methods.setValue('origem_id', '');
 		}
 
-		// Inicializar Categoria
-		if (caseData.caso?.caracteristicas?.tipo_categoria) {
-			const categoryValue = caseData.caso.caracteristicas.tipo_categoria;
-			// Buscar categoria correspondente
-			loadCategoryOptions('').then((options) => {
-				const foundCategory = options.find(
-					(opt: any) => opt.raw?.tipo_categoria === categoryValue || opt.label === categoryValue
-				);
-				if (foundCategory) {
-					setSelectedCategory(foundCategory);
-					// Usar o ID numérico da categoria encontrada
-					methods.setValue('categoria_id', foundCategory.value);
-				} else {
-					// Se não encontrar, não definir categoria_id (deixar vazio)
-					// O usuário precisará selecionar a categoria manualmente
-					setSelectedCategory(null);
-					methods.setValue('categoria_id', '');
-					// Ainda manter o texto da categoria para exibição
-					methods.setValue('categoria', categoryValue);
-				}
-			}).catch(() => {
-				// Em caso de erro, não definir categoria_id
-				setSelectedCategory(null);
-				methods.setValue('categoria_id', '');
-				// Ainda manter o texto da categoria para exibição
-				methods.setValue('categoria', categoryValue);
-			});
+		// Inicializar Categoria usando os dados que já vêm na resposta da API
+		// Não precisa fazer requisição, os dados já estão em caseData.caso.caracteristicas
+		const categoriaId = caseData.caso?.caracteristicas?.categoria;
+		const tipoCategoria = caseData.caso?.caracteristicas?.tipo_categoria;
+		
+		if (categoriaId && categoriaId !== 0 && tipoCategoria) {
+			// Criar opção diretamente usando os dados que já vêm na resposta
+			const categoryOption: AsyncSelectOption<ICategoryAssistant> = {
+				value: String(categoriaId),
+				label: tipoCategoria,
+				raw: {
+					id: Number(categoriaId),
+					tipo_categoria: tipoCategoria,
+				} as ICategoryAssistant,
+			};
+			setSelectedCategory(categoryOption);
+			methods.setValue('categoria_id', String(categoriaId));
+			methods.setValue('categoria', tipoCategoria);
 		} else {
 			setSelectedCategory(null);
 			methods.setValue('categoria_id', '');
+			methods.setValue('categoria', tipoCategoria || '');
 		}
 
 		// Inicializar status usando os dados que já vêm na resposta da API

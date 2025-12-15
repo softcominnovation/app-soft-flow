@@ -37,7 +37,8 @@ interface CamposAdicionais {
 interface Caracteristicas {
 	tamanho_pontos: number | null;
 	prioridade: string;
-	tipo_categoria: "BUG" | "MELHORIA" | "TAREFA" | string;
+	categoria: number | null;
+	tipo_categoria: "BUG" | "MELHORIA" | "TAREFA" | string | null;
 	modulo: string | null;
 	equivalencia: string | null;
 	id_origem: number;

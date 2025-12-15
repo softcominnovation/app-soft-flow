@@ -59,7 +59,7 @@ export default function CaseWizard() {
             Relator: data.relator_id?.value ?? data.relator_id ?? data.usuario_id?.value ?? data.usuario_id ?? null,
             Prioridade: data.priority ?? (data.priority?.value ?? undefined),
             Cronograma_id: data.project?.value ?? data.project ?? null,
-            VersaoProduto: data.version?.value ?? data.version ?? null,
+            VersaoProduto: data.version?.raw?.versao ?? data.version?.label ?? data.version ?? null,
             Categoria: data.category?.value ?? data.category ?? undefined,
             status: data.status?.value ?? data.status ?? undefined,
             DescricaoResumo: descricaoResumo ?? undefined,

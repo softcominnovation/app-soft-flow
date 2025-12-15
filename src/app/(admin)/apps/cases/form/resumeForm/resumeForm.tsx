@@ -80,7 +80,9 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 			projeto: caseData.projeto?.descricao || '',
 			projeto_id: caseData.projeto?.id?.toString() || '',
 			categoria: caseData.caso.caracteristicas.tipo_categoria || '',
-			categoria_id: '',
+			categoria_id: (caseData.caso.caracteristicas.categoria && caseData.caso.caracteristicas.categoria !== 0)
+				? caseData.caso.caracteristicas.categoria.toString()
+				: '',
 			origem: caseData.caso.caracteristicas.tipo_origem || '',
 			origem_id: caseData.caso.caracteristicas.id_origem?.toString() || '',
 			resumo: caseData.caso.textos.descricao_resumo || '',
