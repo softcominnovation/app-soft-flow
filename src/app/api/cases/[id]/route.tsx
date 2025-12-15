@@ -110,3 +110,42 @@ export async function PATCH(request: Request) {
 		return NextResponse.json('Houve um erro ao se conectar com a API', { status: 500 });
 	}
 }
+
+export async function DELETE(request: Request) {
+	try {
+		const cookieStore = await cookies();
+		const token = cookieStore.get('access_token');
+
+		if (!token) {
+			return NextResponse.json('Cookie não encontrado', { status: 400 });
+		}
+
+		const url = new URL(request.url);
+		const caseId = url.pathname.split('/').pop();
+
+		if (!caseId) {
+			return NextResponse.json('ID não encontrado', { status: 400 });
+		}
+
+		const response = await axios.delete(
+			`${getBaseApiUrl()}/projeto-casos/${caseId}`,
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token.value}`,
+				},
+			}
+		);
+
+		return NextResponse.json(
+			{ success: true, message: 'Caso excluído com sucesso' },
+			{ status: 200 }
+		);
+	} catch (error: any) {
+		console.error('Erro ao excluir caso via /api/cases/[id]:', error);
+		if (axios.isAxiosError(error) && error.response) {
+			return NextResponse.json(error.response.data, { status: error.response.status });
+		}
+		return NextResponse.json('Houve um erro ao se conectar com a API', { status: 500 });
+	}
+}

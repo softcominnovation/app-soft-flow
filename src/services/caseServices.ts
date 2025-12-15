@@ -129,3 +129,16 @@ export async function updateCase(id: string, data: any): Promise<any> {
 		}
 	}
 }
+
+export async function deleteCase(id: string): Promise<{ success: boolean; message: string }> {
+	try {
+		const res = await axios.delete(`/api/cases/${id}`);
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}

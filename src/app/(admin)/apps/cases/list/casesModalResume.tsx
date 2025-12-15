@@ -7,7 +7,7 @@ import CaseAnnotations from './components/CaseAnnotations';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import TimetrackerSkelleton from "./skelletons/timetrackerSkelleton";
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
-import { finalizeCase, findCase } from '@/services/caseServices';
+import { finalizeCase, findCase, deleteCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
 import { useState, useContext, useEffect, useRef } from 'react';
 import { CasesContext } from '@/contexts/casesContext';
@@ -24,6 +24,8 @@ interface Props {
 export default function CasesModalResume({ setOpen, open, case: caseData, setCase }: Props) {
 	const [finalizing, setFinalizing] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [deleting, setDeleting] = useState(false);
 	const [localCaseData, setLocalCaseData] = useState<ICase | null>(caseData);
 	const [saving, setSaving] = useState(false);
 	const casesContext = useContext(CasesContext);
@@ -109,6 +111,40 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 			console.error('Erro ao salvar:', error);
 		} finally {
 			setSaving(false);
+		}
+	};
+
+	const handleDeleteCaseClick = () => {
+		if (!displayCaseData?.caso.id || deleting) {
+			return;
+		}
+		setShowDeleteDialog(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!displayCaseData?.caso.id || deleting) {
+			return;
+		}
+
+		setDeleting(true);
+		setShowDeleteDialog(false);
+		try {
+			await deleteCase(displayCaseData.caso.id.toString());
+			toast.success('Caso excluído com sucesso!');
+			handleClose();
+			// Recarregar a listagem de casos se o contexto estiver disponível
+			if (fetchCases) {
+				fetchCases();
+			}
+			// Recarregar a página para atualizar o card flutuante se houver
+			setTimeout(() => {
+				window.location.reload();
+			}, 500);
+		} catch (error: any) {
+			console.error('Erro ao excluir caso:', error);
+			toast.error(error?.message || 'Erro ao excluir o caso');
+		} finally {
+			setDeleting(false);
 		}
 	};
 
@@ -363,6 +399,24 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 						)}
 					</Button>
 					<Button 
+						variant="danger" 
+						onClick={handleDeleteCaseClick} 
+						disabled={deleting || !displayCaseData || !permissions.canDelete}
+						className="d-flex align-items-center"
+					>
+						{deleting ? (
+							<>
+								<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+								Excluindo...
+							</>
+						) : (
+							<>
+								<IconifyIcon icon="lucide:trash-2" className="me-1" />
+								Excluir
+							</>
+						)}
+					</Button>
+					<Button 
 						variant="success" 
 						onClick={handleFinalizeCaseClick} 
 						className="d-flex align-items-center"
@@ -386,17 +440,30 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 				</Modal.Footer>
 			</Modal>
 			{displayCaseData && (
-				<ConfirmDialog
-					show={showConfirmDialog}
-					title="Finalizar Caso"
-					message={`Deseja realmente finalizar o Caso #${displayCaseData.caso.id}?`}
-					confirmText="Finalizar"
-					cancelText="Cancelar"
-					confirmVariant="success"
-					onConfirm={handleConfirmFinalize}
-					onCancel={() => setShowConfirmDialog(false)}
-					loading={finalizing}
-				/>
+				<>
+					<ConfirmDialog
+						show={showConfirmDialog}
+						title="Finalizar Caso"
+						message={`Deseja realmente finalizar o Caso #${displayCaseData.caso.id}?`}
+						confirmText="Finalizar"
+						cancelText="Cancelar"
+						confirmVariant="success"
+						onConfirm={handleConfirmFinalize}
+						onCancel={() => setShowConfirmDialog(false)}
+						loading={finalizing}
+					/>
+					<ConfirmDialog
+						show={showDeleteDialog}
+						title="Excluir Caso"
+						message={`Deseja realmente excluir o Caso #${displayCaseData.caso.id}? Esta ação não pode ser desfeita.`}
+						confirmText="Excluir"
+						cancelText="Cancelar"
+						confirmVariant="danger"
+						onConfirm={handleConfirmDelete}
+						onCancel={() => setShowDeleteDialog(false)}
+						loading={deleting}
+					/>
+				</>
 			)}
 		</>
 	);
