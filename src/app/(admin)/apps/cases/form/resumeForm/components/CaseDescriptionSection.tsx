@@ -28,9 +28,11 @@ export interface CaseDescriptionSectionRef {
 const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescriptionSectionProps>(
 	({ caseData, isOpen, onToggle, onCaseUpdated }, ref) => {
 		const eventKey = '1';
-		const { getValues } = useFormContext();
+		const { getValues, watch } = useFormContext();
 		const [isSaving, setIsSaving] = useState(false);
 		const permissions = useCasePermissions(caseData);
+		const anexoValue = watch('anexo') || '';
+		const isAnexoDisabled = !permissions.canEditAnexo;
 
 	/**
 	 * Prepara os dados para atualização do caso
@@ -157,12 +159,40 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 								</Form.Group>
 								<Form.Group style={{ marginBottom: '24px' }}>
 									<Form.Label className="fw-semibold mb-2">Anexo</Form.Label>
-									<TextInput 
-										type="text" 
-										name="anexo" 
-										placeholder="URL ou texto do anexo"
-										disabled={!permissions.canEditAnexo}
-									/>
+									{isAnexoDisabled && anexoValue ? (
+										<div className="form-control" style={{ 
+											backgroundColor: 'var(--bs-tertiary-bg, #e9ecef)',
+											borderColor: 'var(--bs-border-color, #dee2e6)',
+											cursor: 'not-allowed',
+											display: 'flex',
+											alignItems: 'center',
+											padding: '0.375rem 0.75rem'
+										}}>
+											<a 
+												href={anexoValue.startsWith('http://') || anexoValue.startsWith('https://') ? anexoValue : `https://${anexoValue}`}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-primary text-decoration-underline d-flex align-items-center"
+												style={{ 
+													color: 'var(--bs-link-color, #0d6efd)',
+													textDecoration: 'underline',
+													cursor: 'pointer',
+													pointerEvents: 'auto'
+												}}
+												onClick={(e) => e.stopPropagation()}
+											>
+												<IconifyIcon icon="lucide:external-link" className="me-1" style={{ fontSize: '1rem' }} />
+												{anexoValue}
+											</a>
+										</div>
+									) : (
+										<TextInput 
+											type="text" 
+											name="anexo" 
+											placeholder="URL ou texto do anexo"
+											disabled={isAnexoDisabled}
+										/>
+									)}
 								</Form.Group>
 								<Form.Group style={{ marginBottom: '0' }}>
 									<Form.Label className="fw-semibold mb-2">Informações Adicionais</Form.Label>

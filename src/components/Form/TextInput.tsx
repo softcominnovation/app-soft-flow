@@ -31,6 +31,8 @@ export default function TextInput({
 	register,
     control,
 	type,
+	disabled,
+	readOnly,
 	...props
 }: TextInputProps) {
     const form = useFormContext();
@@ -56,6 +58,8 @@ export default function TextInput({
 						placeholder={placeholder}
 						className={className}
 						isInvalid={Boolean(fieldState.error?.message)}
+						disabled={disabled}
+						readOnly={readOnly}
 					/>
 					{helpText && (
 						<Form.Text id={`${name}-help`} muted>

@@ -3,6 +3,18 @@ import type { PermissoesUsuario } from '@/types/Permissions';
 const PERMISSOES_STORAGE_KEY = 'user_permissoes';
 
 /**
+ * Verifica se todas as permissões estão habilitadas via variável de ambiente
+ */
+function isAllPermissionsEnabled(): boolean {
+	if (typeof window === 'undefined') {
+		// No servidor, verifica process.env diretamente
+		return process.env.NEXT_PUBLIC_ENABLE_ALL_PERMISSIONS === 'true';
+	}
+	// No cliente, acessa via process.env (Next.js expõe NEXT_PUBLIC_* no cliente)
+	return process.env.NEXT_PUBLIC_ENABLE_ALL_PERMISSIONS === 'true';
+}
+
+/**
  * Obtém as permissões do usuário do localStorage
  */
 export function getPermissoes(): PermissoesUsuario | null {
@@ -28,6 +40,11 @@ export function getPermissoes(): PermissoesUsuario | null {
  * @param permissao - Nome da permissão a verificar (ex: "cli", "tel", "sof")
  */
 export function hasPermissao(permissao: string): boolean {
+	// Se todas as permissões estão habilitadas via env, retorna true
+	if (isAllPermissionsEnabled()) {
+		return true;
+	}
+
 	const permissoes = getPermissoes();
 	if (!permissoes) {
 		return false;
@@ -50,6 +67,10 @@ export function hasPermissao(permissao: string): boolean {
  * Verifica se o usuário tem todas as permissões especificadas
  */
 export function hasTodasPermissoes(permissoesList: string[]): boolean {
+	// Se todas as permissões estão habilitadas via env, retorna true
+	if (isAllPermissionsEnabled()) {
+		return true;
+	}
 	return permissoesList.every((permissao) => hasPermissao(permissao));
 }
 
@@ -57,6 +78,10 @@ export function hasTodasPermissoes(permissoesList: string[]): boolean {
  * Verifica se o usuário tem pelo menos uma das permissões especificadas
  */
 export function hasQualquerPermissao(permissoesList: string[]): boolean {
+	// Se todas as permissões estão habilitadas via env, retorna true
+	if (isAllPermissionsEnabled()) {
+		return true;
+	}
 	return permissoesList.some((permissao) => hasPermissao(permissao));
 }
 
