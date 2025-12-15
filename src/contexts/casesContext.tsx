@@ -1,10 +1,11 @@
 ﻿'use client';
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { allCase, findCase } from '@/services/caseServices';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { allCase, findCase, diaryDevAssistant } from '@/services/caseServices';
 import { ICase, ICaseEspecifiedResponse, ICaseResponse } from '@/types/cases/ICase';
 import { toast } from 'react-toastify';
 import ICaseFilter from '@/types/cases/ICaseFilter';
 import Cookies from 'js-cookie';
+import IAgendaDevAssistant from '@/types/assistant/IAgendaDevAssistant';
 
 interface CasesContextType {
 	cases: ICase[];
@@ -13,9 +14,12 @@ interface CasesContextType {
 	pagination: ICaseResponse['pagination'] | null;
 	currentFilters: ICaseFilter | undefined;
 	pendingFilters: ICaseFilter | undefined;
+	agendaDev: IAgendaDevAssistant[];
+	agendaDevLoading: boolean;
 	fetchCases: (data?: ICaseFilter) => Promise<void>;
 	loadMoreCases: () => Promise<void>;
 	fetchEspecifiedCases: (id: string) => Promise<ICaseEspecifiedResponse | undefined>;
+	fetchAgendaDev: (userId: string) => Promise<void>;
 }
 
 export const CasesContext = createContext<CasesContextType | undefined>(undefined);
@@ -35,6 +39,13 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 	const [pagination, setPagination] = useState<ICaseResponse['pagination'] | null>(null);
 	const [currentFilters, setCurrentFilters] = useState<ICaseFilter | undefined>(undefined);
 	const [pendingFilters, setPendingFilters] = useState<ICaseFilter | undefined>(undefined);
+	const [agendaDev, setAgendaDev] = useState<IAgendaDevAssistant[]>([]);
+	const [agendaDevLoading, setAgendaDevLoading] = useState<boolean>(false);
+	
+	// Cache para evitar múltiplas requisições simultâneas
+	const agendaDevCacheRef = useRef<{ userId: string; data: IAgendaDevAssistant[]; timestamp: number } | null>(null);
+	const agendaDevRequestRef = useRef<Map<string, Promise<void>>>(new Map());
+	const CACHE_DURATION = 30000; // 30 segundos
 
 	const buildDefaultFilters = useCallback((): ICaseFilter => {
 		const userId = Cookies.get('user_id');
@@ -138,6 +149,64 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	}
 
+	const fetchAgendaDev = useCallback(async (userId: string) => {
+		if (!userId) {
+			setAgendaDev([]);
+			return;
+		}
+
+		// Verifica se há cache válido
+		const now = Date.now();
+		if (
+			agendaDevCacheRef.current &&
+			agendaDevCacheRef.current.userId === userId &&
+			(now - agendaDevCacheRef.current.timestamp) < CACHE_DURATION
+		) {
+			setAgendaDev(agendaDevCacheRef.current.data);
+			return;
+		}
+
+		// Se já há uma requisição em andamento para este userId, aguarda ela
+		const existingRequest = agendaDevRequestRef.current.get(userId);
+		if (existingRequest) {
+			await existingRequest;
+			// Após aguardar, verifica novamente o cache com timestamp atualizado
+			const nowAfterWait = Date.now();
+			if (
+				agendaDevCacheRef.current &&
+				agendaDevCacheRef.current.userId === userId &&
+				(nowAfterWait - agendaDevCacheRef.current.timestamp) < CACHE_DURATION
+			) {
+				setAgendaDev(agendaDevCacheRef.current.data);
+				return;
+			}
+		}
+
+		// Cria uma nova requisição
+		const requestPromise = (async () => {
+			setAgendaDevLoading(true);
+			try {
+				const data = await diaryDevAssistant(userId);
+				// Atualiza o cache
+				agendaDevCacheRef.current = {
+					userId,
+					data: data ?? [],
+					timestamp: Date.now(),
+				};
+				setAgendaDev(data ?? []);
+			} catch (err) {
+				console.error('Falha ao carregar agenda do dev:', err);
+				setAgendaDev([]);
+			} finally {
+				setAgendaDevLoading(false);
+				agendaDevRequestRef.current.delete(userId);
+			}
+		})();
+
+		agendaDevRequestRef.current.set(userId, requestPromise);
+		await requestPromise;
+	}, []);
+
 	// Não faz chamada automática se já houver filtros aplicados (vindos da URL, por exemplo)
 	useEffect(() => {
 		// Verifica se há filtros na URL antes de fazer a chamada automática
@@ -162,7 +231,7 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 	}, [fetchCases]);
 
 	return (
-		<CasesContext.Provider value={{ cases, loading, loadingMore, pagination, currentFilters, pendingFilters, fetchCases, loadMoreCases, fetchEspecifiedCases }}>
+		<CasesContext.Provider value={{ cases, loading, loadingMore, pagination, currentFilters, pendingFilters, agendaDev, agendaDevLoading, fetchCases, loadMoreCases, fetchEspecifiedCases, fetchAgendaDev }}>
 			{children}
 		</CasesContext.Provider>
 	);
