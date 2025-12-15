@@ -142,3 +142,16 @@ export async function deleteCase(id: string): Promise<{ success: boolean; messag
 		}
 	}
 }
+
+export async function updateProducao(id: string, data: { tipo_producao: string; hora_abertura: string; hora_fechamento?: string; usuario_id: number; registro: number; descricao?: string }): Promise<any> {
+	try {
+		const res = await axios.patch(`/api/cases/producao/${id}`, data);
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}

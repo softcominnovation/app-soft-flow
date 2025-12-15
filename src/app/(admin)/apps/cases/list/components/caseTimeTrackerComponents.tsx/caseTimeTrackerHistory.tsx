@@ -10,10 +10,11 @@ import { Badge, Card, ListGroup } from "react-bootstrap";
 import ProductionDetailsModal from "./ProductionDetailsModal";
 
 type Props = {
-    historyEntries: Producao[]
+    historyEntries: Producao[];
+    caseId?: number;
 }
 
-export default function CaseTimeTrackerHistory({historyEntries}:Props) {
+export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
     const badgeBaseClass = "d-inline-flex align-items-center gap-1 text-capitalize py-1 px-2 rounded-2";
     const [selectedProduction, setSelectedProduction] = useState<Producao | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -121,6 +122,7 @@ export default function CaseTimeTrackerHistory({historyEntries}:Props) {
 				show={showModal}
 				onHide={handleCloseModal}
 				production={selectedProduction}
+				caseId={caseId}
 			/>
         </>
     )

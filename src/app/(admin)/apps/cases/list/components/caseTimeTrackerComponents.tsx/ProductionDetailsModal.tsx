@@ -1,21 +1,62 @@
 "use client";
-import { Modal, Form, Row, Col } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Modal, Form, Row, Col, Button } from "react-bootstrap";
 import IconifyIcon from "@/components/wrappers/IconifyIcon";
 import { Producao } from "@/types/cases/ICase";
 import { useGetTipoBadgeVariant as getTipoBadgeVariant, useGetTipoIcon as getTipoIcon } from "@/hooks/caseTimeTracker/caseTimeTrackerVarianions";
 import { formatTipoLabel } from "@/hooks/caseTimeTracker/useFormatLabel";
 import getAberturaFechamentoDuration from "@/hooks/caseTimeTracker/useGetAberturaFechamentoDuration";
+import { updateProducao } from "@/services/caseServices";
+import { toast } from "react-toastify";
+import Spinner from "@/components/Spinner";
 
 interface ProductionDetailsModalProps {
 	show: boolean;
 	onHide: () => void;
 	production: Producao | null;
+	caseId?: number;
+	onUpdated?: () => void;
 }
 
-export default function ProductionDetailsModal({ show, onHide, production }: ProductionDetailsModalProps) {
+const TIPO_OPTIONS = [
+	{ value: 'desenvolvendo', label: 'Desenvolvendo' },
+	{ value: 'testando', label: 'Testando' },
+	{ value: 'retorno', label: 'Retorno' },
+	{ value: 'nao_planejado', label: 'Não Planejado' }
+];
+
+export default function ProductionDetailsModal({ show, onHide, production, caseId, onUpdated }: ProductionDetailsModalProps) {
+	const [tipo, setTipo] = useState<string>('');
+	const [dataInicio, setDataInicio] = useState<string>('');
+	const [dataFim, setDataFim] = useState<string>('');
+	const [saving, setSaving] = useState(false);
+
+	const formatDateForInput = (dateString: string | null) => {
+		if (!dateString) return '';
+		const date = new Date(dateString);
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		return `${year}-${month}-${day}T${hours}:${minutes}`;
+	};
+
+	useEffect(() => {
+		if (production) {
+			setTipo(production.tipo || '');
+			setDataInicio(formatDateForInput(production.datas.abertura));
+			setDataFim(formatDateForInput(production.datas.fechamento || null));
+		}
+	}, [production]);
+
 	if (!production) return null;
 
-	const duration = getAberturaFechamentoDuration(production.datas.abertura, production.datas.fechamento);
+	// Calcular duração baseado nas datas editadas
+	const duration = getAberturaFechamentoDuration(
+		dataInicio ? new Date(dataInicio).toISOString() : production.datas.abertura,
+		dataFim ? new Date(dataFim).toISOString() : (production.datas.fechamento || undefined)
+	);
 
 	// Formatar datas para exibição
 	const formatDate = (dateString: string | null) => {
@@ -32,9 +73,60 @@ export default function ProductionDetailsModal({ show, onHide, production }: Pro
 	};
 
 	// Mock dos dados - como solicitado pelo usuário
-	const mockProject = production.projeto_id ? `Projeto ${production.projeto_id}` : "-";
 	const mockUser = production.usuario_id ? `Usuário ${production.usuario_id}` : "-";
 
+	const convertToApiFormat = (dateString: string) => {
+		if (!dateString) return '';
+		const date = new Date(dateString);
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		const seconds = String(date.getSeconds()).padStart(2, '0');
+		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+	};
+
+	const handleSave = async () => {
+		if (!production?.sequencia) {
+			toast.error('Sequência não encontrada');
+			return;
+		}
+
+		setSaving(true);
+		try {
+			if (!caseId) {
+				toast.error('ID do caso não encontrado');
+				return;
+			}
+
+			const sequencia = production.sequencia;
+			console.log('Sequencia sendo usada:', sequencia, 'Production completo:', production);
+
+			const updateData: { tipo_producao: string; hora_abertura: string; hora_fechamento?: string; usuario_id: number; registro: number } = {
+				tipo_producao: tipo,
+				hora_abertura: convertToApiFormat(dataInicio),
+				usuario_id: production.usuario_id,
+				registro: caseId
+			};
+
+			// Sempre enviar hora_fechamento se existir
+			if (dataFim) {
+				updateData.hora_fechamento = convertToApiFormat(dataFim);
+			}
+			await updateProducao(sequencia.toString(), updateData);
+			toast.success('Produção atualizada com sucesso!');
+			if (onUpdated) {
+				onUpdated();
+			}
+			onHide();
+		} catch (error: any) {
+			console.error('Erro ao atualizar produção:', error);
+			toast.error(error?.message || 'Erro ao atualizar produção');
+		} finally {
+			setSaving(false);
+		}
+	};
 	return (
 		<Modal
 			show={show}
@@ -57,13 +149,14 @@ export default function ProductionDetailsModal({ show, onHide, production }: Pro
 							<Form.Group>
 								<Form.Label className="fw-semibold">Tipo</Form.Label>
 								<Form.Select
-									value={production.tipo || ""}
-									disabled
-									className="bg-light"
+									value={tipo}
+									onChange={(e) => setTipo(e.target.value)}
 								>
-									<option value={production.tipo || ""}>
-										{formatTipoLabel(production.tipo)}
-									</option>
+									{TIPO_OPTIONS.map((option) => (
+										<option key={option.value} value={option.value}>
+											{option.label}
+										</option>
+									))}
 								</Form.Select>
 							</Form.Group>
 						</Col>
@@ -88,10 +181,9 @@ export default function ProductionDetailsModal({ show, onHide, production }: Pro
 							<Form.Group>
 								<Form.Label className="fw-semibold">Abertura</Form.Label>
 								<Form.Control
-									type="text"
-									value={formatDate(production.datas.abertura)}
-									readOnly
-									className="bg-light"
+									type="datetime-local"
+									value={dataInicio}
+									onChange={(e) => setDataInicio(e.target.value)}
 								/>
 							</Form.Group>
 						</Col>
@@ -99,30 +191,15 @@ export default function ProductionDetailsModal({ show, onHide, production }: Pro
 							<Form.Group>
 								<Form.Label className="fw-semibold">Fechamento</Form.Label>
 								<Form.Control
-									type="text"
-									value={formatDate(production.datas.fechamento || null)}
-									readOnly
-									className="bg-light"
+									type="datetime-local"
+									value={dataFim}
+									onChange={(e) => setDataFim(e.target.value)}
 								/>
 							</Form.Group>
 						</Col>
 					</Row>
 
 					<Row>
-						<Col md={6} className="mb-3">
-							<Form.Group>
-								<Form.Label className="fw-semibold">Projeto</Form.Label>
-								<Form.Select
-									value={production.projeto_id || ""}
-									disabled
-									className="bg-light"
-								>
-									<option value={production.projeto_id || ""}>
-										{mockProject}
-									</option>
-								</Form.Select>
-							</Form.Group>
-						</Col>
 						<Col md={6} className="mb-3">
 							<Form.Group>
 								<Form.Label className="fw-semibold">Tempo Decorrido</Form.Label>
@@ -138,15 +215,31 @@ export default function ProductionDetailsModal({ show, onHide, production }: Pro
 				</Form>
 			</Modal.Body>
 			<Modal.Footer>
-				<button
-					type="button"
-					className="btn btn-danger"
+				<Button
+					variant="secondary"
 					onClick={onHide}
-					style={{ marginRight: 'auto' }}
+					disabled={saving}
 				>
-					<IconifyIcon icon="lucide:x" className="me-1" />
-					Fechar
-				</button>
+					Cancelar
+				</Button>
+				<Button
+					onClick={handleSave}
+					disabled={saving}
+					className="d-flex align-items-center gap-2"
+					style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
+				>
+					{saving ? (
+						<>
+							<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />
+							Salvando...
+						</>
+					) : (
+						<>
+							<IconifyIcon icon="lucide:save" />
+							Salvar
+						</>
+					)}
+				</Button>
 			</Modal.Footer>
 		</Modal>
 	);
