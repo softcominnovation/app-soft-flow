@@ -58,8 +58,7 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 		}
 
 		// Status será inicializado pelo hook useCaseFormInitialization
-		// O status_id pode ser usado para buscar o status correto
-		const statusId = caseData.caso.status?.status_id || caseData.caso.status?.id || '';
+		// Não definir status aqui para evitar conflito com o hook
 
 		// Obter a versão
 		const versaoValue = caseData.produto?.versao || caseData.caso.caracteristicas.versao_produto || '';
@@ -87,7 +86,7 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 			resumo: caseData.caso.textos.descricao_resumo || '',
 			descricao_completa: caseData.caso.textos.descricao_completa || '',
 			anexo: anexoValue,
-			status: statusId ? String(statusId) : '',
+			status: null, // Será inicializado pelo hook useCaseFormInitialization
 			informacoes_adicionais: caseData.caso.textos.informacoes_adicionais || '',
 		};
 	}, [caseData]);

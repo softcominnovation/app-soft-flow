@@ -314,24 +314,111 @@ export function useCaseFormInitialization({
 
 		// Inicializar status
 		const statusId = caseData.caso.status?.status_id || caseData.caso.status?.id || '';
+		const statusDescricao = caseData.caso.status?.descricao || '';
+		
 		if (statusId) {
 			loadStatusOptions('').then((options) => {
 				const foundStatus = options.find((opt: any) => 
 					opt.value === String(statusId) || 
-					opt.raw?.Registro === Number(statusId)
+					opt.raw?.Registro === Number(statusId) ||
+					String(opt.raw?.Registro) === String(statusId)
 				);
 				if (foundStatus) {
 					setSelectedStatus(foundStatus);
 					methods.setValue('status', { value: foundStatus.value, label: foundStatus.label }, { shouldValidate: false, shouldDirty: false });
+				} else {
+					// Se não encontrar, criar opção manual usando os dados do caso
+					const statusOption: AsyncSelectOption<IStatusAssistant> = {
+						value: String(statusId),
+						label: statusDescricao || `Status ${statusId}`,
+						raw: {
+							Registro: Number(statusId),
+							descricao: statusDescricao || '',
+							tipo: caseData.caso.status?.status_tipo || '',
+						} as IStatusAssistant,
+					};
+					setSelectedStatus(statusOption);
+					methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
 				}
-			}).catch(() => {
-				// Se falhar, não fazer nada
+			}).catch((error) => {
+				console.error('Erro ao carregar status:', error);
+				// Em caso de erro, criar opção manual usando os dados do caso
+				if (statusId) {
+					const statusOption: AsyncSelectOption<IStatusAssistant> = {
+						value: String(statusId),
+						label: statusDescricao || `Status ${statusId}`,
+						raw: {
+							Registro: Number(statusId),
+							descricao: statusDescricao || '',
+							tipo: caseData.caso.status?.status_tipo || '',
+						} as IStatusAssistant,
+					};
+					setSelectedStatus(statusOption);
+					methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
+				}
 			});
 		} else {
 			setSelectedStatus(null);
 			methods.setValue('status', null);
 		}
 	}, [caseData, methods, setSelectedProduct, setSelectedUser, loadStatusOptions, setSelectedStatus]);
+
+	// Garantir que o status seja definido após o reset do formulário
+	useEffect(() => {
+		if (!caseData?.caso?.id) return;
+		
+		const statusId = caseData.caso.status?.status_id || caseData.caso.status?.id || '';
+		const statusDescricao = caseData.caso.status?.descricao || '';
+		const currentStatus = methods.getValues('status');
+		
+		// Se o status não estiver definido ou estiver como null/string vazia, definir novamente
+		if (statusId && (!currentStatus || (typeof currentStatus === 'string' && currentStatus === '') || currentStatus === null)) {
+			// Aguardar um pouco para garantir que o reset já foi executado
+			const timeoutId = setTimeout(() => {
+				loadStatusOptions('').then((options) => {
+					const foundStatus = options.find((opt: any) => 
+						opt.value === String(statusId) || 
+						opt.raw?.Registro === Number(statusId) ||
+						String(opt.raw?.Registro) === String(statusId)
+					);
+					if (foundStatus) {
+						setSelectedStatus(foundStatus);
+						methods.setValue('status', { value: foundStatus.value, label: foundStatus.label }, { shouldValidate: false, shouldDirty: false });
+					} else if (statusId) {
+						// Se não encontrar, criar opção manual usando os dados do caso
+						const statusOption: AsyncSelectOption<IStatusAssistant> = {
+							value: String(statusId),
+							label: statusDescricao || `Status ${statusId}`,
+							raw: {
+								Registro: Number(statusId),
+								descricao: statusDescricao || '',
+								tipo: caseData.caso.status?.status_tipo || '',
+							} as IStatusAssistant,
+						};
+						setSelectedStatus(statusOption);
+						methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
+					}
+				}).catch(() => {
+					// Em caso de erro, criar opção manual
+					if (statusId) {
+						const statusOption: AsyncSelectOption<IStatusAssistant> = {
+							value: String(statusId),
+							label: statusDescricao || `Status ${statusId}`,
+							raw: {
+								Registro: Number(statusId),
+								descricao: statusDescricao || '',
+								tipo: caseData.caso.status?.status_tipo || '',
+							} as IStatusAssistant,
+						};
+						setSelectedStatus(statusOption);
+						methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
+					}
+				});
+			}, 100);
+			
+			return () => clearTimeout(timeoutId);
+		}
+	}, [caseData, methods, loadStatusOptions, setSelectedStatus]);
 
 	// Inicializar versão quando produto estiver disponível
 	useEffect(() => {
