@@ -8,6 +8,7 @@ import { TextAreaInput, TextInput } from '@/components/Form';
 import { updateCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
 import { createUpdatedCase } from '../utils/caseUpdateUtils';
+import { useCasePermissions } from '@/hooks/useCasePermissions';
 
 interface CaseDescriptionSectionProps {
 	caseData: ICase;
@@ -29,6 +30,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 		const eventKey = '1';
 		const { getValues } = useFormContext();
 		const [isSaving, setIsSaving] = useState(false);
+		const permissions = useCasePermissions(caseData);
 
 	/**
 	 * Prepara os dados para atualização do caso
@@ -137,15 +139,30 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 							<Row>
 								<Form.Group style={{ marginBottom: '24px' }}>
 									<Form.Label className="fw-semibold mb-2">Resumo do Caso</Form.Label>
-									<TextAreaInput name="resumo" placeholder="Descrição resumida do caso" rows={2} />
+									<TextAreaInput 
+										name="resumo" 
+										placeholder="Descrição resumida do caso" 
+										rows={2}
+										disabled={!permissions.canEditDescricaoResumo}
+									/>
 								</Form.Group>
 								<Form.Group style={{ marginBottom: '24px' }}>
 									<Form.Label className="fw-semibold mb-2">Descrição Completa</Form.Label>
-									<TextAreaInput name="descricao_completa" placeholder="Descrição Completa" rows={6} />
+									<TextAreaInput 
+										name="descricao_completa" 
+										placeholder="Descrição Completa" 
+										rows={6}
+										disabled={!permissions.canEditDescricaoCompleta}
+									/>
 								</Form.Group>
 								<Form.Group style={{ marginBottom: '24px' }}>
 									<Form.Label className="fw-semibold mb-2">Anexo</Form.Label>
-									<TextInput type="text" name="anexo" placeholder="URL ou texto do anexo" />
+									<TextInput 
+										type="text" 
+										name="anexo" 
+										placeholder="URL ou texto do anexo"
+										disabled={!permissions.canEditAnexo}
+									/>
 								</Form.Group>
 								<Form.Group style={{ marginBottom: '0' }}>
 									<Form.Label className="fw-semibold mb-2">Informações Adicionais</Form.Label>
@@ -153,6 +170,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 										name="informacoes_adicionais"
 										placeholder="Informações adicionais do caso"
 										rows={2}
+										disabled={!permissions.canEditInformacoesAdicionais}
 									/>
 								</Form.Group>
 							</Row>

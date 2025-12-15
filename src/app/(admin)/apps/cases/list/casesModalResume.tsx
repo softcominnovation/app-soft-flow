@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { useState, useContext, useEffect, useRef } from 'react';
 import { CasesContext } from '@/contexts/casesContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { useCasePermissions } from '@/hooks/useCasePermissions';
 
 interface Props {
 	open: boolean;
@@ -28,6 +29,10 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 	const casesContext = useContext(CasesContext);
 	const fetchCases = casesContext?.fetchCases;
 	const resumeFormRef = useRef<ResumeFormRef>(null);
+	
+	// Calcula displayCaseData antes de usar no hook de permissões
+	const displayCaseData = localCaseData || caseData;
+	const permissions = useCasePermissions(displayCaseData);
 
 	// Atualizar estado local quando caseData mudar
 	useEffect(() => {
@@ -107,7 +112,6 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 		}
 	};
 
-	const displayCaseData = localCaseData || caseData;
 	const hasAnotacoes = displayCaseData?.caso.anotacoes && displayCaseData.caso.anotacoes.length > 0;
 
 	return (
@@ -342,7 +346,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 					<Button 
 						variant="primary" 
 						onClick={handleSave} 
-						disabled={saving || !displayCaseData}
+						disabled={saving || !displayCaseData || !permissions.canSave}
 						className="d-flex align-items-center"
 						style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
 					>
@@ -361,7 +365,6 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 					<Button 
 						variant="success" 
 						onClick={handleFinalizeCaseClick} 
-						disabled={finalizing || !displayCaseData}
 						className="d-flex align-items-center"
 					>
 						{finalizing ? (

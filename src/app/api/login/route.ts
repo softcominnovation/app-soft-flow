@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 		setCookie('user_id', response.data.user.id.toString());
 		setCookie('user_email', data.email);
 
-		return NextResponse.json({ message: "Usuário logado com sucesso!" }, { status: 200 });
+		return NextResponse.json({ message: "Usuário logado com sucesso!", data: response.data },  { status: 200 });
 	} catch (error: any) {
 		console.log(error)
 		const errorMessage = error.response?.data || error.message || "Erro desconhecido";

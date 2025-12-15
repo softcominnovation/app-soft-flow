@@ -3,6 +3,7 @@ import type { ChildrenType } from '@/types/component-props';
 import type { User } from '@/types/User';
 import { deleteCookie, getCookie, setCookie } from 'cookies-next';
 import { createContext, useContext, useState, useEffect } from 'react';
+import { removePermissoes } from '@/helpers/permissionsHelpers';
 
 export type AuthContextType = {
 	user: User | undefined;
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: ChildrenType) {
 		deleteCookie("user_email");
 		deleteCookie("user_name");
 		deleteCookie("user_id");
+		removePermissoes(); // Remove permissões do localStorage
 		setUser(undefined);
 		setIsAuthenticated(false);
 	};

@@ -6,9 +6,12 @@ import { useAuthContext } from '@/common/context/useAuthContext';
 import { useQuery } from '@/hooks';
 import { buildFilterQueryString, extractCaseFiltersFromUrl, getStringValue } from '@/utils/caseFilterUtils';
 import type { User } from '@/types/User';
+import type { PermissoesUsuario } from '@/types/Permissions';
 import { AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
 import * as yup from 'yup';
+
+const PERMISSOES_STORAGE_KEY = 'user_permissoes';
 
 export const loginFormSchema = yup.object({
 	email: yup.string().email('Please enter valid email').required('Please enter email'),
@@ -29,8 +32,17 @@ export default function useLogin() {
 	const login = async (values: LoginFormFields) => {
 		setLoading(true);
 		try {
-			const res: AxiosResponse<User> = await authApi.login(values);
-			if (res.data.token) {
+			const res: AxiosResponse<{ message: string; data: any }> = await authApi.login(values);
+			
+			// Salva permissões no localStorage se estiverem presentes na resposta
+			if (res.data?.data?.permissoes) {
+				const permissoes: PermissoesUsuario = res.data.data.permissoes;
+				if (typeof window !== 'undefined') {
+					window.localStorage.setItem(PERMISSOES_STORAGE_KEY, JSON.stringify(permissoes));
+				}
+			}
+
+			if (res.data?.data?.authorization?.token) {
 				const caseId = getStringValue(
 					queryParams['caseId'] || queryParams['case_id'] || queryParams['id']
 				);

@@ -15,7 +15,8 @@ import type { ICategoryAssistant } from '@/services/categoriesServices';
 import { IOriginAssistant } from '@/services/originsServices';
 import { IVersionAssistant } from '@/services/versionsServices';
 import { IStatusAssistant } from '@/services/statusServices';
-import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
+import { asyncSelectStyles, selectStyles } from '@/components/Form/asyncSelectStyles';
+import { useCasePermissions } from '@/hooks/useCasePermissions';
 
 interface CaseInfoSectionProps {
 	isOpen: boolean;
@@ -32,6 +33,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 	const eventKey = '0';
 	const methods = useFormContext();
 	const produtoId = methods.watch('produto_id');
+	const permissions = useCasePermissions(caseData || null);
 
 	const {
 		// Produto
@@ -188,6 +190,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 													classNamePrefix="react-select"
 													placeholder="Pesquise um status..."
 													isClearable
+													isDisabled={!permissions.canEditEstado}
+													styles={asyncSelectStyles}
 													value={selectedStatus}
 													onChange={(option) => {
 														setSelectedStatus(option as any);
@@ -224,6 +228,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												classNamePrefix="react-select"
 												options={PRIORITY_OPTIONS}
 												placeholder="Selecione uma prioridade..."
+												isDisabled={!permissions.canEditPrioridade}
+												styles={selectStyles as any}
 												value={PRIORITY_OPTIONS.find((opt) => opt.value === field.value) || null}
 												onChange={(option) => {
 													field.onChange(option?.value ?? '');
@@ -254,6 +260,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise um projeto..."
+												isDisabled={!permissions.canEditCronograma}
+												styles={asyncSelectStyles}
 												value={selectedProject}
 												onChange={(option) => {
 													handleProjectChange(option);
@@ -288,6 +296,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise uma categoria..."
+												isDisabled={!permissions.canEditCategoria}
+												styles={asyncSelectStyles}
 												value={selectedCategory}
 												onChange={(option) => {
 													handleCategoryChange(option);
@@ -357,6 +367,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise um produto..."
+												isDisabled={!permissions.canEditProjeto}
+												styles={asyncSelectStyles}
 												value={selectedProduct}
 												onChange={(option) => {
 													handleProductChange(option);
@@ -392,7 +404,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												classNamePrefix="react-select"
 												styles={asyncSelectStyles}
 												placeholder={!produtoId ? 'Selecione um produto primeiro' : 'Pesquise uma versão...'}
-												isDisabled={!produtoId}
+												isDisabled={!produtoId || !permissions.canEditVersaoProduto}
 												value={selectedVersion}
 												onChange={(option) => {
 													handleVersionChange(option);
@@ -431,6 +443,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise um desenvolvedor..."
+												isDisabled={!permissions.canEditAtribuidoPara}
+												styles={asyncSelectStyles}
 												value={selectedUser}
 												onChange={(option) => {
 													handleUserChange(option);
