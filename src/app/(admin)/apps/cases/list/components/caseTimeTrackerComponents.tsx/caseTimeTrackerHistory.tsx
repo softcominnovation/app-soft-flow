@@ -90,15 +90,22 @@ export default function CaseTimeTrackerHistory({historyEntries}:Props) {
 												{entry.datas.fechamento && ` - ${formatTimer(entry.datas.fechamento)}`}
 											</small>
 										</div>
-										{duration && (
-											<Badge 
-												bg="info" 
-												className="ms-md-auto py-1 px-2 rounded-2" 
-												style={{ fontSize: '0.78rem' }}
-											>
-												{duration}
-											</Badge>
-										)}
+										<div className="d-flex align-items-center gap-2 ms-md-auto">
+											{duration && (
+												<Badge 
+													bg="info" 
+													className="py-1 px-2 rounded-2" 
+													style={{ fontSize: '0.78rem' }}
+												>
+													{duration}
+												</Badge>
+											)}
+											<IconifyIcon 
+												icon="lucide:pencil" 
+												className="text-muted"
+												style={{ fontSize: '1rem', cursor: 'pointer' }}
+											/>
+										</div>
 									</ListGroup.Item>
 								);
 							})
