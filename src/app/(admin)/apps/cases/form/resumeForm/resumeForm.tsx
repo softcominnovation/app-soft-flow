@@ -107,6 +107,41 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 					<FormResumeSkelleton />
 				) : (
 					<div className="d-flex flex-column" style={{ gap: '1.5rem' }}>
+						<style>{`
+							@media (max-width: 991.98px) {
+								/* Cards com melhor espaçamento no mobile */
+								.card {
+									margin-bottom: 1rem !important;
+								}
+
+								/* Padding reduzido nos cards no mobile */
+								.card-body {
+									padding: 1rem !important;
+								}
+
+								.card-header {
+									padding: 1rem !important;
+								}
+
+								/* Form groups com espaçamento adequado */
+								.form-group {
+									margin-bottom: 1.25rem;
+								}
+
+								/* Labels mais compactos */
+								.form-label {
+									font-size: 0.875rem;
+									margin-bottom: 0.5rem;
+								}
+
+								/* Inputs com altura adequada para touch */
+								.form-control,
+								.react-select__control {
+									min-height: 44px;
+									font-size: 1rem;
+								}
+							}
+						`}</style>
 						<CaseInfoSection 
 							isOpen={activeKeys.includes('0')}
 							onToggle={handleToggle}

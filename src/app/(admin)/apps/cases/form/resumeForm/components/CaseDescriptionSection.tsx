@@ -1,4 +1,4 @@
-import { Card, Collapse, Row, Form } from 'react-bootstrap';
+import { Card, Collapse, Row, Col, Form } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import AccordionToggle from './AccordionToggle';
 import { ICase } from '@/types/cases/ICase';
@@ -128,37 +128,42 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 		return (
 			<Card className="border-0 shadow-sm mb-0">
 				<Card.Header className="bg-light border-bottom p-0">
-					<AccordionToggle eventKey={eventKey} className="p-3" isOpen={isOpen} onToggle={onToggle}>
-						<h5 className="mb-0 d-flex align-items-center text-body">
-							<IconifyIcon icon="lucide:file-text" className="me-2 text-primary" />
+					<AccordionToggle eventKey={eventKey} className="p-2" isOpen={isOpen} onToggle={onToggle}>
+						<h6 className="mb-0 d-flex align-items-center text-body fw-semibold" style={{ fontSize: '0.95rem' }}>
+							<IconifyIcon icon="lucide:file-text" className="me-2 text-primary" style={{ fontSize: '1rem' }} />
 							Descrição / Resumo
-						</h5>
+						</h6>
 					</AccordionToggle>
 				</Card.Header>
 				<Collapse in={isOpen}>
 					<div>
 						<Card.Body style={{ padding: '1.5rem' }}>
 							<Row>
-								<Form.Group style={{ marginBottom: '24px' }}>
-									<Form.Label className="fw-semibold mb-2">Resumo do Caso</Form.Label>
+								<Col xs={12}>
+									<Form.Group style={{ marginBottom: '24px' }}>
+										<Form.Label className="fw-semibold mb-2">Resumo do Caso</Form.Label>
 									<TextAreaInput 
 										name="resumo" 
 										placeholder="Descrição resumida do caso" 
 										rows={2}
 										disabled={!permissions.canEditDescricaoResumo}
 									/>
-								</Form.Group>
-								<Form.Group style={{ marginBottom: '24px' }}>
-									<Form.Label className="fw-semibold mb-2">Descrição Completa</Form.Label>
+									</Form.Group>
+								</Col>
+								<Col xs={12}>
+									<Form.Group style={{ marginBottom: '24px' }}>
+										<Form.Label className="fw-semibold mb-2">Descrição Completa</Form.Label>
 									<TextAreaInput 
 										name="descricao_completa" 
 										placeholder="Descrição Completa" 
 										rows={6}
 										disabled={!permissions.canEditDescricaoCompleta}
 									/>
-								</Form.Group>
-								<Form.Group style={{ marginBottom: '24px' }}>
-									<Form.Label className="fw-semibold mb-2">Anexo</Form.Label>
+									</Form.Group>
+								</Col>
+								<Col xs={12}>
+									<Form.Group style={{ marginBottom: '24px' }}>
+										<Form.Label className="fw-semibold mb-2">Anexo</Form.Label>
 									{isAnexoDisabled && anexoValue ? (
 										<div className="form-control" style={{ 
 											backgroundColor: 'var(--bs-tertiary-bg, #e9ecef)',
@@ -193,16 +198,19 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 											disabled={isAnexoDisabled}
 										/>
 									)}
-								</Form.Group>
-								<Form.Group style={{ marginBottom: '0' }}>
-									<Form.Label className="fw-semibold mb-2">Informações Adicionais</Form.Label>
+									</Form.Group>
+								</Col>
+								<Col xs={12}>
+									<Form.Group style={{ marginBottom: '0' }}>
+										<Form.Label className="fw-semibold mb-2">Informações Adicionais</Form.Label>
 									<TextAreaInput
 										name="informacoes_adicionais"
 										placeholder="Informações adicionais do caso"
 										rows={2}
 										disabled={!permissions.canEditInformacoesAdicionais}
 									/>
-								</Form.Group>
+									</Form.Group>
+								</Col>
 							</Row>
 						</Card.Body>
 					</div>

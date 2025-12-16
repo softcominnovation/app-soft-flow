@@ -142,11 +142,11 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 	return (
 		<Card className="border-0 shadow-sm mb-0">
 			<Card.Header className="bg-light border-bottom p-0">
-				<AccordionToggle eventKey={eventKey} className="p-3" isOpen={isOpen} onToggle={onToggle}>
-					<h5 className="mb-0 d-flex align-items-center text-body">
-						<IconifyIcon icon="lucide:info" className="me-2 text-primary" />
+				<AccordionToggle eventKey={eventKey} className="p-2" isOpen={isOpen} onToggle={onToggle}>
+					<h6 className="mb-0 d-flex align-items-center text-body fw-semibold" style={{ fontSize: '0.95rem' }}>
+						<IconifyIcon icon="lucide:info" className="me-2 text-primary" style={{ fontSize: '1rem' }} />
 						Informações do Caso
-					</h5>
+					</h6>
 				</AccordionToggle>
 			</Card.Header>
 			<Collapse in={isOpen}>
@@ -154,7 +154,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 					<Card.Body style={{ padding: '1.5rem' }}>
 						<Row className="g-3">
 							{/* Primeira linha: Código, Status, Prioridade */}
-							<Col md={4}>
+							<Col xs={12} md={4}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:hash" className="me-2 text-muted" />
@@ -169,7 +169,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col md={4}>
+							<Col xs={12} md={4}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:activity" className="me-2 text-muted" />
@@ -212,7 +212,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col md={4}>
+							<Col xs={12} md={4}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:alert-triangle" className="me-2 text-muted" />
@@ -242,7 +242,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 							</Col>
 
 							{/* Segunda linha: Projeto, Categoria, Origem */}
-							<Col md={4}>
+							<Col xs={12} md={4}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:folder" className="me-2 text-muted" />
@@ -279,7 +279,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col md={4}>
+							<Col xs={12} md={4}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:tag" className="me-2 text-muted" />
@@ -316,7 +316,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col md={4}>
+							<Col xs={12} md={4}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:arrow-right" className="me-2 text-muted" />
@@ -352,7 +352,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 								</Form.Group>
 							</Col>
 							{/* Terceira linha: Produto, Versão, Desenvolvedor, QA */}
-							<Col md={3}>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:package" className="me-2 text-muted" />
@@ -389,7 +389,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col md={3}>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:tag" className="me-2 text-muted" />
@@ -430,7 +430,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col md={3}>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:user" className="me-2 text-muted" />
@@ -467,7 +467,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col md={3}>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:test-tube" className="me-2 text-muted" />

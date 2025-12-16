@@ -41,6 +41,27 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 		setLocalCaseData(caseData);
 	}, [caseData]);
 
+	// Prevenir scroll do body quando modal está aberto (especialmente no mobile)
+	useEffect(() => {
+		if (open) {
+			// Salvar a posição atual do scroll
+			const scrollY = window.scrollY;
+			document.body.style.position = 'fixed';
+			document.body.style.top = `-${scrollY}px`;
+			document.body.style.width = '100%';
+			document.body.style.overflow = 'hidden';
+			
+			return () => {
+				// Restaurar o scroll quando o modal fechar
+				document.body.style.position = '';
+				document.body.style.top = '';
+				document.body.style.width = '';
+				document.body.style.overflow = '';
+				window.scrollTo(0, scrollY);
+			};
+		}
+	}, [open]);
+
 	const handleAnotacaoCreated = async () => {
 		if (!caseData?.caso.id) return;
 		
@@ -164,8 +185,285 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 					}
 				` : ''}
 				
+				/* Prevenir scroll do body quando modal está aberto */
+				body.modal-open {
+					overflow: hidden !important;
+					position: fixed !important;
+					width: 100% !important;
+					height: 100% !important;
+				}
+
+				.modal-fullscreen {
+					position: fixed !important;
+					top: 0 !important;
+					left: 0 !important;
+					right: 0 !important;
+					bottom: 0 !important;
+					margin: 0 !important;
+					max-width: 100% !important;
+					width: 100% !important;
+					height: 100% !important;
+				}
+
+				.modal-fullscreen .modal-dialog {
+					margin: 0 !important;
+					max-width: 100% !important;
+					width: 100% !important;
+					height: 100% !important;
+					display: flex !important;
+					flex-direction: column !important;
+				}
+
+				.modal-fullscreen .modal-content {
+					height: 100% !important;
+					border: 0 !important;
+					border-radius: 0 !important;
+					display: flex !important;
+					flex-direction: column !important;
+				}
+				
 				.modal-fullscreen .modal-body {
 					padding: 0;
+					flex: 1 1 auto;
+					overflow: hidden;
+					display: flex;
+					flex-direction: column;
+					min-height: 0;
+					max-height: 100vh;
+				}
+
+				/* Garantir que o modal-dialog não cause scroll */
+				@media (max-width: 991.98px) {
+					.modal-fullscreen {
+						position: fixed !important;
+						top: 0 !important;
+						left: 0 !important;
+						right: 0 !important;
+						bottom: 0 !important;
+						margin: 0 !important;
+						width: 100vw !important;
+						height: 100vh !important;
+						max-width: 100vw !important;
+						max-height: 100vh !important;
+					}
+
+					.modal-fullscreen .modal-dialog {
+						margin: 0 !important;
+						max-width: 100% !important;
+						width: 100% !important;
+						height: 100% !important;
+						max-height: 100vh !important;
+						display: flex !important;
+						flex-direction: column !important;
+					}
+
+					.modal-fullscreen .modal-content {
+						height: 100vh !important;
+						max-height: 100vh !important;
+						border: 0 !important;
+						border-radius: 0 !important;
+						display: flex !important;
+						flex-direction: column !important;
+						overflow: hidden !important;
+					}
+
+					.modal-fullscreen .modal-header {
+						flex-shrink: 0;
+					}
+
+					.modal-fullscreen .modal-footer {
+						flex-shrink: 0;
+					}
+				}
+
+				/* Melhorias Mobile */
+				@media (max-width: 991.98px) {
+					/* Header mais compacto no mobile */
+					.modal-fullscreen .modal-header {
+						padding: 0.75rem 1rem;
+						min-height: 56px;
+					}
+
+					.modal-fullscreen .modal-title {
+						font-size: 1.1rem;
+					}
+
+					/* Abas mais touch-friendly */
+					.modal-fullscreen .nav-tabs {
+						padding: 0.5rem 1rem;
+						gap: 0.25rem;
+					}
+
+					.modal-fullscreen .nav-tabs .nav-link {
+						padding: 0.75rem 1rem;
+						font-size: 0.9rem;
+						border-radius: 0.375rem 0.375rem 0 0;
+						min-height: 44px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					}
+
+					.modal-fullscreen .nav-tabs .nav-link .iconify-icon {
+						font-size: 1.1rem;
+					}
+
+					/* Conteúdo com padding adequado */
+					.modal-fullscreen .modal-body .custom-scrollbar {
+						padding: 1rem !important;
+					}
+
+					/* Footer com botões em grid no mobile */
+					.modal-fullscreen .modal-footer {
+						padding: 1rem;
+						flex-wrap: wrap;
+						gap: 0.5rem;
+						background: #f8f9fa;
+						border-top: 1px solid #dee2e6;
+					}
+
+					.modal-fullscreen .modal-footer .btn {
+						flex: 1 1 calc(50% - 0.25rem);
+						min-width: calc(50% - 0.25rem);
+						min-height: 44px;
+						font-size: 0.9rem;
+						padding: 0.625rem 1rem;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						gap: 0.5rem;
+					}
+
+					.modal-fullscreen .modal-footer .btn .iconify-icon {
+						font-size: 1.1rem;
+					}
+
+					/* Botão Fechar em linha própria */
+					.modal-fullscreen .modal-footer .btn-secondary {
+						flex: 1 1 100%;
+						min-width: 100%;
+						margin-top: 0.25rem;
+					}
+
+					/* Cards com melhor espaçamento */
+					.modal-fullscreen .card {
+						margin-bottom: 1rem;
+					}
+
+					.modal-fullscreen .card-header {
+						padding: 1rem;
+					}
+
+					.modal-fullscreen .card-body {
+						padding: 1rem !important;
+					}
+
+					/* Form groups com melhor espaçamento */
+					.modal-fullscreen .form-group {
+						margin-bottom: 1.25rem;
+					}
+
+					.modal-fullscreen .form-label {
+						font-size: 0.875rem;
+						margin-bottom: 0.5rem;
+					}
+
+					.modal-fullscreen .form-label .iconify-icon {
+						font-size: 1rem;
+					}
+
+					/* Inputs mais touch-friendly */
+					.modal-fullscreen .form-control,
+					.modal-fullscreen .react-select__control {
+						min-height: 44px;
+						font-size: 1rem;
+					}
+
+					/* Badge nas abas menor */
+					.modal-fullscreen .nav-tabs .badge {
+						font-size: 0.65rem;
+						padding: 0.25rem 0.5rem;
+					}
+
+					/* Melhor espaçamento entre cards */
+					.modal-fullscreen .card {
+						margin-bottom: 1.25rem;
+						border-radius: 0.5rem;
+					}
+
+					/* Headers de cards mais compactos no mobile */
+					.modal-fullscreen .card-header h5,
+					.modal-fullscreen .card-header h6 {
+						font-size: 0.95rem;
+						font-weight: 600;
+					}
+
+					.modal-fullscreen .card-header .iconify-icon {
+						font-size: 1rem;
+					}
+
+					.modal-fullscreen .card-header {
+						padding: 0.5rem 0 !important;
+					}
+
+					/* Headers de cards compactos também no desktop */
+					.modal-fullscreen .card-header h5,
+					.modal-fullscreen .card-header h6 {
+						font-size: 0.95rem;
+						font-weight: 600;
+						margin-bottom: 0;
+					}
+
+					.modal-fullscreen .card-header .iconify-icon {
+						font-size: 1rem;
+					}
+
+					.modal-fullscreen .accordion-toggle {
+						padding: 0.5rem 1rem !important;
+					}
+
+					/* Labels mais legíveis */
+					.modal-fullscreen .form-label {
+						font-size: 0.875rem;
+						margin-bottom: 0.5rem;
+						font-weight: 600;
+					}
+
+					/* Textareas com melhor altura no mobile */
+					.modal-fullscreen textarea.form-control {
+						font-size: 1rem;
+						line-height: 1.5;
+						min-height: 80px;
+					}
+
+					/* Melhor contraste e espaçamento nos inputs */
+					.modal-fullscreen .form-control:focus,
+					.modal-fullscreen .react-select__control--is-focused {
+						border-color: #0d6efd;
+						box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+					}
+
+					/* Accordion toggle mais touch-friendly */
+					.modal-fullscreen .accordion-toggle {
+						min-height: 48px;
+						display: flex;
+						align-items: center;
+					}
+
+					/* Scrollbar mais visível no mobile */
+					.modal-fullscreen .custom-scrollbar::-webkit-scrollbar {
+						width: 6px;
+					}
+
+					.modal-fullscreen .custom-scrollbar::-webkit-scrollbar-thumb {
+						background-color: rgba(0, 0, 0, 0.2);
+						border-radius: 3px;
+					}
+
+					/* Espaçamento melhor entre seções */
+					.modal-fullscreen .d-flex.flex-column[style*="gap"] {
+						gap: 1.25rem !important;
+					}
 				}
 			`}</style>
 			<Modal 
@@ -175,9 +473,10 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 				fullscreen={true}
 			>
 				<Modal.Header closeButton className="bg-light border-bottom flex-shrink-0">
-					<div className="d-flex align-items-center">
-						<IconifyIcon icon="lucide:file-text" className="me-2 text-primary" />
-						<Modal.Title className="fw-bold text-body">
+					<div className="d-flex align-items-center w-100">
+						<IconifyIcon icon="lucide:file-text" className="me-2 text-primary d-none d-lg-block" />
+						<IconifyIcon icon="lucide:file-text" className="me-2 text-primary d-lg-none" style={{ fontSize: '1.25rem' }} />
+						<Modal.Title className="fw-bold text-body mb-0">
 							{!displayCaseData ? (
 								<Placeholder as="span" animation="glow">
 									<Placeholder xs={3} />
@@ -188,22 +487,23 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 						</Modal.Title>
 					</div>
 				</Modal.Header>
-				<Modal.Body className="p-0 d-flex flex-column" style={{ maxHeight: 'calc(100vh - 180px)', overflow: 'hidden' }}>
+				<Modal.Body className="p-0 d-flex flex-column" style={{ flex: '1 1 auto', overflow: 'hidden', minHeight: 0 }}>
 					{/* Layout Mobile: Abas incluindo Tempo */}
 					<div className="d-flex d-lg-none flex-column h-100" style={{ minHeight: 0 }}>
 						<Tab.Container defaultActiveKey="resumo">
 							<div className="d-flex flex-column h-100" style={{ minHeight: 0 }}>
-								<Nav variant="tabs" className="nav nav-tabs nav-bordered border-bottom flex-shrink-0 px-4" style={{ marginTop: 0 }}>
-									<Nav.Item>
-										<Nav.Link eventKey="resumo" className="d-flex align-items-center">
-											<IconifyIcon icon="lucide:info" className="me-2" />
+								<Nav variant="tabs" className="nav nav-tabs nav-bordered border-bottom flex-shrink-0" style={{ marginTop: 0, padding: '0 1rem' }}>
+									<Nav.Item className="flex-fill">
+										<Nav.Link eventKey="resumo" className="d-flex align-items-center justify-content-center text-center">
+											<IconifyIcon icon="lucide:info" className="me-1 d-lg-none" style={{ fontSize: '1.1rem' }} />
+											<IconifyIcon icon="lucide:info" className="me-2 d-none d-lg-inline" />
 											<span>Resumo</span>
 										</Nav.Link>
 									</Nav.Item>
-									<Nav.Item>
+									<Nav.Item className="flex-fill">
 										<Nav.Link 
 											eventKey="detalhes" 
-											className={`d-flex align-items-center ${hasAnotacoes ? 'fw-bold' : ''}`}
+											className={`d-flex align-items-center justify-content-center text-center ${hasAnotacoes ? 'fw-bold' : ''}`}
 											style={hasAnotacoes ? { 
 												'--bs-nav-link-color': '#dc3545',
 												'--bs-nav-link-hover-color': '#dc3545',
@@ -213,25 +513,31 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 										>
 											<IconifyIcon 
 												icon="lucide:file-text" 
-												className="me-2" 
+												className="me-1 d-lg-none" 
+												style={hasAnotacoes ? { color: '#dc3545', fontSize: '1.1rem' } : { fontSize: '1.1rem' }}
+											/>
+											<IconifyIcon 
+												icon="lucide:file-text" 
+												className="me-2 d-none d-lg-inline" 
 												style={hasAnotacoes ? { color: '#dc3545' } : {}}
 											/>
 											<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
 											{hasAnotacoes && displayCaseData?.caso?.anotacoes && (
-												<span className="badge bg-danger ms-2" style={{ fontSize: '0.65rem' }}>
+												<span className="badge bg-danger ms-1" style={{ fontSize: '0.65rem' }}>
 													{displayCaseData.caso.anotacoes.length}
 												</span>
 											)}
 										</Nav.Link>
 									</Nav.Item>
-									<Nav.Item>
-										<Nav.Link eventKey="tempo" className="d-flex align-items-center">
-											<IconifyIcon icon="lucide:clock" className="me-2" />
+									<Nav.Item className="flex-fill">
+										<Nav.Link eventKey="tempo" className="d-flex align-items-center justify-content-center text-center">
+											<IconifyIcon icon="lucide:clock" className="me-1 d-lg-none" style={{ fontSize: '1.1rem' }} />
+											<IconifyIcon icon="lucide:clock" className="me-2 d-none d-lg-inline" />
 											<span>Tempo</span>
 										</Nav.Link>
 									</Nav.Item>
 								</Nav>
-								<div className="custom-scrollbar px-4 py-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
+								<div className="custom-scrollbar px-3 px-lg-4 py-3 py-lg-4" style={{ flex: '1 1 auto', overflowY: 'auto', overflowX: 'hidden', minHeight: 0, maxHeight: '100%' }}>
 									<Tab.Content>
 										<Tab.Pane eventKey="resumo">
 											<ResumeForm 
@@ -378,65 +684,124 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 					</div>
 				</Modal.Body>
 				<Modal.Footer className="bg-light border-top">
-					<Button 
-						variant="primary" 
-						onClick={handleSave} 
-						disabled={saving || !displayCaseData || !permissions.canSave}
-						className="d-flex align-items-center"
-						style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
-					>
-						{saving ? (
-							<>
-								<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-								Salvando...
-							</>
-						) : (
-							<>
-								<IconifyIcon icon="lucide:save" className="me-1" />
-								Salvar
-							</>
+					<div className="d-flex d-lg-none flex-column w-100 gap-2">
+						<div className="d-flex gap-2 w-100">
+							<Button 
+								variant="primary" 
+								onClick={handleSave} 
+								disabled={saving || !displayCaseData || !permissions.canSave}
+								className="d-flex align-items-center justify-content-center flex-fill"
+								style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd', minHeight: '44px' }}
+							>
+								{saving ? (
+									<>
+										<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+										Salvando...
+									</>
+								) : (
+									<>
+										<IconifyIcon icon="lucide:save" className="me-1" style={{ fontSize: '1.1rem' }} />
+										Salvar
+									</>
+								)}
+							</Button>
+							<Button 
+								variant="danger" 
+								onClick={handleDeleteCaseClick} 
+								disabled={deleting || !displayCaseData || !permissions.canDelete}
+								className="d-flex align-items-center justify-content-center flex-fill"
+								style={{ minHeight: '44px' }}
+							>
+								{deleting ? (
+									<>
+										<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+										Excluindo...
+									</>
+								) : (
+									<>
+										<IconifyIcon icon="lucide:trash-2" className="me-1" style={{ fontSize: '1.1rem' }} />
+										Excluir
+									</>
+								)}
+							</Button>
+						</div>
+						<Button 
+							variant="success" 
+							onClick={handleFinalizeCaseClick} 
+							className="d-flex align-items-center justify-content-center w-100"
+							style={{ minHeight: '44px' }}
+						>
+							{finalizing ? (
+								<>
+									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+									Finalizando...
+								</>
+							) : (
+								<>
+									<IconifyIcon icon="lucide:check-circle" className="me-1" style={{ fontSize: '1.1rem' }} />
+									Finalizar Caso
+								</>
+							)}
+						</Button>
+					</div>
+					{/* Desktop buttons - alinhados à direita */}
+					<div className="d-none d-lg-flex gap-2 justify-content-end">
+						<Button 
+							variant="primary" 
+							onClick={handleSave} 
+							disabled={saving || !displayCaseData || !permissions.canSave}
+							className="d-flex align-items-center"
+							style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
+						>
+							{saving ? (
+								<>
+									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+									Salvando...
+								</>
+							) : (
+								<>
+									<IconifyIcon icon="lucide:save" className="me-1" />
+									Salvar
+								</>
+							)}
+						</Button>
+						<Button 
+							variant="danger" 
+							onClick={handleDeleteCaseClick} 
+							disabled={deleting || !displayCaseData || !permissions.canDelete}
+							className="d-flex align-items-center"
+						>
+							{deleting ? (
+								<>
+									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+									Excluindo...
+								</>
+							) : (
+								<>
+									<IconifyIcon icon="lucide:trash-2" className="me-1" />
+									Excluir
+								</>
+							)}
+						</Button>
+						<Button 
+							variant="success" 
+							onClick={handleFinalizeCaseClick} 
+							className="d-flex align-items-center"
+						>
+							{finalizing ? (
+								<>
+									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+									Finalizando...
+								</>
+							) : (
+								<>
+									<IconifyIcon icon="lucide:check-circle" className="me-1" />
+									Finalizar Caso
+								</>
 						)}
 					</Button>
-					<Button 
-						variant="danger" 
-						onClick={handleDeleteCaseClick} 
-						disabled={deleting || !displayCaseData || !permissions.canDelete}
-						className="d-flex align-items-center"
-					>
-						{deleting ? (
-							<>
-								<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-								Excluindo...
-							</>
-						) : (
-							<>
-								<IconifyIcon icon="lucide:trash-2" className="me-1" />
-								Excluir
-							</>
-						)}
-					</Button>
-					<Button 
-						variant="success" 
-						onClick={handleFinalizeCaseClick} 
-						className="d-flex align-items-center"
-					>
-						{finalizing ? (
-							<>
-								<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-								Finalizando...
-							</>
-						) : (
-							<>
-								<IconifyIcon icon="lucide:check-circle" className="me-1" />
-								Finalizar Caso
-							</>
-						)}
-					</Button>
-					<Button variant="secondary" onClick={handleClose} className="d-flex align-items-center">
-						<IconifyIcon icon="lucide:x" className="me-1" />
-						Fechar
-					</Button>
-				</Modal.Footer>
+				</div>
+			</Modal.Footer>
 			</Modal>
 			{displayCaseData && (
 				<>
