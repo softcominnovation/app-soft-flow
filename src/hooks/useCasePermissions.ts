@@ -146,7 +146,8 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 		const canEditTesteFaqID = !bloq;
 		const canEditTesteValeu = !bloq;
 		// Me.Projeto_CasosProducao.Form!btn_producao_editar.Enabled = Not Bloq_Adm
-		const canEditProducao = !bloqAdm;
+		// Também permite se tiver ProjetoVerCasosEstatistica
+		const canEditProducao = !bloqAdm || projetoVerCasosEstatistica;
 
 		// Permissões de botões
 		const canDetail = projetoCadastroProduto;

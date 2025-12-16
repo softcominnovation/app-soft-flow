@@ -176,8 +176,7 @@ export default function ProductionDetailsModal({ show, onHide, production, caseI
 			}
 			onHide();
 		} catch (error: any) {
-			console.error('Erro ao atualizar produção:', error);
-			toast.error(error?.message || 'Erro ao atualizar produção');
+			toast.warning('Você não possui permissão para editar a produção');
 		} finally {
 			setSaving(false);
 		}
@@ -282,7 +281,7 @@ export default function ProductionDetailsModal({ show, onHide, production, caseI
 			<Modal.Footer>
 				<Button
 					onClick={handleSave}
-					disabled={saving || !permissions.canEditProducao}
+					disabled={saving}
 					className="d-flex align-items-center gap-2"
 					style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
 				>
