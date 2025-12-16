@@ -16,7 +16,7 @@ interface CasesContextType {
 	pendingFilters: ICaseFilter | undefined;
 	agendaDev: IAgendaDevAssistant[];
 	agendaDevLoading: boolean;
-	fetchCases: (data?: ICaseFilter) => Promise<void>;
+	fetchCases: (data?: ICaseFilter, shouldSaveToLocalStorage?: boolean) => Promise<void>;
 	loadMoreCases: () => Promise<void>;
 	fetchEspecifiedCases: (id: string) => Promise<ICaseEspecifiedResponse | undefined>;
 	fetchAgendaDev: (userId: string) => Promise<void>;
@@ -55,23 +55,20 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 			const savedData = localStorage.getItem('lastSelectedProduct');
 			if (savedData) {
 				const parsed = JSON.parse(savedData);
-				// Só usa se for do mesmo usuário
-				if (parsed.usuario_dev_id === userId) {
-					return {
-						usuario_dev_id: userId,
-						produto_id: parsed.produto_id,
-						versao_produto: parsed.versao_produto,
-						status_id: parsed.status_id,
-						sort_by: 'prioridade',
-					};
-				}
+				return {
+					usuario_dev_id: userId, // Sempre inclui o usuário logado nos filtros padrão
+					produto_id: parsed.produto_id,
+					versao_produto: parsed.versao_produto,
+					status_id: parsed.status_id,
+					sort_by: 'prioridade',
+				};
 			}
 		} catch (error) {
 			console.error('Erro ao carregar do localStorage:', error);
 		}
 		
 		return {
-			usuario_dev_id: userId,
+			usuario_dev_id: userId, // Sempre inclui o usuário logado nos filtros padrão
 			sort_by: 'prioridade',
 			status_descricao: 'ATRIBUIDO',
 		};
@@ -86,12 +83,29 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 			filters = { numero_caso: caseNumber };
 		} else {
 			const defaultFilters = buildDefaultFilters();
-			// Se status_id for fornecido, remove status_descricao dos filtros padrão
-			if (data?.status_id) {
-				const { status_descricao, ...filtersWithoutStatusDesc } = defaultFilters;
-				filters = { ...filtersWithoutStatusDesc, ...data };
+			
+			// Se não há data ou data está vazio, usa os filtros padrão (com usuário logado)
+			if (!data || Object.keys(data).length === 0) {
+				filters = defaultFilters;
 			} else {
-				filters = { ...defaultFilters, ...data };
+				// Se há data, remove usuario_dev_id dos filtros padrão
+				// Só será incluído se for fornecido explicitamente em data
+				const { usuario_dev_id: _, ...filtersWithoutUserId } = defaultFilters;
+				
+				// Se status_id for fornecido, remove status_descricao dos filtros padrão
+				if (data.status_id) {
+					const { status_descricao, ...filtersWithoutStatusDesc } = filtersWithoutUserId;
+					filters = { ...filtersWithoutStatusDesc, ...data };
+				} else {
+					filters = { ...filtersWithoutUserId, ...data };
+				}
+				
+				// Se data.usuario_dev_id foi fornecido e não está vazio, inclui; senão, remove
+				if (data.usuario_dev_id && data.usuario_dev_id !== '') {
+					filters.usuario_dev_id = data.usuario_dev_id;
+				} else {
+					delete filters.usuario_dev_id;
+				}
 			}
 		}
 
@@ -107,6 +121,22 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 			setCurrentFilters(sanitizedFilters);
 			// Limpa os filtros pendentes após sucesso, pois agora estão confirmados em currentFilters
 			setPendingFilters(undefined);
+			
+			// Salva os filtros no localStorage se shouldSaveToLocalStorage for true ou se não foi especificado
+			// Salva produto_id, versao_produto, status_id e usuario_dev_id
+			if (shouldSaveToLocalStorage !== false && sanitizedFilters.produto_id) {
+				try {
+					const dataToSave = {
+						produto_id: sanitizedFilters.produto_id,
+						versao_produto: sanitizedFilters.versao_produto || '',
+						status_id: sanitizedFilters.status_id || '',
+						usuario_dev_id: sanitizedFilters.usuario_dev_id || '',
+					};
+					localStorage.setItem('lastSelectedProduct', JSON.stringify(dataToSave));
+				} catch (error) {
+					console.error('Erro ao salvar no localStorage:', error);
+				}
+			}
 		} catch (error) {
 			toast.error('Nao foi possivel obter os dados');
 			// Em caso de erro, limpa os filtros pendentes

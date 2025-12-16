@@ -38,6 +38,7 @@ const CaseFilters = ({
 	const { fetchCases, loading } = useCasesContext();
 	const [internalShowFilters, setInternalShowFilters] = useState(false);
 	const userInitializedRef = useRef(false);
+	const filtersInitializedRef = useRef(false);
 	
 	// Desktop sempre usa estado interno para o Collapse
 	// Mobile usa estado externo para o Drawer
@@ -82,11 +83,10 @@ const CaseFilters = ({
 		isLoading: isLoadingProjects,
 	} = useAsyncSelect<IProjectAssistant>({
 		fetchItems: async (input) => {
-			const fallbackUserId = usuarioId && usuarioId !== '' ? usuarioId : Cookies.get('user_id');
 			return fetchProjects({
 				search: input,
 				nome_projeto: input,
-				...(fallbackUserId ? { usuario_id: fallbackUserId } : {}),
+				...(usuarioId && usuarioId !== '' ? { usuario_id: usuarioId } : {}),
 			});
 		},
 		getOptionLabel: (project) => project.nome_projeto || project.setor || 'Projeto sem nome',
@@ -155,7 +155,8 @@ const CaseFilters = ({
 	}, [projetoId, setSelectedProject]);
 
 	useEffect(() => {
-		if (!usuarioId) {
+		// Limpa o selectedUser quando o campo do formulário está vazio
+		if (!usuarioId || usuarioId.trim() === '') {
 			setSelectedUser(null);
 		}
 	}, [usuarioId, setSelectedUser]);
@@ -180,6 +181,86 @@ const CaseFilters = ({
 			methods.setValue('status_id', '');
 		}
 	}, [statusDescricao, setSelectedStatus, methods]);
+
+	// Inicializar campos do formulário com valores do localStorage
+	useEffect(() => {
+		if (filtersInitializedRef.current) return;
+		
+		try {
+			const savedData = localStorage.getItem('lastSelectedProduct');
+			if (savedData) {
+				const parsed = JSON.parse(savedData);
+				
+				// Inicializar produto se existir
+				if (parsed.produto_id) {
+					methods.setValue('produto_id', parsed.produto_id);
+					// Buscar o produto para inicializar o selectedProduct
+					fetchProducts({ search: '', nome: '' })
+						.then((products) => {
+							const savedProduct = products.find((p) => p.id === parsed.produto_id);
+							if (savedProduct) {
+								const productOption: AsyncSelectOption<IProductAssistant> = {
+									value: savedProduct.id,
+									label: savedProduct.nome_projeto || savedProduct.setor || 'Produto sem nome',
+									raw: savedProduct,
+								};
+								setSelectedProduct(productOption);
+								
+								// Inicializar versão se existir e produto foi encontrado
+								if (parsed.versao_produto && parsed.versao_produto.trim() !== '') {
+									methods.setValue('versao_produto', parsed.versao_produto);
+									// Buscar a versão para inicializar o selectedVersion
+									fetchVersions({ produto_id: parsed.produto_id, search: '' })
+										.then((versions) => {
+											const savedVersion = versions.find((v) => v.versao === parsed.versao_produto);
+											if (savedVersion) {
+												const versionOption: AsyncSelectOption<IVersionAssistant> = {
+													value: savedVersion.id,
+													label: savedVersion.versao || 'Versão sem nome',
+													raw: savedVersion,
+												};
+												setSelectedVersion(versionOption);
+											}
+										})
+										.catch((error) => {
+											console.error('Erro ao buscar versão salva:', error);
+										});
+								}
+							}
+						})
+						.catch((error) => {
+							console.error('Erro ao buscar produto salvo:', error);
+						});
+				}
+				
+				// Inicializar status se existir
+				if (parsed.status_id) {
+					methods.setValue('status_id', parsed.status_id);
+					// Buscar o status para inicializar o selectedStatus
+					fetchStatus({ search: '' })
+						.then((statuses) => {
+							const savedStatus = statuses.find((s) => String(s.Registro) === String(parsed.status_id));
+							if (savedStatus) {
+								const statusOption: AsyncSelectOption<IStatusAssistant> = {
+									value: String(savedStatus.Registro),
+									label: savedStatus.descricao || savedStatus.tipo || 'Status sem nome',
+									raw: savedStatus,
+								};
+								setSelectedStatus(statusOption);
+								methods.setValue('status_descricao', savedStatus.descricao);
+							}
+						})
+						.catch((error) => {
+							console.error('Erro ao buscar status salvo:', error);
+						});
+				}
+				
+				filtersInitializedRef.current = true;
+			}
+		} catch (error) {
+			console.error('Erro ao carregar do localStorage:', error);
+		}
+	}, [methods, setSelectedProduct, setSelectedVersion, setSelectedStatus]);
 
 	// Inicializar com o usuário logado
 	useEffect(() => {
@@ -211,6 +292,10 @@ const CaseFilters = ({
 
 	const onSearch = (data: ICaseFilter) => {
 		const trimmedCaseNumber = data.numero_caso?.trim();
+		// Usa o selectedUser diretamente para garantir que só inclui se houver seleção
+		// Verifica explicitamente se selectedUser existe, não é null, e tem um value válido
+		const hasSelectedUser = selectedUser !== null && selectedUser !== undefined && selectedUser.value;
+		const usuarioId = hasSelectedUser ? String(selectedUser.value).trim() : '';
 
 		const payload: ICaseFilter = trimmedCaseNumber
 			? { numero_caso: trimmedCaseNumber }
@@ -220,12 +305,13 @@ const CaseFilters = ({
 							...(data.produto_id && { produto_id: data.produto_id }),
 							...(data.projeto_id && { projeto_id: data.projeto_id }),
 							...(data.versao_produto && data.versao_produto.trim() !== '' && { versao_produto: data.versao_produto }),
-							...(data.usuario_id && data.usuario_id.trim() !== '' && { usuario_dev_id: data.usuario_id }),
+							// Inclui usuario_dev_id apenas se houver um usuário selecionado (não vazio)
+							...(usuarioId && usuarioId !== '' ? { usuario_dev_id: usuarioId } : {}),
 							sort_by: 'prioridade',
 						};
 
-		console.log('Payload final:', payload);
-		fetchCases(payload);
+		// Salva no localStorage se houver produto_id selecionado
+		fetchCases(payload, true);
 	};
 
 	return (
@@ -407,7 +493,11 @@ const CaseFilters = ({
 											value={selectedUser}
 											onChange={(option) => {
 												setSelectedUser(option);
-												field.onChange(option?.value ?? '');
+												field.onChange(option ? option.value : '');
+												// Garante que o campo seja limpo no formulário quando não há seleção
+												if (!option) {
+													methods.setValue('usuario_id', '');
+												}
 											}}
 											onBlur={field.onBlur}
 											onMenuOpen={() => {
@@ -604,7 +694,11 @@ const CaseFilters = ({
 										value={selectedUser}
 										onChange={(option) => {
 											setSelectedUser(option);
-											field.onChange(option?.value ?? '');
+											field.onChange(option ? option.value : '');
+											// Garante que o campo seja limpo no formulário quando não há seleção
+											if (!option) {
+												methods.setValue('usuario_id', '');
+											}
 										}}
 										onBlur={field.onBlur}
 										onMenuOpen={() => {

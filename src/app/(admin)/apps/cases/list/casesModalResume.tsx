@@ -164,7 +164,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 					}
 				` : ''}
 				
-				.modal-extra-large .modal-body {
+				.modal-fullscreen .modal-body {
 					padding: 0;
 				}
 			`}</style>
@@ -172,8 +172,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 				show={open} 
 				onHide={handleClose} 
 				backdrop="static" 
-				fullscreen="sm-down"
-				dialogClassName="modal-extra-large"
+				fullscreen={true}
 			>
 				<Modal.Header closeButton className="bg-light border-bottom flex-shrink-0">
 					<div className="d-flex align-items-center">
