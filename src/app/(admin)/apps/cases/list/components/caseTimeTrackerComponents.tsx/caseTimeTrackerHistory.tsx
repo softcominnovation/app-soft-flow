@@ -101,11 +101,11 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 													{duration}
 												</Badge>
 											)}
-											<IconifyIcon 
+											{/* <IconifyIcon 
 												icon="lucide:pencil" 
 												className="text-muted"
 												style={{ fontSize: '1rem', cursor: 'pointer' }}
-											/>
+											/> */}
 										</div>
 									</ListGroup.Item>
 								);
@@ -118,12 +118,12 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 					</ListGroup>
 				</Card.Body>
 			</Card>
-			<ProductionDetailsModal
+			{/* <ProductionDetailsModal
 				show={showModal}
 				onHide={handleCloseModal}
 				production={selectedProduction}
 				caseId={caseId}
-			/>
+			/> */}
         </>
     )
 }
