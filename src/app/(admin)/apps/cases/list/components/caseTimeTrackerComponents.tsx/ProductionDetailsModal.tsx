@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Modal, Form, Row, Col, Button } from "react-bootstrap";
 import AsyncSelect from 'react-select/async';
 import IconifyIcon from "@/components/wrappers/IconifyIcon";
-import { Producao } from "@/types/cases/ICase";
+import { Producao, ICase } from "@/types/cases/ICase";
 import { useGetTipoBadgeVariant as getTipoBadgeVariant, useGetTipoIcon as getTipoIcon } from "@/hooks/caseTimeTracker/caseTimeTrackerVarianions";
 import { formatTipoLabel } from "@/hooks/caseTimeTracker/useFormatLabel";
 import getAberturaFechamentoDuration from "@/hooks/caseTimeTracker/useGetAberturaFechamentoDuration";
@@ -15,12 +15,14 @@ import { assistant as fetchUsers } from "@/services/usersServices";
 import IUserAssistant from "@/types/assistant/IUserAssistant";
 import type { AsyncSelectOption } from "@/hooks/useAsyncSelect";
 import { asyncSelectStyles } from "@/components/Form/asyncSelectStyles";
+import { useCasePermissions } from "@/hooks/useCasePermissions";
 
 interface ProductionDetailsModalProps {
 	show: boolean;
 	onHide: () => void;
 	production: Producao | null;
 	caseId?: number;
+	caseData?: ICase | null;
 	onUpdated?: () => void;
 }
 
@@ -31,11 +33,12 @@ const TIPO_OPTIONS = [
 	{ value: 'nao_planejado', label: 'Não Planejado' }
 ];
 
-export default function ProductionDetailsModal({ show, onHide, production, caseId, onUpdated }: ProductionDetailsModalProps) {
+export default function ProductionDetailsModal({ show, onHide, production, caseId, caseData, onUpdated }: ProductionDetailsModalProps) {
 	const [tipo, setTipo] = useState<string>('');
 	const [dataInicio, setDataInicio] = useState<string>('');
 	const [dataFim, setDataFim] = useState<string>('');
 	const [saving, setSaving] = useState(false);
+	const permissions = useCasePermissions(caseData ?? null);
 
 	const {
 		loadOptions: loadUserOptions,
@@ -127,6 +130,16 @@ export default function ProductionDetailsModal({ show, onHide, production, caseI
 			return;
 		}
 
+		if (!caseId) {
+			toast.error('ID do caso não encontrado');
+			return;
+		}
+
+		if (!selectedUser) {
+			toast.error('Por favor, selecione um usuário');
+			return;
+		}
+
 		setSaving(true);
 		try {
 			if (!caseId) {
@@ -142,19 +155,22 @@ export default function ProductionDetailsModal({ show, onHide, production, caseI
 				return;
 			}
 
-			const updateData: { tipo_producao: string; hora_abertura: string; hora_fechamento?: string; usuario_id: number; registro: number } = {
+			const updateData: { tipo_producao: string; hora_abertura: string; hora_fechamento?: string; usuario_id: number } = {
 				tipo_producao: tipo,
 				hora_abertura: convertToApiFormat(dataInicio),
-				usuario_id: Number(selectedUser.value),
-				registro: caseId
+				usuario_id: Number(selectedUser.value)
 			};
 
 			// Sempre enviar hora_fechamento se existir
 			if (dataFim) {
 				updateData.hora_fechamento = convertToApiFormat(dataFim);
 			}
-			await updateProducao(sequencia.toString(), updateData);
-			toast.success('Produção atualizada com sucesso!');
+			const response = await updateProducao(sequencia.toString(), updateData);
+			
+			// Exibir mensagem do retorno se existir, senão usar mensagem padrão
+			const message = response?.message || 'Produção atualizada com sucesso!';
+			toast.success(message);
+			
 			if (onUpdated) {
 				onUpdated();
 			}
@@ -266,7 +282,7 @@ export default function ProductionDetailsModal({ show, onHide, production, caseI
 			<Modal.Footer>
 				<Button
 					onClick={handleSave}
-					disabled={saving}
+					disabled={saving || !permissions.canEditProducao}
 					className="d-flex align-items-center gap-2"
 					style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
 				>

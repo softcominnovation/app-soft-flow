@@ -27,6 +27,7 @@ export interface CasePermissions {
 	canEditValeuCaso: boolean;
 	canEditTesteFaqID: boolean;
 	canEditTesteValeu: boolean;
+	canEditProducao: boolean;
 	
 	// Permissões de botões
 	canSave: boolean;
@@ -67,6 +68,7 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 				canEditValeuCaso: false,
 				canEditTesteFaqID: false,
 				canEditTesteValeu: false,
+				canEditProducao: false,
 				canSave: false,
 				canFinalize: false,
 				canDelete: false,
@@ -143,6 +145,8 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 		const canEditValeuCaso = !bloq;
 		const canEditTesteFaqID = !bloq;
 		const canEditTesteValeu = !bloq;
+		// Me.Projeto_CasosProducao.Form!btn_producao_editar.Enabled = Not Bloq_Adm
+		const canEditProducao = !bloqAdm;
 
 		// Permissões de botões
 		const canDetail = projetoCadastroProduto;
@@ -181,6 +185,7 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 			canEditValeuCaso,
 			canEditTesteFaqID,
 			canEditTesteValeu,
+			canEditProducao,
 			canSave,
 			canFinalize,
 			canDelete,

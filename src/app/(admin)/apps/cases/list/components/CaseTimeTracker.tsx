@@ -442,7 +442,12 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 					realizadoMinutos={realizadoMinutos}
 					onCaseUpdated={handleCaseUpdate}
 				/>
-				<CaseTimeTrackerHistory historyEntries={historyEntries} caseId={caseId ? Number(caseId) : undefined} />
+				<CaseTimeTrackerHistory 
+					historyEntries={historyEntries} 
+					caseId={caseId ? Number(caseId) : undefined}
+					caseData={currentCase}
+					onUpdated={handleCaseUpdate}
+				/>
 			</div>
 			<CaseActiveTimeConflictModal
 				show={conflictModalOpen}

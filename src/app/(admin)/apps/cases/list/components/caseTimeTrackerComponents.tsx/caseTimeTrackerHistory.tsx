@@ -5,16 +5,18 @@ import { useGetTipoBadgeVariant as getTipoBadgeVariant, useGetTipoIcon as getTip
 import { formatTipoLabel } from "@/hooks/caseTimeTracker/useFormatLabel";
 import getAberturaFechamentoDuration from "@/hooks/caseTimeTracker/useGetAberturaFechamentoDuration";
 import formatTimer from "@/hooks/useFormatTimer";
-import { Producao } from "@/types/cases/ICase";
+import { Producao, ICase } from "@/types/cases/ICase";
 import { Badge, Card, ListGroup } from "react-bootstrap";
 import ProductionDetailsModal from "./ProductionDetailsModal";
 
 type Props = {
     historyEntries: Producao[];
     caseId?: number;
+    caseData?: ICase | null;
+    onUpdated?: () => void;
 }
 
-export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
+export default function CaseTimeTrackerHistory({historyEntries, caseId, caseData, onUpdated}:Props) {
     const badgeBaseClass = "d-inline-flex align-items-center gap-1 text-capitalize py-1 px-2 rounded-2";
     const [selectedProduction, setSelectedProduction] = useState<Producao | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -155,8 +157,8 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 												{entry.datas.fechamento && ` - ${formatTimer(entry.datas.fechamento)}`}
 											</small>
 										</div>
-										{duration && (
-											<div className="d-flex align-items-center gap-2 ms-md-auto case-time-history-duration">
+										<div className="d-flex align-items-center gap-2 ms-md-auto case-time-history-duration">
+											{duration && (
 												<Badge 
 													bg="info" 
 													className="py-1 px-2 rounded-2" 
@@ -164,8 +166,17 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 												>
 													{duration}
 												</Badge>
-											</div>
-										)}
+											)}
+											<IconifyIcon 
+												icon="lucide:pencil" 
+												className="text-muted"
+												style={{ fontSize: '1rem', cursor: 'pointer' }}
+												onClick={(e) => {
+													e.stopPropagation();
+													handleItemClick(entry);
+												}}
+											/>
+										</div>
 									</ListGroup.Item>
 								);
 							})
@@ -177,12 +188,14 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 					</ListGroup>
 				</Card.Body>
 			</Card>
-			{/* <ProductionDetailsModal
+			<ProductionDetailsModal
 				show={showModal}
 				onHide={handleCloseModal}
 				production={selectedProduction}
 				caseId={caseId}
-			/> */}
+				caseData={caseData}
+				onUpdated={onUpdated}
+			/>
         </>
     )
 }
