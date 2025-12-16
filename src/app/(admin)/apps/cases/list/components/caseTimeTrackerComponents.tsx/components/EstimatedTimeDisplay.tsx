@@ -1,6 +1,7 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { useTimeFormatter } from '../hooks/useTimeFormatter';
 import TimeInput from './TimeInput';
+import { hasPermissao } from '@/helpers/permissionsHelpers';
 
 interface EstimatedTimeDisplayProps {
   estimadoMinutos: number;
@@ -31,8 +32,13 @@ export default function EstimatedTimeDisplay({
   onSave,
 }: EstimatedTimeDisplayProps) {
   const { formatMinutesToHours } = useTimeFormatter();
+  const hasAdmPermission = hasPermissao('ProjetoAdm');
 
-  if (estimadoMinutos > 0) {
+  // Se tem permissão Adm, sempre mostra o input
+  // Se não tem permissão, só mostra o input quando não tem tempo estimado
+  const shouldShowInput = hasAdmPermission || estimadoMinutos === 0;
+
+  if (!shouldShowInput) {
     return (
       <>
         <style>{`
