@@ -31,12 +31,76 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 
     return (
         <>
-            <Card className="border-0 shadow-sm mb-0">
+            <style>{`
+                .case-time-history-card .card-header {
+                    padding: 0 !important;
+                }
+                
+                .case-time-history-card .card-header > div {
+                    padding: 1.5rem;
+                }
+                
+                .case-time-history-card .card-header h5 {
+                    font-size: 1rem;
+                    font-weight: 600;
+                    margin: 0;
+                }
+                
+                .case-time-history-card .card-header h5 .iconify-icon {
+                    font-size: 1.125rem;
+                }
+                
+                @media (max-width: 991.98px) {
+                    .case-time-history-card .card-header > div {
+                        padding: 1rem !important;
+                    }
+                    
+                    .case-time-history-card .card-body {
+                       	padding: 1rem !important;
+                   	}
+                   	
+                   	.case-time-history-card .card-header h5 {
+                   		font-size: 0.9375rem;
+                   	}
+                   	
+                   	.case-time-history-item {
+                   		margin-left: -1rem !important;
+                   		margin-right: -1rem !important;
+                   		padding-left: 1rem !important;
+                   		padding-right: 1rem !important;
+                   		padding-top: 0.875rem !important;
+                   		padding-bottom: 0.875rem !important;
+                   	}
+                   	
+                   	.case-time-history-item .badge {
+                   		font-size: 0.75rem !important;
+                   		padding: 0.375rem 0.625rem !important;
+                   		white-space: nowrap;
+                   	}
+                   	
+                   	.case-time-history-item small {
+                   		font-size: 0.8125rem;
+                   		line-height: 1.4;
+                   		word-break: break-word;
+                   	}
+                   	
+                   	.case-time-history-duration {
+                   		margin-top: 0.5rem;
+                   		width: 100%;
+                   		justify-content: flex-start !important;
+                   	}
+                }
+            `}</style>
+            <Card className="border-0 shadow-sm mb-0 case-time-history-card">
+				<Card.Header className="bg-light border-bottom p-0">
+					<div style={{ padding: '1.5rem' }}>
+						<h5 className="mb-0 d-flex align-items-center">
+							<IconifyIcon icon="lucide:list" className="me-2 text-primary" />
+							Historico de Tempos
+						</h5>
+					</div>
+				</Card.Header>
 				<Card.Body style={{ padding: '1.5rem' }}>
-					<h5 className="mb-3 d-flex align-items-center">
-						<IconifyIcon icon="lucide:list" className="me-2 text-primary" />
-						Historico de Tempos
-					</h5>
 					<ListGroup variant="flush" className="border-top">
 						{historyEntries.length ? (
 							historyEntries.map((entry, index) => {
@@ -45,7 +109,7 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 								return (
 									<ListGroup.Item
 										key={index}
-										className={`d-flex flex-column flex-md-row gap-2 justify-content-between align-items-start align-items-md-center py-3 ${index < historyEntries.length - 1 ? 'border-bottom' : ''}`}
+										className={`case-time-history-item d-flex flex-column flex-md-row gap-2 gap-md-2 justify-content-between align-items-start align-items-md-center py-3 ${index < historyEntries.length - 1 ? 'border-bottom' : ''}`}
 										style={{ 
 											transition: 'background-color 0.2s ease',
 											cursor: 'pointer',
@@ -77,7 +141,7 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 											second: '2-digit'
 										})}` : ''}${duration ? ` | Duração: ${duration}` : ''}`}
 									>
-										<div className="d-flex flex-column gap-1">
+										<div className="d-flex flex-column gap-1 w-100 w-md-auto">
 											<Badge
 												bg={getTipoBadgeVariant(entry.tipo)}
 												className={badgeBaseClass}
@@ -86,13 +150,13 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 												<IconifyIcon icon={getTipoIcon(entry.tipo)}/>
 												{formatTipoLabel(entry.tipo)}
 											</Badge>
-											<small className="text-muted">
+											<small className="text-muted d-block">
 												{formatTimer(entry.datas.abertura)}
 												{entry.datas.fechamento && ` - ${formatTimer(entry.datas.fechamento)}`}
 											</small>
 										</div>
-										<div className="d-flex align-items-center gap-2 ms-md-auto">
-											{duration && (
+										{duration && (
+											<div className="d-flex align-items-center gap-2 ms-md-auto case-time-history-duration">
 												<Badge 
 													bg="info" 
 													className="py-1 px-2 rounded-2" 
@@ -100,13 +164,8 @@ export default function CaseTimeTrackerHistory({historyEntries, caseId}:Props) {
 												>
 													{duration}
 												</Badge>
-											)}
-											{/* <IconifyIcon 
-												icon="lucide:pencil" 
-												className="text-muted"
-												style={{ fontSize: '1rem', cursor: 'pointer' }}
-											/> */}
-										</div>
+											</div>
+										)}
 									</ListGroup.Item>
 								);
 							})

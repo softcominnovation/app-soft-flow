@@ -12,14 +12,32 @@ interface TimeInfoItemProps {
  */
 export default function TimeInfoItem({ icon, label, value, valueClassName }: TimeInfoItemProps) {
   return (
-    <div className="d-flex align-items-center gap-2">
-      <IconifyIcon icon={icon} className={valueClassName} />
-      <span className="small fw-medium">
-        {label}: <span className={valueClassName}>{value}</span>
-      </span>
-    </div>
+    <>
+      <style>{`
+        @media (max-width: 991.98px) {
+          .time-info-item {
+            width: 100%;
+          }
+          
+          .time-info-item .iconify-icon {
+            font-size: 1.1rem;
+          }
+          
+          .time-info-item span {
+            font-size: 0.875rem;
+          }
+        }
+      `}</style>
+      <div className="d-flex align-items-center gap-2 time-info-item">
+        <IconifyIcon icon={icon} className={valueClassName} />
+        <span className="small fw-medium">
+          {label}: <span className={valueClassName}>{value}</span>
+        </span>
+      </div>
+    </>
   );
 }
+
 
 
 

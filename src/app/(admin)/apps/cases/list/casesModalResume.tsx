@@ -523,7 +523,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 											/>
 											<span style={hasAnotacoes ? { color: '#dc3545' } : {}}>Anotações</span>
 											{hasAnotacoes && displayCaseData?.caso?.anotacoes && (
-												<span className="badge bg-danger ms-1" style={{ fontSize: '0.65rem' }}>
+												<span className="badge bg-danger ms-1 d-none d-lg-inline" style={{ fontSize: '0.65rem' }}>
 													{displayCaseData.caso.anotacoes.length}
 												</span>
 											)}
@@ -706,41 +706,41 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								)}
 							</Button>
 							<Button 
-								variant="success" 
-								onClick={handleFinalizeCaseClick} 
-								disabled={finalizing || !displayCaseData}
+								variant="danger" 
+								onClick={handleDeleteCaseClick} 
+								disabled={deleting || !displayCaseData || !permissions.canDelete}
 								className="d-flex align-items-center justify-content-center flex-fill"
 								style={{ minHeight: '44px' }}
 							>
-								{finalizing ? (
+								{deleting ? (
 									<>
 										<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-										Finalizando...
+										Excluindo...
 									</>
 								) : (
 									<>
-										<IconifyIcon icon="lucide:check-circle" className="me-1" style={{ fontSize: '1.1rem' }} />
-										Finalizar Caso
+										<IconifyIcon icon="lucide:trash-2" className="me-1" style={{ fontSize: '1.1rem' }} />
+										Excluir
 									</>
 								)}
 							</Button>
 						</div>
 						<Button 
-							variant="danger" 
-							onClick={handleDeleteCaseClick} 
-							disabled={deleting || !displayCaseData || !permissions.canDelete}
+							variant="success" 
+							onClick={handleFinalizeCaseClick} 
+							disabled={finalizing || !displayCaseData}
 							className="d-flex align-items-center justify-content-center w-100"
 							style={{ minHeight: '44px' }}
 						>
-							{deleting ? (
+							{finalizing ? (
 								<>
 									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-									Excluindo...
+									Finalizando...
 								</>
 							) : (
 								<>
-									<IconifyIcon icon="lucide:trash-2" className="me-1" style={{ fontSize: '1.1rem' }} />
-									Excluir
+									<IconifyIcon icon="lucide:check-circle" className="me-1" style={{ fontSize: '1.1rem' }} />
+									Finalizar Caso
 								</>
 							)}
 						</Button>
