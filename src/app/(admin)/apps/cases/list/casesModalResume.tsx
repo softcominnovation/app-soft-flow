@@ -706,40 +706,41 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								)}
 							</Button>
 							<Button 
-								variant="danger" 
-								onClick={handleDeleteCaseClick} 
-								disabled={deleting || !displayCaseData || !permissions.canDelete}
+								variant="success" 
+								onClick={handleFinalizeCaseClick} 
+								disabled={finalizing || !displayCaseData}
 								className="d-flex align-items-center justify-content-center flex-fill"
 								style={{ minHeight: '44px' }}
 							>
-								{deleting ? (
+								{finalizing ? (
 									<>
 										<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-										Excluindo...
+										Finalizando...
 									</>
 								) : (
 									<>
-										<IconifyIcon icon="lucide:trash-2" className="me-1" style={{ fontSize: '1.1rem' }} />
-										Excluir
+										<IconifyIcon icon="lucide:check-circle" className="me-1" style={{ fontSize: '1.1rem' }} />
+										Finalizar Caso
 									</>
 								)}
 							</Button>
 						</div>
 						<Button 
-							variant="success" 
-							onClick={handleFinalizeCaseClick} 
+							variant="danger" 
+							onClick={handleDeleteCaseClick} 
+							disabled={deleting || !displayCaseData || !permissions.canDelete}
 							className="d-flex align-items-center justify-content-center w-100"
 							style={{ minHeight: '44px' }}
 						>
-							{finalizing ? (
+							{deleting ? (
 								<>
 									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-									Finalizando...
+									Excluindo...
 								</>
 							) : (
 								<>
-									<IconifyIcon icon="lucide:check-circle" className="me-1" style={{ fontSize: '1.1rem' }} />
-									Finalizar Caso
+									<IconifyIcon icon="lucide:trash-2" className="me-1" style={{ fontSize: '1.1rem' }} />
+									Excluir
 								</>
 							)}
 						</Button>
@@ -766,6 +767,24 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 							)}
 						</Button>
 						<Button 
+							variant="success" 
+							onClick={handleFinalizeCaseClick} 
+							disabled={finalizing || !displayCaseData}
+							className="d-flex align-items-center"
+						>
+							{finalizing ? (
+								<>
+									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+									Finalizando...
+								</>
+							) : (
+								<>
+									<IconifyIcon icon="lucide:check-circle" className="me-1" />
+									Finalizar Caso
+								</>
+							)}
+						</Button>
+						<Button 
 							variant="danger" 
 							onClick={handleDeleteCaseClick} 
 							disabled={deleting || !displayCaseData || !permissions.canDelete}
@@ -783,24 +802,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								</>
 							)}
 						</Button>
-						<Button 
-							variant="success" 
-							onClick={handleFinalizeCaseClick} 
-							className="d-flex align-items-center"
-						>
-							{finalizing ? (
-								<>
-									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-									Finalizando...
-								</>
-							) : (
-								<>
-									<IconifyIcon icon="lucide:check-circle" className="me-1" />
-									Finalizar Caso
-								</>
-						)}
-					</Button>
-				</div>
+					</div>
 			</Modal.Footer>
 			</Modal>
 			{displayCaseData && (

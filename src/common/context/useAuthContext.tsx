@@ -4,6 +4,7 @@ import type { User } from '@/types/User';
 import { deleteCookie, getCookie, setCookie } from 'cookies-next';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { removePermissoes } from '@/helpers/permissionsHelpers';
+import { ACTIVE_CASE_STORAGE_KEY, ACTIVE_CASE_EVENT } from '@/constants/caseTimeTracker';
 
 export type AuthContextType = {
 	user: User | undefined;
@@ -56,6 +57,13 @@ export function AuthProvider({ children }: ChildrenType) {
 		deleteCookie("user_name");
 		deleteCookie("user_id");
 		removePermissoes(); // Remove permissões do localStorage
+		
+		// Remove informações do caso aberto do localStorage
+		if (typeof window !== 'undefined') {
+			window.localStorage.removeItem(ACTIVE_CASE_STORAGE_KEY);
+			window.dispatchEvent(new Event(ACTIVE_CASE_EVENT));
+		}
+		
 		setUser(undefined);
 		setIsAuthenticated(false);
 	};
