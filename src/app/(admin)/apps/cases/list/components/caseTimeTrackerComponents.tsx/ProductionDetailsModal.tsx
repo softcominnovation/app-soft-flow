@@ -265,13 +265,6 @@ export default function ProductionDetailsModal({ show, onHide, production, caseI
 			</Modal.Body>
 			<Modal.Footer>
 				<Button
-					variant="secondary"
-					onClick={onHide}
-					disabled={saving}
-				>
-					Cancelar
-				</Button>
-				<Button
 					onClick={handleSave}
 					disabled={saving}
 					className="d-flex align-items-center gap-2"
@@ -288,6 +281,13 @@ export default function ProductionDetailsModal({ show, onHide, production, caseI
 							Salvar
 						</>
 					)}
+				</Button>
+				<Button
+					variant="secondary"
+					onClick={onHide}
+					disabled={saving}
+				>
+					Cancelar
 				</Button>
 			</Modal.Footer>
 		</Modal>

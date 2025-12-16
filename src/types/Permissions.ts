@@ -6,3 +6,4 @@ export interface PermissoesUsuario {
 	total_permissoes?: number;
 }
 
+

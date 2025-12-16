@@ -260,6 +260,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise um projeto..."
+												isClearable
 												isDisabled={!permissions.canEditCronograma}
 												styles={asyncSelectStyles}
 												value={selectedProject}
@@ -296,6 +297,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise uma categoria..."
+												isClearable
 												isDisabled={!permissions.canEditCategoria}
 												styles={asyncSelectStyles}
 												value={selectedCategory}
@@ -332,6 +334,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise uma origem..."
+												isClearable
 												value={selectedOrigin}
 												onChange={(option) => {
 													handleOriginChange(option);
@@ -367,6 +370,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise um produto..."
+												isClearable
 												isDisabled={!permissions.canEditProjeto}
 												styles={asyncSelectStyles}
 												value={selectedProduct}
@@ -404,6 +408,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												classNamePrefix="react-select"
 												styles={asyncSelectStyles}
 												placeholder={!produtoId ? 'Selecione um produto primeiro' : 'Pesquise uma versão...'}
+												isClearable
 												isDisabled={!produtoId || !permissions.canEditVersaoProduto}
 												value={selectedVersion}
 												onChange={(option) => {
@@ -443,6 +448,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise um desenvolvedor..."
+												isClearable
 												isDisabled={!permissions.canEditAtribuidoPara}
 												styles={asyncSelectStyles}
 												value={selectedUser}
@@ -479,6 +485,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												className="react-select case-status-select"
 												classNamePrefix="react-select"
 												placeholder="Pesquise um QA..."
+												isClearable
 												value={selectedQa}
 												onChange={(option) => {
 													handleQaChange(option);
