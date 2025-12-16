@@ -6,15 +6,15 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import ICaseFilter from '@/types/cases/ICaseFilter';
 import { useCasesContext } from '@/contexts/casesContext';
 import Cookies from 'js-cookie';
-import Select from 'react-select';
 import Spinner from '@/components/Spinner';
 import AsyncSelect from 'react-select/async';
 import { useAsyncSelect, useToggle } from '@/hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { assistant as fetchProducts } from '@/services/productsServices';
 import { assistant as fetchProjects } from '@/services/projectsServices';
 import { assistant as fetchUsers } from '@/services/usersServices';
 import { assistant as fetchVersions, IVersionAssistant } from '@/services/versionsServices';
+import { assistant as fetchStatus, IStatusAssistant } from '@/services/statusServices';
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import IProjectAssistant from '@/types/assistant/IProjectAssistant';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
@@ -22,15 +22,6 @@ import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import CasesModal from './casesModal';
 import BottomDrawer from '@/components/BottomDrawer';
-
-type StatusOption = { value: string; label: string };
-
-const statusOptions: StatusOption[] = [
-	{ value: 'ATRIBUIDO', label: 'ATRIBUIDO' },
-	{ value: 'NOVO', label: 'NOVO' },
-	{ value: 'AGUARDANDO TESTE', label: 'AGUARDANDO TESTE' },
-	{ value: 'CONCLUIDO', label: 'CONCLUIDO' },
-];
 
 type CaseFiltersProps = {
 	onOpenFiltersDrawer?: () => void;
@@ -46,6 +37,7 @@ const CaseFilters = ({
 	const methods = useForm<ICaseFilter>();
 	const { fetchCases, loading } = useCasesContext();
 	const [internalShowFilters, setInternalShowFilters] = useState(false);
+	const userInitializedRef = useRef(false);
 	
 	// Desktop sempre usa estado interno para o Collapse
 	// Mobile usa estado externo para o Drawer
@@ -136,6 +128,20 @@ const CaseFilters = ({
 		debounceMs: 1000,
 	});
 
+	const {
+		loadOptions: loadStatusOptions,
+		selectedOption: selectedStatus,
+		setSelectedOption: setSelectedStatus,
+		defaultOptions: defaultStatusOptions,
+		triggerDefaultLoad: triggerStatusDefaultLoad,
+		isLoading: isLoadingStatus,
+	} = useAsyncSelect<IStatusAssistant>({
+		fetchItems: async (input) => fetchStatus({ search: input }),
+		getOptionLabel: (status) => status.descricao || status.tipo || 'Status sem nome',
+		getOptionValue: (status) => String(status.Registro),
+		debounceMs: 800,
+	});
+
 	useEffect(() => {
 		if (!produtoId) {
 			setSelectedProduct(null);
@@ -167,28 +173,44 @@ const CaseFilters = ({
 		}
 	}, [versaoProdutoId, setSelectedVersion]);
 
+	const statusDescricao = methods.watch('status_descricao');
+	useEffect(() => {
+		if (!statusDescricao) {
+			setSelectedStatus(null);
+			methods.setValue('status_id', '');
+		}
+	}, [statusDescricao, setSelectedStatus, methods]);
+
+	// Inicializar com o usuário logado
+	useEffect(() => {
+		const currentUserId = Cookies.get('user_id');
+		if (currentUserId && !selectedUser && !userInitializedRef.current) {
+			userInitializedRef.current = true;
+			// Buscar o usuário logado e inicializar o campo
+			fetchUsers({ search: '', nome_suporte: '' })
+				.then((users) => {
+					const loggedUser = users.find((user) => user.id === currentUserId);
+					if (loggedUser) {
+						const userOption: AsyncSelectOption<IUserAssistant> = {
+							value: loggedUser.id,
+							label: loggedUser.nome_suporte || loggedUser.setor || 'Usuario sem nome',
+							raw: loggedUser,
+						};
+						setSelectedUser(userOption);
+						methods.setValue('usuario_id', loggedUser.id);
+					} else {
+						userInitializedRef.current = false; // Permite tentar novamente se não encontrou
+					}
+				})
+				.catch((error) => {
+					console.error('Erro ao buscar usuário logado:', error);
+					userInitializedRef.current = false; // Permite tentar novamente em caso de erro
+				});
+		}
+	}, [setSelectedUser, methods, selectedUser]);
+
 	const onSearch = (data: ICaseFilter) => {
 		const trimmedCaseNumber = data.numero_caso?.trim();
-		console.log(data.usuario_id);
-		const selectedUserId = data.usuario_id && data.usuario_id != "" ? data.usuario_id : Cookies.get('user_id');
-		const currentUserId = Cookies.get('user_id');
-		
-		// Se o usuário alterou manualmente o filtro de usuário, marca para não salvar
-		if (selectedUserId !== currentUserId) {
-			try {
-				sessionStorage.setItem('userFilterChangedManually', 'true');
-				localStorage.removeItem('lastSelectedProduct');
-			} catch (error) {
-				console.error('Erro ao atualizar sessionStorage:', error);
-			}
-		} else {
-			// Se voltou para o usuário padrão, remove a flag
-			try {
-				sessionStorage.removeItem('userFilterChangedManually');
-			} catch (error) {
-				console.error('Erro ao atualizar sessionStorage:', error);
-			}
-		}
 
 		const payload: ICaseFilter = trimmedCaseNumber
 			? { numero_caso: trimmedCaseNumber }
@@ -198,7 +220,7 @@ const CaseFilters = ({
 							...(data.produto_id && { produto_id: data.produto_id }),
 							...(data.projeto_id && { projeto_id: data.projeto_id }),
 							...(data.versao_produto && data.versao_produto.trim() !== '' && { versao_produto: data.versao_produto }),
-							usuario_dev_id: selectedUserId,
+							...(data.usuario_id && data.usuario_id.trim() !== '' && { usuario_dev_id: data.usuario_id }),
 							sort_by: 'prioridade',
 						};
 
@@ -403,15 +425,28 @@ const CaseFilters = ({
 									name="status_descricao"
 									control={methods.control}
 									render={({ field }) => (
-										<Select
+										<AsyncSelect<AsyncSelectOption<IStatusAssistant>, false>
+											cacheOptions
+											defaultOptions={selectedStatus ? [selectedStatus] : defaultStatusOptions}
+											loadOptions={loadStatusOptions}
 											inputId="status-descricao"
 											className="react-select case-status-select"
 											classNamePrefix="react-select"
-											options={statusOptions}
-											placeholder="Selecione um status..."
+											styles={asyncSelectStyles}
+											placeholder="Pesquise um status..."
 											isClearable
-											value={statusOptions.find((option) => option.value === field.value) ?? null}
-											onChange={(option) => field.onChange(option?.value ?? '')}
+											value={selectedStatus}
+											onChange={(option) => {
+												setSelectedStatus(option);
+												field.onChange(option?.raw?.descricao ?? '');
+												methods.setValue('status_id', option?.value ?? '');
+											}}
+											onBlur={field.onBlur}
+											onMenuOpen={() => {
+												triggerStatusDefaultLoad();
+											}}
+											noOptionsMessage={() => (isLoadingStatus ? 'Carregando...' : 'Nenhum status encontrado')}
+											loadingMessage={() => 'Carregando...'}
 										/>
 									)}
 								/>
@@ -587,15 +622,28 @@ const CaseFilters = ({
 								name="status_descricao"
 								control={methods.control}
 								render={({ field }) => (
-									<Select
+									<AsyncSelect<AsyncSelectOption<IStatusAssistant>, false>
+										cacheOptions
+										defaultOptions={selectedStatus ? [selectedStatus] : defaultStatusOptions}
+										loadOptions={loadStatusOptions}
 										inputId="status-descricao"
 										className="react-select case-status-select"
 										classNamePrefix="react-select"
-										options={statusOptions}
-										placeholder="Selecione um status..."
+										styles={asyncSelectStyles}
+										placeholder="Pesquise um status..."
 										isClearable
-										value={statusOptions.find((option) => option.value === field.value) ?? null}
-										onChange={(option) => field.onChange(option?.value ?? '')}
+										value={selectedStatus}
+										onChange={(option) => {
+											setSelectedStatus(option);
+											field.onChange(option?.raw?.descricao ?? '');
+											methods.setValue('status_id', option?.value ?? '');
+										}}
+										onBlur={field.onBlur}
+										onMenuOpen={() => {
+											triggerStatusDefaultLoad();
+										}}
+										noOptionsMessage={() => (isLoadingStatus ? 'Carregando...' : 'Nenhum status encontrado')}
+										loadingMessage={() => 'Carregando...'}
 									/>
 								)}
 							/>
