@@ -80,7 +80,7 @@ const PrioritizedProducts = ({
   );
   return (
     <>
-      <Card style={{ height: 360, overflowY: 'auto' }} className="d-none d-lg-block">
+      <Card style={{ height: 411, overflowY: 'auto', maxHeight: 411 }} className="d-none d-lg-block">
         <Card.Body>
           <CardTitle
             containerClass="d-flex align-items-center justify-content-between mb-2"
