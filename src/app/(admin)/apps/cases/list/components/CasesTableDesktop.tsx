@@ -1,5 +1,5 @@
 'use client';
-import { Table } from 'react-bootstrap';
+import { Table, Form } from 'react-bootstrap';
 import { ICase } from '@/types/cases/ICase';
 import ListSkelleton from '../skelletons/listSkelleton';
 import CaseRow from './CaseRow';
@@ -17,6 +17,10 @@ interface CasesTableDesktopProps {
 	currentSortKey?: string | null;
 	currentSortDirection?: SortDirection;
 	onSort: (sortKey: string, direction: SortDirection) => void;
+	selectedCases: Set<string>;
+	onToggleCaseSelection: (caseId: string) => void;
+	onSelectAll: () => void;
+	isAllSelected: boolean;
 }
 
 /**
@@ -34,12 +38,24 @@ export default function CasesTableDesktop({
 	currentSortKey,
 	currentSortDirection,
 	onSort,
+	selectedCases,
+	onToggleCaseSelection,
+	onSelectAll,
+	isAllSelected,
 }: CasesTableDesktopProps) {
 	return (
 		<div className="d-none d-md-block">
 			<Table responsive size="sm" className="table-centered table-nowrap table-sm align-middle mb-0 cases-table">
 				<thead className="table-light text-muted">
 					<tr>
+						<th className="py-3" style={{ width: '50px' }}>
+							<Form.Check
+								type="checkbox"
+								checked={isAllSelected}
+								onChange={onSelectAll}
+								onClick={(e) => e.stopPropagation()}
+							/>
+						</th>
 						<SortableTableHeader
 							sortKey={CASE_SORT_FIELDS.NUMERO_CASO}
 							currentSortKey={currentSortKey}
@@ -132,13 +148,15 @@ export default function CasesTableDesktop({
 									onFinalize={onFinalizeCase}
 									isFinalizing={finalizingCaseId === caseData.caso.id.toString()}
 									isLoading={loadingCaseId === caseData.caso.id.toString()}
+									isSelected={selectedCases.has(caseData.caso.id.toString())}
+									onToggleSelection={onToggleCaseSelection}
 								/>
 							))}
 							{loadingMore && <ListSkelleton rows={15} />}
 						</>
 					) : (
 						<tr>
-							<td colSpan={10} className="text-center text-muted py-4">
+							<td colSpan={11} className="text-center text-muted py-4">
 								Nenhum caso encontrado.
 							</td>
 						</tr>

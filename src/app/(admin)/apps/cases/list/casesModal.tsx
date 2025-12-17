@@ -27,25 +27,33 @@ export default function CasesModal({
     };
 
 	const { className: additionalButtonClassName, variant: customVariant, ...restButtonProps } = buttonProps ?? {};
-	const containerClasses = [styles.container, containerClassName].filter(Boolean).join(" ");
+	const containerClasses = containerClassName ? [styles.container, containerClassName].filter(Boolean).join(" ") : undefined;
 	const mergedButtonClassName = [styles.button, "d-inline-flex align-items-center justify-content-center gap-1", buttonClassName, additionalButtonClassName]
 		.filter(Boolean)
 		.join(" ");
 
+	const buttonElement = (
+		<Button
+			variant={customVariant ?? "primary"}
+			onClick={() => openModalWithClass("modal-full-width")}
+			className={mergedButtonClassName}
+			size={restButtonProps.size ?? "sm"}
+			{...restButtonProps}
+		>
+			<i className="mdi mdi-plus"></i> 
+			<span>Adicionar Novo Caso</span>
+		</Button>
+	);
+
     return (
         <>
-            <div className={containerClasses}>
-                <Button
-                    variant={customVariant ?? "primary"}
-                    onClick={() => openModalWithClass("modal-full-width")}
-					className={mergedButtonClassName}
-					size={restButtonProps.size ?? "sm"}
-					{...restButtonProps}
-                >
-                    <i className="mdi mdi-plus"></i> 
-                    <span>Adicionar Novo Caso</span>
-                </Button>
-            </div>
+            {containerClasses ? (
+				<div className={containerClasses}>
+					{buttonElement}
+				</div>
+			) : (
+				buttonElement
+			)}
 
             <Modal
                 show={isOpen}

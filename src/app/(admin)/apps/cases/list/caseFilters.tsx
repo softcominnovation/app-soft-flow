@@ -22,21 +22,25 @@ import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import CasesModal from './casesModal';
 import BottomDrawer from '@/components/BottomDrawer';
+import TransferCasesModal from './components/TransferCasesModal';
 
 type CaseFiltersProps = {
 	onOpenFiltersDrawer?: () => void;
 	showFiltersDrawer?: boolean;
 	onCloseFiltersDrawer?: () => void;
+	selectedCases?: Set<string>;
 };
 
 const CaseFilters = ({ 
 	onOpenFiltersDrawer, 
 	showFiltersDrawer: externalShowFilters, 
-	onCloseFiltersDrawer 
+	onCloseFiltersDrawer,
+	selectedCases = new Set()
 }: CaseFiltersProps = {}) => {
 	const methods = useForm<ICaseFilter>();
 	const { fetchCases, loading } = useCasesContext();
 	const [internalShowFilters, setInternalShowFilters] = useState(false);
+	const [showTransferModal, setShowTransferModal] = useState(false);
 	const userInitializedRef = useRef(false);
 	const filtersInitializedRef = useRef(false);
 	
@@ -318,7 +322,7 @@ const CaseFilters = ({
 		<FormProvider {...methods}>
 			<form onSubmit={methods.handleSubmit(onSearch)} className="mb-0 mb-lg-3">
 				<div className="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 mb-0 mb-lg-3">
-					<div className="d-flex align-items-center gap-2 w-100 w-sm-auto">
+					<div className="d-flex align-items-center gap-2 w-100 w-sm-auto flex-grow-1">
 						{/* Desktop: mantém Collapse */}
 						<Button 
 							type="button" 
@@ -356,15 +360,30 @@ const CaseFilters = ({
 							</>
 						)}
 					</div>
-					{/* Desktop: mostra botão de adicionar caso */}
-					<div className="d-none d-lg-block">
+					{/* Desktop: mostra botões de adicionar e transferir casos */}
+					<div className="d-none d-lg-flex gap-2 align-items-center flex-shrink-0">
+						<Button
+							variant="outline-primary"
+							size="sm"
+							className="d-inline-flex align-items-center justify-content-center gap-1"
+							disabled={selectedCases.size === 0}
+							onClick={() => setShowTransferModal(true)}
+						>
+							<i className="mdi mdi-swap-horizontal"></i>
+							<span>Transferir Casos</span>
+						</Button>
 						<CasesModal
-							containerClassName="d-flex ms-sm-auto justify-content-sm-end w-100 w-sm-auto"
+							containerClassName=""
 							buttonProps={{
 								size: 'sm',
 							}}
 						/>
 					</div>
+					<TransferCasesModal
+						show={showTransferModal}
+						onHide={() => setShowTransferModal(false)}
+						selectedCases={selectedCases}
+					/>
 				</div>
 				
 				{/* Desktop: mantém Collapse */}

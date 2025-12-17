@@ -10,6 +10,8 @@ interface CasesTableMobileProps {
 	onViewCase: (id: string) => void;
 	onFinalizeCase: () => void;
 	loadingCaseId: string | null;
+	selectedCases: Set<string>;
+	onToggleCaseSelection: (caseId: string) => void;
 }
 
 /**
@@ -22,6 +24,8 @@ export default function CasesTableMobile({
 	onViewCase,
 	onFinalizeCase,
 	loadingCaseId,
+	selectedCases,
+	onToggleCaseSelection,
 }: CasesTableMobileProps) {
 	return (
 		<div className="d-md-none">
@@ -36,6 +40,8 @@ export default function CasesTableMobile({
 							onView={onViewCase}
 							onFinalize={onFinalizeCase}
 							isLoading={loadingCaseId === caseData.caso.id.toString()}
+							isSelected={selectedCases.has(caseData.caso.id.toString())}
+							onToggleSelection={onToggleCaseSelection}
 						/>
 					))}
 					{loadingMore && <MobileCaseSkeleton rows={15} />}

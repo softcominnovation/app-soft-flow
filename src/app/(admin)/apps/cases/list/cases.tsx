@@ -14,13 +14,15 @@ import { sortCases } from '@/utils/caseSorting';
 type Props = {
 	data: ICase[] | null;
 	loading: boolean;
+	selectedCases?: Set<string>;
+	onSelectedCasesChange?: (selectedCases: Set<string>) => void;
 };
 
 /**
  * Componente principal da tabela de casos
  * Orquestra a renderização e lógica de negócio dos casos
  */
-const CasesTable = ({ data, loading }: Props) => {
+const CasesTable = ({ data, loading, selectedCases: externalSelectedCases, onSelectedCasesChange }: Props) => {
 	const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore, fetchCases } = useCasesContext();
 	const sentinelRef = useRef<HTMLDivElement | null>(null);
 	const [loadingCaseId, setLoadingCaseId] = useState<string | null>(null);
@@ -28,6 +30,20 @@ const CasesTable = ({ data, loading }: Props) => {
 	// Estado local para ordenação (não persiste na API)
 	const [localSortKey, setLocalSortKey] = useState<string | null>(null);
 	const [localSortDirection, setLocalSortDirection] = useState<SortDirection>(null);
+	
+	// Estado para gerenciar casos selecionados (local se não for passado via props)
+	const [internalSelectedCases, setInternalSelectedCases] = useState<Set<string>>(new Set());
+	const selectedCases = externalSelectedCases ?? internalSelectedCases;
+	const setSelectedCases: React.Dispatch<React.SetStateAction<Set<string>>> = onSelectedCasesChange 
+		? (value: Set<string> | ((prev: Set<string>) => Set<string>)) => {
+			if (typeof value === 'function') {
+				const newValue = value(selectedCases);
+				onSelectedCasesChange(newValue);
+			} else {
+				onSelectedCasesChange(value);
+			}
+		}
+		: setInternalSelectedCases;
 
 	// Handler para ordenação local - não faz requisição à API
 	const handleSort = useCallback((sortKey: string, direction: SortDirection) => {
@@ -116,6 +132,34 @@ const CasesTable = ({ data, loading }: Props) => {
 		return sortCases(cases, localSortKey, localSortDirection);
 	}, [data, localSortKey, localSortDirection]);
 
+	// Handlers para seleção de casos
+	const handleToggleCaseSelection = useCallback((caseId: string) => {
+		setSelectedCases((prev: Set<string>) => {
+			const newSet = new Set(prev);
+			if (newSet.has(caseId)) {
+				newSet.delete(caseId);
+			} else {
+				newSet.add(caseId);
+			}
+			return newSet;
+		});
+	}, [setSelectedCases]);
+
+	const handleSelectAll = useCallback(() => {
+		setSelectedCases((prev: Set<string>) => {
+			const allCaseIds = sortedCases.map(c => c.caso.id.toString());
+			const allSelected = allCaseIds.length > 0 && allCaseIds.every(id => prev.has(id));
+			
+			if (allSelected) {
+				return new Set();
+			} else {
+				return new Set(allCaseIds);
+			}
+		});
+	}, [sortedCases, setSelectedCases]);
+
+	const isAllSelected = sortedCases.length > 0 && sortedCases.every(c => selectedCases.has(c.caso.id.toString()));
+
 	return (
 		<>
 			<style>{`
@@ -136,6 +180,10 @@ const CasesTable = ({ data, loading }: Props) => {
 				currentSortKey={localSortKey}
 				currentSortDirection={localSortDirection}
 				onSort={handleSort}
+				selectedCases={selectedCases}
+				onToggleCaseSelection={handleToggleCaseSelection}
+				onSelectAll={handleSelectAll}
+				isAllSelected={isAllSelected}
 			/>
 
 			<CasesTableMobile
@@ -145,6 +193,8 @@ const CasesTable = ({ data, loading }: Props) => {
 				onViewCase={handleViewCase}
 				onFinalizeCase={fetchCases}
 				loadingCaseId={loadingCaseId}
+				selectedCases={selectedCases}
+				onToggleCaseSelection={handleToggleCaseSelection}
 			/>
 
 			<div

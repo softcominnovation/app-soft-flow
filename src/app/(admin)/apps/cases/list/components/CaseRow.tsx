@@ -1,5 +1,5 @@
 'use client';
-import { DropdownButton, DropdownItem, Table, Placeholder } from 'react-bootstrap';
+import { DropdownButton, DropdownItem, Table, Placeholder, Form } from 'react-bootstrap';
 import { ICase } from '@/types/cases/ICase';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
@@ -10,6 +10,8 @@ interface CaseRowProps {
 	onFinalize: (id: string) => void;
 	isFinalizing?: boolean;
 	isLoading?: boolean;
+	isSelected?: boolean;
+	onToggleSelection?: (caseId: string) => void;
 }
 
 /**
@@ -26,7 +28,7 @@ const formatMinutesToHM = (minutes: number): string => {
 /**
  * Componente que representa uma linha da tabela de casos
  */
-export default function CaseRow({ case: caseData, index, onView, onFinalize, isFinalizing = false, isLoading = false }: CaseRowProps) {
+export default function CaseRow({ case: caseData, index, onView, onFinalize, isFinalizing = false, isLoading = false, isSelected = false, onToggleSelection }: CaseRowProps) {
 	const caseId = caseData.caso.id.toString();
 	const estimado = caseData.caso.tempos?.estimado_minutos ?? 0;
 	const realizado = caseData.caso.tempos?.realizado_minutos ?? 0;
@@ -42,6 +44,11 @@ export default function CaseRow({ case: caseData, index, onView, onFinalize, isF
 					cursor: 'wait',
 				}}
 			>
+				<td className="py-2">
+					<Placeholder as="span" animation="glow">
+						<Placeholder xs={3} />
+					</Placeholder>
+				</td>
 				<td className="py-2">
 					<Placeholder as="span" animation="glow">
 						<Placeholder xs={3} />
@@ -107,9 +114,18 @@ export default function CaseRow({ case: caseData, index, onView, onFinalize, isF
 			className={`align-middle ${isTimeStarted ? 'table-success' : ''}`}
 			style={{ 
 				cursor: 'pointer',
+				backgroundColor: isSelected ? 'rgba(13, 110, 253, 0.06)' : undefined,
 			}}
 			onClick={() => onView(caseId)}
 		>
+			<td className="py-2" onClick={(e) => e.stopPropagation()}>
+				<Form.Check
+					type="checkbox"
+					checked={isSelected}
+					onChange={() => onToggleSelection?.(caseId)}
+					onClick={(e) => e.stopPropagation()}
+				/>
+			</td>
 			<td className="py-2">
 				<span className="text-body fw-bold">{caseData.caso.id}</span>
 			</td>

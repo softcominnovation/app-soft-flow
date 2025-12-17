@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Badge, Placeholder } from "react-bootstrap";
+import { Button, Badge, Placeholder, Form } from "react-bootstrap";
 import { ICase } from "@/types/cases/ICase";
 import { finalizeCase } from "@/services/caseServices";
 import { toast } from "react-toastify";
@@ -15,6 +15,8 @@ type Props = {
 	onView: (caseId: string) => void;
 	onFinalize?: () => void;
 	isLoading?: boolean;
+	isSelected?: boolean;
+	onToggleSelection?: (caseId: string) => void;
 };
 
 /**
@@ -39,7 +41,7 @@ const getPriorityBadgeVariant = (priority: string): string => {
 	return 'secondary';
 };
 
-export default function MobileCaseCard({ item, onView, onFinalize, isLoading = false }: Props) {
+export default function MobileCaseCard({ item, onView, onFinalize, isLoading = false, isSelected = false, onToggleSelection }: Props) {
 	const caseId = `${item.caso.id}`;
 	const developerName = item.caso.usuarios.desenvolvimento?.nome || "Não atribuído";
 	const productName = item.produto?.nome || "-";
@@ -177,6 +179,8 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 			style={{ 
 				cursor: 'pointer',
 				transition: 'all 0.2s ease-in-out',
+				borderColor: isSelected ? 'rgba(13, 110, 253, 0.3)' : undefined,
+				backgroundColor: isSelected ? 'rgba(13, 110, 253, 0.04)' : undefined,
 			}}
 			onClick={() => onView(caseId)}
 			onMouseEnter={(e) => {
@@ -192,6 +196,19 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 			<div className="bg-body-tertiary border-bottom p-3">
 				<div className="d-flex justify-content-between align-items-center mb-2">
 					<div className="d-flex align-items-center gap-2">
+						<div 
+							onClick={(e) => {
+								e.stopPropagation();
+								onToggleSelection?.(caseId);
+							}}
+						>
+							<Form.Check
+								type="checkbox"
+								checked={isSelected}
+								onChange={() => onToggleSelection?.(caseId)}
+								onClick={(e) => e.stopPropagation()}
+							/>
+						</div>
 						<div>
 							<h6 className="mb-0 fw-bold text-body">Caso #{caseId}</h6>
 							<small className="text-muted d-flex align-items-center gap-1">

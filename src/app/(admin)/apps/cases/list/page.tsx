@@ -13,6 +13,7 @@ const CasesList = () => {
 	const { cases, loading } = useCasesContext();
 	const [showFiltersDrawer, setShowFiltersDrawer] = useState(false);
 	const [showProductsDrawer, setShowProductsDrawer] = useState(false);
+	const [selectedCases, setSelectedCases] = useState<Set<string>>(new Set());
 
 	return (
 		<>
@@ -28,6 +29,7 @@ const CasesList = () => {
 											onOpenFiltersDrawer={() => setShowFiltersDrawer(true)}
 											showFiltersDrawer={showFiltersDrawer}
 											onCloseFiltersDrawer={() => setShowFiltersDrawer(false)}
+											selectedCases={selectedCases}
 										/>
 									</Col>
 								</Row>
@@ -53,7 +55,12 @@ const CasesList = () => {
 							</div>
 							
 							<div className="table-responsive">
-								<CasesTable data={cases} loading={loading} />
+								<CasesTable 
+									data={cases} 
+									loading={loading}
+									selectedCases={selectedCases}
+									onSelectedCasesChange={setSelectedCases}
+								/>
 							</div>
 						</CardBody>
 					</Card>
