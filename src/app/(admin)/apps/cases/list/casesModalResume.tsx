@@ -19,9 +19,10 @@ interface Props {
 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 	case: ICase | null;
 	setCase?: React.Dispatch<React.SetStateAction<ICase | null>>;
+	openModal?: (caseData: ICase) => void;
 }
 
-export default function CasesModalResume({ setOpen, open, case: caseData, setCase }: Props) {
+export default function CasesModalResume({ setOpen, open, case: caseData, setCase, openModal }: Props) {
 	const [finalizing, setFinalizing] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -145,7 +146,27 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 		try {
 			const res = await cloneCase(displayCaseData.caso.id.toString());
 			toast.success('Caso clonado com sucesso!');
-			handleClose();
+			
+			// Obter o registro do novo caso clonado
+			const novoRegistro = res?.data?.registro;
+			
+			if (novoRegistro && openModal) {
+				// Buscar o caso completo clonado
+				try {
+					const response = await findCase(novoRegistro.toString());
+					if (response?.data) {
+						handleClose();
+						// Abrir o modal com o novo caso clonado
+						openModal(response.data);
+					}
+				} catch (findError) {
+					console.error('Erro ao buscar caso clonado:', findError);
+					handleClose();
+				}
+			} else {
+				handleClose();
+			}
+			
 			// Recarregar a listagem de casos se o contexto estiver disponível
 			if (fetchCases) {
 				fetchCases();

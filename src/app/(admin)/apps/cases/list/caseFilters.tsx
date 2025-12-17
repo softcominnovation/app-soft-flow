@@ -23,6 +23,9 @@ import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import CasesModal from './casesModal';
 import BottomDrawer from '@/components/BottomDrawer';
 import TransferCasesModal from './components/TransferCasesModal';
+import { findCase } from '@/services/caseServices';
+import { ICase } from '@/types/cases/ICase';
+import { toast } from 'react-toastify';
 
 type CaseFiltersProps = {
 	onOpenFiltersDrawer?: () => void;
@@ -30,6 +33,7 @@ type CaseFiltersProps = {
 	onCloseFiltersDrawer?: () => void;
 	selectedCases?: Set<string>;
 	onClearSelectedCases?: () => void;
+	onOpenCaseModal?: (caseData: ICase) => void;
 };
 
 const CaseFilters = ({ 
@@ -37,13 +41,16 @@ const CaseFilters = ({
 	showFiltersDrawer: externalShowFilters, 
 	onCloseFiltersDrawer,
 	selectedCases = new Set(),
-	onClearSelectedCases
+	onClearSelectedCases,
+	onOpenCaseModal
 }: CaseFiltersProps = {}) => {
 	const methods = useForm<ICaseFilter>();
 	const { fetchCases, loading, cases } = useCasesContext();
 	const [internalShowFilters, setInternalShowFilters] = useState(false);
 	const [showTransferModal, setShowTransferModal] = useState(false);
 	const [showWarningAlert, setShowWarningAlert] = useState(false);
+	const [registroValue, setRegistroValue] = useState('');
+	const [loadingRegistro, setLoadingRegistro] = useState(false);
 	const userInitializedRef = useRef(false);
 	const filtersInitializedRef = useRef(false);
 	
@@ -297,10 +304,36 @@ const CaseFilters = ({
 		}
 	}, [setSelectedUser, methods, selectedUser]);
 
-	const onSearch = (data: ICaseFilter) => {
+	const onSearch = async (data: ICaseFilter) => {
 		// Limpa os casos selecionados antes de fazer a pesquisa
 		if (onClearSelectedCases) {
 			onClearSelectedCases();
+		}
+
+		// Se o input de registro estiver preenchido, busca o caso pelo registro
+		const trimmedRegistro = registroValue.trim();
+		if (trimmedRegistro) {
+			if (!onOpenCaseModal) {
+				toast.warning('Caso não encontrado');
+				return;
+			}
+
+			setLoadingRegistro(true);
+			try {
+				const response = await findCase(trimmedRegistro);
+				if (response?.data) {
+					onOpenCaseModal(response.data);
+					setRegistroValue('');
+				} else {
+					toast.warning('Caso não encontrado');
+				}
+			} catch (error: any) {
+				console.error('Erro ao buscar caso:', error);
+				toast.warning('Caso não encontrado');
+			} finally {
+				setLoadingRegistro(false);
+			}
+			return;
 		}
 
 		const trimmedCaseNumber = data.numero_caso?.trim();
@@ -369,11 +402,73 @@ const CaseFilters = ({
 		setShowTransferModal(true);
 	};
 
+	const handleSearchByRegistro = async () => {
+		const trimmedRegistro = registroValue.trim();
+		if (!trimmedRegistro) {
+			return;
+		}
+
+		if (!onOpenCaseModal) {
+			toast.warning('Caso não encontrado');
+			return;
+		}
+
+		setLoadingRegistro(true);
+		try {
+			const response = await findCase(trimmedRegistro);
+			if (response?.data) {
+				onOpenCaseModal(response.data);
+				setRegistroValue('');
+			} else {
+				toast.warning('Caso não encontrado');
+			}
+		} catch (error: any) {
+			console.error('Erro ao buscar caso:', error);
+			toast.warning('Caso não encontrado');
+		} finally {
+			setLoadingRegistro(false);
+		}
+	};
+
+	const handleRegistroKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			methods.handleSubmit(onSearch)();
+		}
+	};
+
 	return (
 		<FormProvider {...methods}>
 			<form onSubmit={methods.handleSubmit(onSearch)} className="mb-0 mb-lg-3">
 				<div className="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 mb-0 mb-lg-3">
 					<div className="d-flex align-items-center gap-2 w-100 w-sm-auto flex-grow-1">
+						{/* Input de Registro - Desktop */}
+						<div className="d-none d-lg-flex align-items-center">
+							<Form.Control
+								type="text"
+								value={registroValue}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegistroValue(e.target.value)}
+								onKeyPress={handleRegistroKeyPress}
+								placeholder="Digite o número do caso"
+								className="form-control-sm"
+								style={{ width: '200px' }}
+								disabled={loadingRegistro}
+							/>
+						</div>
+
+						{/* Input de Registro - Mobile */}
+						<div className="d-flex d-lg-none align-items-center">
+							<Form.Control
+								type="text"
+								value={registroValue}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegistroValue(e.target.value)}
+								onKeyPress={handleRegistroKeyPress}
+								placeholder="Digite o número do caso"
+								className="form-control-sm"
+								disabled={loadingRegistro}
+							/>
+						</div>
+
 						{/* Desktop: mantém Collapse */}
 						<Button 
 							type="button" 
@@ -442,16 +537,6 @@ const CaseFilters = ({
 				<Collapse in={showFiltersDesktop} mountOnEnter unmountOnExit className="d-none d-lg-block">
 					<div>
 						<Row className="g-3 g-lg-4 align-items-end">
-							<Col xs={12} sm={6} md={4} lg={3}>
-								<Form.Label className="fw-medium text-muted small">Numero do caso</Form.Label>
-								<TextInput
-									{...methods.register('numero_caso')}
-									type="text"
-									name="numero_caso"
-									placeholder="Digite o numero..."
-									className="form-control-sm"
-								/>
-							</Col>
 							<Col xs={12} sm={6} md={6} lg={3}>
 								<Form.Label className="fw-medium text-muted small">Produto</Form.Label>
 								<Controller
@@ -613,9 +698,9 @@ const CaseFilters = ({
 								/>
 							</Col>
 							<Col xs={12} sm={6} md={4} lg={2} className="d-grid">
-								<Button type="submit" variant="primary" size="sm" disabled={loading} className="filter-search-button w-100">
+								<Button type="submit" variant="primary" size="sm" disabled={loading || loadingRegistro} className="filter-search-button w-100">
 									{
-										loading ?
+										(loading || loadingRegistro) ?
 										<span className='text-center'>
 											<span style={{marginRight: '10px'}}>Pesquisando</span>
 											<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />
@@ -643,16 +728,6 @@ const CaseFilters = ({
 						maxHeight="90vh"
 					>
 					<Row className="g-3 align-items-end">
-						<Col xs={12}>
-							<Form.Label className="fw-medium text-muted small">Numero do caso</Form.Label>
-							<TextInput
-								{...methods.register('numero_caso')}
-								type="text"
-								name="numero_caso"
-								placeholder="Digite o numero..."
-								className="form-control-sm"
-							/>
-						</Col>
 						<Col xs={12}>
 							<Form.Label className="fw-medium text-muted small">Produto</Form.Label>
 							<Controller
@@ -818,7 +893,7 @@ const CaseFilters = ({
 								type="submit" 
 								variant="primary" 
 								size="sm" 
-								disabled={loading} 
+								disabled={loading || loadingRegistro} 
 								className="w-100"
 								onClick={() => {
 									methods.handleSubmit(onSearch)();
@@ -830,7 +905,7 @@ const CaseFilters = ({
 								}}
 							>
 								{
-									loading ?
+									(loading || loadingRegistro) ?
 									<span className='text-center d-flex align-items-center justify-content-center gap-2'>
 										<span>Pesquisando</span>
 										<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />

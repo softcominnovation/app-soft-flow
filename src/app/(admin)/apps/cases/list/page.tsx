@@ -6,12 +6,16 @@ import { CasesProvider, useCasesContext } from '@/contexts/casesContext';
 import { ToastContainer } from 'react-toastify';
 import ProjectsSection from './components/caseListComponents/projectsSection';
 import CasesFAB from './components/CasesFAB';
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useApplyUrlCaseFilters } from '@/hooks';
 import TransferCasesModal from './components/TransferCasesModal';
 import { Modal } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { ICase } from '@/types/cases/ICase';
+import { findCase } from '@/services/caseServices';
+import Spinner from '@/components/Spinner';
+import { Form } from 'react-bootstrap';
 
 const CasesList = () => {
 	const { cases, loading } = useCasesContext();
@@ -20,6 +24,9 @@ const CasesList = () => {
 	const [selectedCases, setSelectedCases] = useState<Set<string>>(new Set());
 	const [showTransferModal, setShowTransferModal] = useState(false);
 	const [showWarningAlert, setShowWarningAlert] = useState(false);
+	const openCaseModalRef = useRef<((caseData: ICase) => void) | null>(null);
+	const [registroValue, setRegistroValue] = useState('');
+	const [loadingRegistro, setLoadingRegistro] = useState(false);
 
 	const handleOpenTransferModal = () => {
 		// Verifica se há casos selecionados
@@ -60,6 +67,42 @@ const CasesList = () => {
 		setShowTransferModal(true);
 	};
 
+	const handleOpenCaseModal = useCallback((caseData: ICase) => {
+		if (openCaseModalRef.current) {
+			openCaseModalRef.current(caseData);
+		}
+	}, []);
+
+	const handleSearchByRegistro = async () => {
+		const trimmedRegistro = registroValue.trim();
+		if (!trimmedRegistro) {
+			return;
+		}
+
+		setLoadingRegistro(true);
+		try {
+			const response = await findCase(trimmedRegistro);
+			if (response?.data) {
+				handleOpenCaseModal(response.data);
+				setRegistroValue('');
+			} else {
+				toast.warning('Caso não encontrado');
+			}
+		} catch (error: any) {
+			console.error('Erro ao buscar caso:', error);
+			toast.warning('Caso não encontrado');
+		} finally {
+			setLoadingRegistro(false);
+		}
+	};
+
+	const handleRegistroKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			handleSearchByRegistro();
+		}
+	};
+
 	return (
 		<>
 			<Row>
@@ -76,6 +119,7 @@ const CasesList = () => {
 											onCloseFiltersDrawer={() => setShowFiltersDrawer(false)}
 											selectedCases={selectedCases}
 											onClearSelectedCases={() => setSelectedCases(new Set())}
+											onOpenCaseModal={handleOpenCaseModal}
 										/>
 									</Col>
 								</Row>
@@ -90,8 +134,19 @@ const CasesList = () => {
 								/>
 							</div>
 							
-							{/* Mobile: apenas gráfico de status */}
+							{/* Mobile: input de registro e gráfico de status */}
 							<div className="d-lg-none mb-3">
+								<div className="mb-3">
+									<Form.Control
+										type="text"
+										value={registroValue}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegistroValue(e.target.value)}
+										onKeyPress={handleRegistroKeyPress}
+										placeholder="Digite o número do caso"
+										className="form-control-sm"
+										disabled={loadingRegistro}
+									/>
+								</div>
 								<ProjectsSection 
 									onOpenProductsDrawer={() => setShowProductsDrawer(true)}
 									showProductsDrawer={showProductsDrawer}
@@ -106,6 +161,7 @@ const CasesList = () => {
 									loading={loading}
 									selectedCases={selectedCases}
 									onSelectedCasesChange={setSelectedCases}
+									onOpenCaseModalRef={openCaseModalRef}
 								/>
 							</div>
 						</CardBody>

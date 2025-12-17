@@ -16,13 +16,14 @@ type Props = {
 	loading: boolean;
 	selectedCases?: Set<string>;
 	onSelectedCasesChange?: (selectedCases: Set<string>) => void;
+	onOpenCaseModalRef?: React.MutableRefObject<((caseData: ICase) => void) | null>;
 };
 
 /**
  * Componente principal da tabela de casos
  * Orquestra a renderização e lógica de negócio dos casos
  */
-const CasesTable = ({ data, loading, selectedCases: externalSelectedCases, onSelectedCasesChange }: Props) => {
+const CasesTable = ({ data, loading, selectedCases: externalSelectedCases, onSelectedCasesChange, onOpenCaseModalRef }: Props) => {
 	const { fetchEspecifiedCases, loadMoreCases, pagination, loadingMore, fetchCases } = useCasesContext();
 	const sentinelRef = useRef<HTMLDivElement | null>(null);
 	const [loadingCaseId, setLoadingCaseId] = useState<string | null>(null);
@@ -53,6 +54,13 @@ const CasesTable = ({ data, loading, selectedCases: externalSelectedCases, onSel
 
 	// Gerencia o estado do modal
 	const { openResumeModal, especifiedCase, openModal, closeModal, setCase } = useCaseModal();
+
+	// Atribui a função openModal ao ref para que possa ser chamada de fora
+	useEffect(() => {
+		if (onOpenCaseModalRef) {
+			onOpenCaseModalRef.current = openModal;
+		}
+	}, [openModal, onOpenCaseModalRef]);
 
 	// Gerencia a finalização de casos
 	const {
@@ -205,7 +213,7 @@ const CasesTable = ({ data, loading, selectedCases: externalSelectedCases, onSel
 				}}
 			/>
 
-			<CasesModalResume setOpen={closeModal} open={openResumeModal} case={especifiedCase} />
+			<CasesModalResume setOpen={closeModal} open={openResumeModal} case={especifiedCase} setCase={setCase} openModal={openModal} />
 
 			<ConfirmDialog
 				show={showConfirmDialog}
