@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { TextInput } from '@/components/Form';
-import { Button, Col, Collapse, Form, Row } from 'react-bootstrap';
+import { Button, Col, Collapse, Form, Row, Modal } from 'react-bootstrap';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import ICaseFilter from '@/types/cases/ICaseFilter';
 import { useCasesContext } from '@/contexts/casesContext';
@@ -29,18 +29,21 @@ type CaseFiltersProps = {
 	showFiltersDrawer?: boolean;
 	onCloseFiltersDrawer?: () => void;
 	selectedCases?: Set<string>;
+	onClearSelectedCases?: () => void;
 };
 
 const CaseFilters = ({ 
 	onOpenFiltersDrawer, 
 	showFiltersDrawer: externalShowFilters, 
 	onCloseFiltersDrawer,
-	selectedCases = new Set()
+	selectedCases = new Set(),
+	onClearSelectedCases
 }: CaseFiltersProps = {}) => {
 	const methods = useForm<ICaseFilter>();
-	const { fetchCases, loading } = useCasesContext();
+	const { fetchCases, loading, cases } = useCasesContext();
 	const [internalShowFilters, setInternalShowFilters] = useState(false);
 	const [showTransferModal, setShowTransferModal] = useState(false);
+	const [showWarningAlert, setShowWarningAlert] = useState(false);
 	const userInitializedRef = useRef(false);
 	const filtersInitializedRef = useRef(false);
 	
@@ -168,7 +171,7 @@ const CaseFilters = ({
 	useEffect(() => {
 		if (!produtoId) {
 			setSelectedVersion(null);
-			methods.setValue('versao_produto', '');
+			methods.setValue('versao_produto', undefined);
 		}
 	}, [produtoId, setSelectedVersion, methods]);
 
@@ -295,20 +298,30 @@ const CaseFilters = ({
 	}, [setSelectedUser, methods, selectedUser]);
 
 	const onSearch = (data: ICaseFilter) => {
+		// Limpa os casos selecionados antes de fazer a pesquisa
+		if (onClearSelectedCases) {
+			onClearSelectedCases();
+		}
+
 		const trimmedCaseNumber = data.numero_caso?.trim();
 		// Usa o selectedUser diretamente para garantir que só inclui se houver seleção
 		// Verifica explicitamente se selectedUser existe, não é null, e tem um value válido
 		const hasSelectedUser = selectedUser !== null && selectedUser !== undefined && selectedUser.value;
 		const usuarioId = hasSelectedUser ? String(selectedUser.value).trim() : '';
 
+		// Verifica se produto_id tem valor válido (não vazio)
+		const hasProdutoId = data.produto_id && data.produto_id.toString().trim() !== '';
+		// Verifica se versao_produto tem valor válido (não vazio)
+		const hasVersaoProduto = data.versao_produto && data.versao_produto.trim() !== '';
+
 		const payload: ICaseFilter = trimmedCaseNumber
 			? { numero_caso: trimmedCaseNumber }
 					: {
-							...(data.status_descricao && { status_descricao: data.status_descricao }),
+							...(data.status_descricao && data.status_descricao.trim() !== '' && { status_descricao: data.status_descricao }),
 							...(data.status_id && { status_id: data.status_id }),
-							...(data.produto_id && { produto_id: data.produto_id }),
-							...(data.projeto_id && { projeto_id: data.projeto_id }),
-							...(data.versao_produto && data.versao_produto.trim() !== '' && { versao_produto: data.versao_produto }),
+							...(hasProdutoId && { produto_id: data.produto_id }),
+							...(data.projeto_id && data.projeto_id.toString().trim() !== '' && { projeto_id: data.projeto_id }),
+							...(hasVersaoProduto && { versao_produto: data.versao_produto }),
 							// Inclui usuario_dev_id apenas se houver um usuário selecionado (não vazio)
 							...(usuarioId && usuarioId !== '' ? { usuario_dev_id: usuarioId } : {}),
 							sort_by: 'prioridade',
@@ -316,6 +329,44 @@ const CaseFilters = ({
 
 		// Salva no localStorage se houver produto_id selecionado
 		fetchCases(payload, true);
+	};
+
+	const handleOpenTransferModal = () => {
+		// Verifica se há casos selecionados
+		if (selectedCases.size === 0) {
+			return;
+		}
+
+		// Busca os casos selecionados na lista de casos
+		const selectedCasesData = (cases || []).filter(caseItem => 
+			selectedCases.has(caseItem.caso.id.toString())
+		);
+
+		// Verifica se todos os casos têm produto
+		const casesWithProduct = selectedCasesData.filter(caseItem => 
+			caseItem.produto && caseItem.produto.id !== null && caseItem.produto.id !== undefined
+		);
+
+		// Se não houver casos com produto, permite abrir o modal
+		if (casesWithProduct.length === 0) {
+			setShowTransferModal(true);
+			return;
+		}
+
+		// Verifica se todos os casos têm o mesmo produto
+		const firstProductId = casesWithProduct[0].produto?.id;
+		const allSameProduct = casesWithProduct.every(caseItem => 
+			caseItem.produto?.id === firstProductId
+		);
+
+		if (!allSameProduct) {
+			// Mostra alerta e não abre o modal
+			setShowWarningAlert(true);
+			return;
+		}
+
+		// Se passou na validação, abre o modal
+		setShowTransferModal(true);
 	};
 
 	return (
@@ -367,7 +418,7 @@ const CaseFilters = ({
 							size="sm"
 							className="d-inline-flex align-items-center justify-content-center gap-1"
 							disabled={selectedCases.size === 0}
-							onClick={() => setShowTransferModal(true)}
+							onClick={handleOpenTransferModal}
 						>
 							<i className="mdi mdi-swap-horizontal"></i>
 							<span>Transferir Casos</span>
@@ -383,6 +434,7 @@ const CaseFilters = ({
 						show={showTransferModal}
 						onHide={() => setShowTransferModal(false)}
 						selectedCases={selectedCases}
+						cases={cases}
 					/>
 				</div>
 				
@@ -418,7 +470,7 @@ const CaseFilters = ({
 											value={selectedProduct}
 											onChange={(option) => {
 												setSelectedProduct(option);
-												field.onChange(option?.value ?? '');
+												field.onChange(option?.value || undefined);
 											}}
 											onBlur={field.onBlur}
 											onMenuOpen={() => {
@@ -450,7 +502,7 @@ const CaseFilters = ({
 											value={selectedVersion}
 											onChange={(option) => {
 												setSelectedVersion(option);
-												field.onChange(option?.raw?.versao ?? '');
+												field.onChange(option?.raw?.versao || undefined);
 											}}
 											onBlur={field.onBlur}
 											onMenuOpen={() => {
@@ -482,7 +534,7 @@ const CaseFilters = ({
 											value={selectedProject}
 											onChange={(option) => {
 												setSelectedProject(option);
-												field.onChange(option?.value ?? '');
+												field.onChange(option?.value || undefined);
 											}}
 											onBlur={field.onBlur}
 											onMenuOpen={() => {
@@ -651,7 +703,7 @@ const CaseFilters = ({
 										value={selectedVersion}
 										onChange={(option) => {
 											setSelectedVersion(option);
-											field.onChange(option?.raw?.versao ?? '');
+											field.onChange(option?.raw?.versao || undefined);
 										}}
 										onBlur={field.onBlur}
 										onMenuOpen={() => {
@@ -791,6 +843,30 @@ const CaseFilters = ({
 					</Row>
 					</BottomDrawer>
 				</div>
+				
+				{/* Modal de Alerta de Warning */}
+				<Modal
+					show={showWarningAlert}
+					onHide={() => setShowWarningAlert(false)}
+					centered
+					contentClassName="border-0"
+					dialogStyle={{ maxWidth: '500px' }}
+				>
+					<div className="modal-filled bg-warning">
+						<Modal.Body className="p-4">
+							<div className="text-center">
+								<i className="mdi mdi-alert-circle h1 mb-3"></i>
+								<h4 className="mt-2 mb-3">Atenção</h4>
+								<p className="mt-3 mb-0">
+									Não é possível transferir casos de produtos diferentes. Por favor, selecione apenas casos do mesmo produto.
+								</p>
+								<Button variant="light" className="my-3" onClick={() => setShowWarningAlert(false)}>
+									Entendi
+								</Button>
+							</div>
+						</Modal.Body>
+					</div>
+				</Modal>
 			</form>
 		</FormProvider>
 	);

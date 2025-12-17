@@ -33,6 +33,7 @@ export default function ConfirmDialog({
 			keyboard={!loading}
 			centered
 			size="sm"
+			contentClassName="shadow-lg"
 		>
 			<Modal.Header closeButton={!loading}>
 				<Modal.Title className="d-flex align-items-center">

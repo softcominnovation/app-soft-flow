@@ -175,10 +175,6 @@ export default function CaseRow({ case: caseData, index, onView, onFinalize, isF
 
 			<td className="py-2 text-center position-relative" onClick={(e) => e.stopPropagation()}>
 				<DropdownButton size="sm" variant="light" title={<IconifyIcon icon="lucide:align-left" />}>
-					<DropdownItem className="text-center" onClick={() => onView(caseId)}>
-						<IconifyIcon icon="lucide:eye" className="me-2" />
-						Visualização resumida
-					</DropdownItem>
 					<DropdownItem
 						className="text-center text-success"
 						onClick={() => onFinalize(caseId)}

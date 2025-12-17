@@ -155,3 +155,51 @@ export async function updateProducao(id: string, data: { tipo_producao: string; 
 		}
 	}
 }
+
+export interface IBulkUpdateCaseRequest {
+	ids: number[];
+	AtribuidoPara?: number;
+	Estado?: number;
+	status?: number;
+	TempoStatus?: string;
+	DescricaoResumo?: string;
+	DescricaoCompleta?: string;
+	PassosParaReproduzir?: string;
+	InformacoesAdicionais?: string;
+	Projeto?: number;
+	cronograma_id?: number;
+	Relator?: number;
+	Categoria?: number;
+	Prioridade?: number;
+	Resolucao?: number;
+	TempoEstimado?: number;
+	DataConclusao?: string;
+	PrazoConclusao?: string;
+	tamanho?: number;
+	Modulo?: string;
+	tipo_abertura?: string;
+	versao_produto?: string;
+	VersaoProduto?: string;
+	produto_id?: string;
+	atribuido_qa?: number;
+}
+
+export interface IBulkUpdateCaseResponse {
+	success: boolean;
+	message: string;
+	updated: number;
+	not_found: number[];
+}
+
+export async function bulkUpdateCases(data: IBulkUpdateCaseRequest): Promise<IBulkUpdateCaseResponse> {
+	try {
+		const res = await axios.post<IBulkUpdateCaseResponse>('/api/cases/bulk-update', data);
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}

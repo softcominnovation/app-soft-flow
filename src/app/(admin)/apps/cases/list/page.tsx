@@ -30,6 +30,7 @@ const CasesList = () => {
 											showFiltersDrawer={showFiltersDrawer}
 											onCloseFiltersDrawer={() => setShowFiltersDrawer(false)}
 											selectedCases={selectedCases}
+											onClearSelectedCases={() => setSelectedCases(new Set())}
 										/>
 									</Col>
 								</Row>

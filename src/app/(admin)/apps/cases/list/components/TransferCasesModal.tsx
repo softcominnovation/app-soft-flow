@@ -1,29 +1,46 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col, FormCheck } from 'react-bootstrap';
+import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import AsyncSelect from 'react-select/async';
 import Select from 'react-select';
 import { useAsyncSelect } from '@/hooks';
 import { assistant as fetchUsers } from '@/services/usersServices';
 import { assistant as fetchProjects } from '@/services/projectsServices';
 import { assistant as fetchVersions, IVersionAssistant } from '@/services/versionsServices';
+import { bulkUpdateCases } from '@/services/caseServices';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
 import IProjectAssistant from '@/types/assistant/IProjectAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import { toast } from 'react-toastify';
+import { useCasesContext } from '@/contexts/casesContext';
+import { ICase } from '@/types/cases/ICase';
+import Cookies from 'js-cookie';
 
 type TransferCasesModalProps = {
 	show: boolean;
 	onHide: () => void;
 	selectedCases: Set<string>;
+	cases?: ICase[] | null;
 };
 
-export default function TransferCasesModal({ show, onHide, selectedCases }: TransferCasesModalProps) {
-	const [duplicateCases, setDuplicateCases] = useState(false);
+export default function TransferCasesModal({ show, onHide, selectedCases, cases }: TransferCasesModalProps) {
 	const [priority, setPriority] = useState<string | null>(null);
-	const [stakesPlan, setStakesPlan] = useState<string>('');
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { fetchCases } = useCasesContext();
+
+	// Obtém o produto_id dos casos selecionados
+	const selectedCasesData = (cases || []).filter(caseItem => 
+		selectedCases.has(caseItem.caso.id.toString())
+	);
+	
+	const casesWithProduct = selectedCasesData.filter(caseItem => 
+		caseItem.produto && caseItem.produto.id !== null && caseItem.produto.id !== undefined
+	);
+	
+	const produtoId = casesWithProduct.length > 0 ? String(casesWithProduct[0].produto?.id) : null;
 
 	// Dev (usuário de desenvolvimento)
 	const {
@@ -55,7 +72,7 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 		debounceMs: 800,
 	});
 
-	// Versão (sem dependência de produto por enquanto)
+	// Versão (depende do produto_id dos casos selecionados)
 	const {
 		loadOptions: loadVersionOptions,
 		selectedOption: selectedVersion,
@@ -64,13 +81,21 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 		triggerDefaultLoad: triggerVersionDefaultLoad,
 		isLoading: isLoadingVersions,
 	} = useAsyncSelect<IVersionAssistant>({
-		fetchItems: async (input) => fetchVersions({ search: input }),
+		fetchItems: async (input) => {
+			if (!produtoId) {
+				return [];
+			}
+			return fetchVersions({ produto_id: produtoId, search: input });
+		},
 		getOptionLabel: (version) => version.versao || 'Versão sem nome',
 		getOptionValue: (version) => version.id,
 		debounceMs: 800,
 	});
 
-	// Projeto
+	// Obtém o usuario_id do usuário logado
+	const loggedUserId = Cookies.get('user_id');
+
+	// Projeto (depende do usuário logado)
 	const {
 		loadOptions: loadProjectOptions,
 		selectedOption: selectedProject,
@@ -79,7 +104,13 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 		triggerDefaultLoad: triggerProjectDefaultLoad,
 		isLoading: isLoadingProjects,
 	} = useAsyncSelect<IProjectAssistant>({
-		fetchItems: async (input) => fetchProjects({ search: input, nome_projeto: input }),
+		fetchItems: async (input) => {
+			return fetchProjects({
+				search: input,
+				nome_projeto: input,
+				...(loggedUserId && loggedUserId !== '' ? { usuario_id: loggedUserId } : {}),
+			});
+		},
 		getOptionLabel: (project) => project.nome_projeto || project.setor || 'Projeto sem nome',
 		getOptionValue: (project) => project.id,
 		debounceMs: 800,
@@ -98,23 +129,83 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 			setSelectedQA(null);
 			setSelectedVersion(null);
 			setSelectedProject(null);
-			setDuplicateCases(false);
 			setPriority(null);
-			setStakesPlan('');
 		}
 	}, [show, setSelectedDev, setSelectedQA, setSelectedVersion, setSelectedProject]);
 
-	const handleSubmit = () => {
-		// TODO: Implementar lógica de transferência
-		console.log('Transferir casos:', {
-			selectedCases: Array.from(selectedCases),
-			dev: selectedDev,
-			qa: selectedQA,
-			version: selectedVersion,
-			project: selectedProject,
-			duplicateCases,
-		});
-		onHide();
+	// Limpa a versão quando o produto_id muda
+	useEffect(() => {
+		if (!produtoId) {
+			setSelectedVersion(null);
+		}
+	}, [produtoId, setSelectedVersion]);
+
+	const handleSubmit = async () => {
+		if (selectedCases.size === 0) {
+			toast.warning('Selecione pelo menos um caso para transferir');
+			return;
+		}
+
+		// Converte os IDs dos casos selecionados para números
+		const caseIds = Array.from(selectedCases).map(id => parseInt(id, 10));
+
+		// Prepara o payload para atualização em lote
+		const payload: any = {
+			ids: caseIds,
+		};
+
+		// Adiciona Dev se selecionado
+		if (selectedDev && selectedDev.value) {
+			payload.AtribuidoPara = parseInt(String(selectedDev.value), 10);
+		}
+
+		// Adiciona prioridade se selecionada
+		if (priority) {
+			payload.Prioridade = parseInt(priority, 10);
+		}
+
+		// Adiciona projeto (cronograma_id) se selecionado
+		if (selectedProject && selectedProject.value) {
+			payload.cronograma_id = parseInt(String(selectedProject.value), 10);
+		}
+
+		// Adiciona versão se selecionada
+		if (selectedVersion && selectedVersion.raw?.versao) {
+			payload.VersaoProduto = selectedVersion.raw.versao;
+		}
+
+		// Adiciona QA se selecionado
+		if (selectedQA && selectedQA.value) {
+			payload.atribuido_qa = parseInt(String(selectedQA.value), 10);
+		}
+
+		setIsSubmitting(true);
+
+		try {
+			const response = await bulkUpdateCases(payload);
+
+			if (response.success) {
+				const successMessage = response.not_found && response.not_found.length > 0
+					? `${response.updated} caso(s) transferido(s) com sucesso. ${response.not_found.length} caso(s) não encontrado(s).`
+					: `${response.updated} caso(s) transferido(s) com sucesso.`;
+
+				toast.success(successMessage);
+
+				// Atualiza a lista de casos com os filtros atuais
+				await fetchCases(undefined, false);
+
+				// Fecha o modal
+				onHide();
+			} else {
+				toast.error(response.message || 'Erro ao transferir casos');
+			}
+		} catch (error: any) {
+			console.error('Erro ao transferir casos:', error);
+			const errorMessage = error?.message || 'Erro ao transferir casos. Tente novamente.';
+			toast.error(errorMessage);
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const selectedCasesCount = selectedCases.size;
@@ -180,6 +271,32 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 						<Col md={6}>
 							<Form.Group>
 								<Form.Label className="fw-semibold text-muted mb-2">
+									<IconifyIcon icon="lucide:folder" className="me-1" style={{ fontSize: '16px' }} />
+									Projeto:
+								</Form.Label>
+								<AsyncSelect<AsyncSelectOption<IProjectAssistant>, false>
+									cacheOptions
+									defaultOptions={selectedProject ? [selectedProject] : defaultProjectOptions}
+									loadOptions={loadProjectOptions}
+									className="react-select"
+									classNamePrefix="react-select"
+									placeholder="Pesquise um projeto..."
+									isClearable
+									value={selectedProject}
+									onChange={(option) => setSelectedProject(option as any)}
+									onMenuOpen={() => {
+										triggerProjectDefaultLoad();
+									}}
+									noOptionsMessage={() => (isLoadingProjects ? 'Carregando...' : 'Nenhum projeto encontrado')}
+									loadingMessage={() => 'Carregando...'}
+									styles={asyncSelectStyles}
+								/>
+							</Form.Group>
+						</Col>
+
+						<Col md={6}>
+							<Form.Group>
+								<Form.Label className="fw-semibold text-muted mb-2">
 									<IconifyIcon icon="lucide:tag" className="me-1" style={{ fontSize: '16px' }} />
 									Versão:
 								</Form.Label>
@@ -189,12 +306,17 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 									loadOptions={loadVersionOptions}
 									className="react-select"
 									classNamePrefix="react-select"
-									placeholder="Selecione a versão..."
+									placeholder={!produtoId ? 'Selecione casos com produto primeiro' : 'Pesquise uma versão...'}
 									isClearable
+									isDisabled={!produtoId}
 									value={selectedVersion}
 									onChange={(option) => setSelectedVersion(option as any)}
-									onMenuOpen={() => triggerVersionDefaultLoad()}
-									noOptionsMessage={() => (isLoadingVersions ? 'Carregando...' : 'Nenhuma versão encontrada')}
+									onMenuOpen={() => {
+										if (produtoId) {
+											triggerVersionDefaultLoad();
+										}
+									}}
+									noOptionsMessage={() => (isLoadingVersions ? 'Carregando...' : !produtoId ? 'Selecione casos com produto primeiro' : 'Nenhuma versão encontrada')}
 									loadingMessage={() => 'Carregando...'}
 									styles={asyncSelectStyles}
 								/>
@@ -215,7 +337,6 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 									isClearable
 									value={priority ? priorityOptions.find(o => o.value === priority) : null}
 									onChange={(option) => setPriority(option ? option.value : null)}
-									styles={asyncSelectStyles}
 								/>
 							</Form.Group>
 						</Col>
@@ -243,57 +364,6 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 								/>
 							</Form.Group>
 						</Col>
-
-						<Col md={6}>
-							<Form.Group>
-								<Form.Label className="fw-semibold text-muted mb-2">
-									<IconifyIcon icon="lucide:file-text" className="me-1" style={{ fontSize: '16px' }} />
-									Stakes Plan.:
-								</Form.Label>
-								<Form.Control
-									type="text"
-									placeholder="Informe o Stakes Plan..."
-									className="form-control"
-									value={stakesPlan}
-									onChange={(e) => setStakesPlan(e.target.value)}
-								/>
-							</Form.Group>
-						</Col>
-
-						<Col md={6}>
-							<Form.Group>
-								<Form.Label className="fw-semibold text-muted mb-2">
-									<IconifyIcon icon="lucide:folder" className="me-1" style={{ fontSize: '16px' }} />
-									Projeto:
-								</Form.Label>
-								<AsyncSelect<AsyncSelectOption<IProjectAssistant>, false>
-									cacheOptions
-									defaultOptions={selectedProject ? [selectedProject] : defaultProjectOptions}
-									loadOptions={loadProjectOptions}
-									className="react-select"
-									classNamePrefix="react-select"
-									placeholder="Selecione o projeto..."
-									isClearable
-									value={selectedProject}
-									onChange={(option) => setSelectedProject(option as any)}
-									onMenuOpen={() => triggerProjectDefaultLoad()}
-									noOptionsMessage={() => (isLoadingProjects ? 'Carregando...' : 'Nenhum projeto encontrado')}
-									loadingMessage={() => 'Carregando...'}
-									styles={asyncSelectStyles}
-								/>
-							</Form.Group>
-						</Col>
-
-						<Col md={12}>
-							<FormCheck
-								type="checkbox"
-								id="duplicateCases"
-								label="Duplicar Casos:"
-								checked={duplicateCases}
-								onChange={(e) => setDuplicateCases(e.target.checked)}
-								className="fw-semibold"
-							/>
-						</Col>
 					</Row>
 				</Form>
 			</Modal.Body>
@@ -307,11 +377,20 @@ export default function TransferCasesModal({ show, onHide, selectedCases }: Tran
 					variant="primary"
 					onClick={handleSubmit}
 					className="d-flex align-items-center gap-2"
-					disabled={selectedCasesCount === 0}
+					disabled={selectedCasesCount === 0 || isSubmitting}
 					style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
 				>
-					<IconifyIcon icon="lucide:check" style={{ fontSize: '18px' }} />
-					Transferir
+					{isSubmitting ? (
+						<>
+							<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+							Transferindo...
+						</>
+					) : (
+						<>
+							<IconifyIcon icon="lucide:check" style={{ fontSize: '18px' }} />
+							Transferir
+						</>
+					)}
 				</Button>
 			</Modal.Footer>
 		</Modal>
