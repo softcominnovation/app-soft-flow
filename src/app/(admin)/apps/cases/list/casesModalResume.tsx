@@ -7,7 +7,7 @@ import CaseAnnotations from './components/CaseAnnotations';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import TimetrackerSkelleton from "./skelletons/timetrackerSkelleton";
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
-import { finalizeCase, findCase, deleteCase } from '@/services/caseServices';
+import { finalizeCase, findCase, deleteCase, cloneCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
 import { useState, useContext, useEffect, useRef } from 'react';
 import { CasesContext } from '@/contexts/casesContext';
@@ -28,6 +28,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 	const [deleting, setDeleting] = useState(false);
 	const [localCaseData, setLocalCaseData] = useState<ICase | null>(caseData);
 	const [saving, setSaving] = useState(false);
+	const [cloning, setCloning] = useState(false);
 	const casesContext = useContext(CasesContext);
 	const fetchCases = casesContext?.fetchCases;
 	const resumeFormRef = useRef<ResumeFormRef>(null);
@@ -132,6 +133,28 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 			console.error('Erro ao salvar:', error);
 		} finally {
 			setSaving(false);
+		}
+	};
+
+	const handleCloneCase = async () => {
+		if (!displayCaseData?.caso.id || cloning) {
+			return;
+		}
+
+		setCloning(true);
+		try {
+			const res = await cloneCase(displayCaseData.caso.id.toString());
+			toast.success('Caso clonado com sucesso!');
+			handleClose();
+			// Recarregar a listagem de casos se o contexto estiver disponível
+			if (fetchCases) {
+				fetchCases();
+			}
+		} catch (error: any) {
+			console.error('Erro ao clonar caso:', error);
+			toast.error(error?.message || 'Erro ao clonar o caso');
+		} finally {
+			setCloning(false);
 		}
 	};
 
@@ -323,8 +346,6 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 					}
 
 					.modal-fullscreen .modal-footer .btn {
-						flex: 1 1 calc(50% - 0.25rem);
-						min-width: calc(50% - 0.25rem);
 						min-height: 44px;
 						font-size: 0.9rem;
 						padding: 0.625rem 1rem;
@@ -338,12 +359,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 						font-size: 1.1rem;
 					}
 
-					/* Botão Fechar em linha própria */
-					.modal-fullscreen .modal-footer .btn-secondary {
-						flex: 1 1 100%;
-						min-width: 100%;
-						margin-top: 0.25rem;
-					}
+					/* Botões em linhas específicas - removido regra que forçava btn-secondary a 100% */
 
 					/* Cards com melhor espaçamento */
 					.modal-fullscreen .card {
@@ -725,25 +741,58 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								)}
 							</Button>
 						</div>
-						<Button 
-							variant="success" 
-							onClick={handleFinalizeCaseClick} 
-							disabled={finalizing || !displayCaseData}
-							className="d-flex align-items-center justify-content-center w-100"
-							style={{ minHeight: '44px' }}
-						>
-							{finalizing ? (
-								<>
-									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-									Finalizando...
-								</>
-							) : (
-								<>
-									<IconifyIcon icon="lucide:check-circle" className="me-1" style={{ fontSize: '1.1rem' }} />
-									Finalizar Caso
-								</>
-							)}
-						</Button>
+						<div className="d-flex gap-1 w-100" style={{ maxWidth: '100%' }}>
+							<Button 
+								variant="secondary" 
+								onClick={handleCloneCase} 
+								disabled={cloning || !displayCaseData}
+								className="d-flex align-items-center justify-content-center"
+								style={{ 
+									minHeight: '44px', 
+									flex: '1 1 0%', 
+									fontSize: '0.8rem', 
+									padding: '0.4rem 0.5rem',
+									maxWidth: 'calc(50% - 0.25rem)'
+								}}
+							>
+								{cloning ? (
+									<>
+										<span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style={{ width: '0.75rem', height: '0.75rem' }}></span>
+										<span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Clonando...</span>
+									</>
+								) : (
+									<>
+										<IconifyIcon icon="lucide:copy" className="me-1" style={{ fontSize: '0.9rem', flexShrink: 0 }} />
+										<span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Clonar</span>
+									</>
+								)}
+							</Button>
+							<Button 
+								variant="success" 
+								onClick={handleFinalizeCaseClick} 
+								disabled={finalizing || !displayCaseData}
+								className="d-flex align-items-center justify-content-center"
+								style={{ 
+									minHeight: '44px', 
+									flex: '1 1 0%', 
+									fontSize: '0.8rem', 
+									padding: '0.4rem 0.5rem',
+									maxWidth: 'calc(50% - 0.25rem)'
+								}}
+							>
+								{finalizing ? (
+									<>
+										<span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style={{ width: '0.75rem', height: '0.75rem' }}></span>
+										<span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Finalizando...</span>
+									</>
+								) : (
+									<>
+										<IconifyIcon icon="lucide:check-circle" className="me-1" style={{ fontSize: '0.9rem', flexShrink: 0 }} />
+										<span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Finalizar</span>
+									</>
+								)}
+							</Button>
+						</div>
 					</div>
 					{/* Desktop buttons - alinhados à direita */}
 					<div className="d-none d-lg-flex gap-2 justify-content-end">
@@ -763,6 +812,24 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								<>
 									<IconifyIcon icon="lucide:save" className="me-1" />
 									Salvar
+								</>
+							)}
+						</Button>
+						<Button 
+							variant="secondary" 
+							onClick={handleCloneCase} 
+							disabled={cloning || !displayCaseData}
+							className="d-flex align-items-center"
+						>
+							{cloning ? (
+								<>
+									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+									Clonando...
+								</>
+							) : (
+								<>
+									<IconifyIcon icon="lucide:copy" className="me-1" />
+									Clonar
 								</>
 							)}
 						</Button>
