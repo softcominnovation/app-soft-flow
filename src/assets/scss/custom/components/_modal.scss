@@ -133,3 +133,25 @@
         border: none;
     }
 }
+
+// Dark mode modal header styling
+[data-bs-theme="dark"] {
+    .modal-header.bg-light {
+        background-color: var(--#{$prefix}secondary-bg) !important;
+        border-bottom-color: var(--#{$prefix}border-color) !important;
+    }
+    
+    .modal-footer.bg-light {
+        background-color: var(--#{$prefix}secondary-bg) !important;
+        border-top-color: var(--#{$prefix}border-color) !important;
+    }
+    
+    // Transfer cases modal header text color
+    .transfer-cases-modal {
+        .modal-header {
+            .modal-title {
+                color: rgba(var(--#{$prefix}body-color-rgb), var(--#{$prefix}text-opacity)) !important;
+            }
+        }
+    }
+}

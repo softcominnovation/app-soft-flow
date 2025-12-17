@@ -450,31 +450,70 @@ export default function ActiveCaseIndicator() {
 					</Card>
 				</div>
 
-				<button
-					type="button"
-					className={`position-fixed d-flex d-md-none flex-column align-items-center justify-content-center gap-1 rounded shadow-lg border-0 ${cardBgClass} text-white px-3 py-2`}
+				<div
+					className="position-fixed d-flex d-md-none"
 					style={{
 						...mobilePosition,
-						minWidth: '64px',
-						height: '64px',
-						cursor: opening ? 'wait' : 'pointer',
-						...(isTimeExceeded ? {} : { backgroundColor: 'var(--bs-menu-bg, #1F2937)' }),
 					}}
-					onClick={handleOpenModal}
-					title={elapsedTime ? `Caso em andamento - ${elapsedTime}` : 'Caso em andamento'}
-					aria-label="Abrir caso em andamento"
-					aria-busy={opening}
 				>
-					{opening ? (
-						<Spinner animation="border" variant="light" size="sm" />
-					) : (
-						<>
-							<IconifyIcon icon="lucide:timer" className="fs-5" />
-							{elapsedTime && <small className="text-white-75 lh-1">{elapsedTime}</small>}
-						</>
-					)}
-					<span className="visually-hidden">Abrir caso em andamento</span>
-				</button>
+					<button
+						type="button"
+						className={`position-relative flex-column align-items-center justify-content-center gap-1 rounded shadow-lg border-0 ${cardBgClass} text-white px-3 py-2`}
+						style={{
+							minWidth: '64px',
+							height: '64px',
+							cursor: opening ? 'wait' : 'pointer',
+							...(isTimeExceeded ? {} : { backgroundColor: 'var(--bs-menu-bg, #1F2937)' }),
+							display: 'flex',
+						}}
+						onClick={handleOpenModal}
+						title={elapsedTime ? `Caso em andamento - ${elapsedTime}` : 'Caso em andamento'}
+						aria-label="Abrir caso em andamento"
+						aria-busy={opening}
+					>
+						<div
+							className="position-absolute top-0 end-0 p-1 text-white-50"
+							style={{
+								zIndex: 10,
+								textDecoration: 'none',
+								lineHeight: 1,
+								minWidth: 'auto',
+								width: '32px',
+								height: '32px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								padding: '2px',
+								cursor: 'pointer',
+							}}
+							onClick={(e) => {
+								e.stopPropagation();
+								handleCloseCard(e);
+							}}
+							aria-label="Fechar card"
+							role="button"
+							tabIndex={0}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									e.stopPropagation();
+									handleCloseCard(e as any);
+								}
+							}}
+						>
+							<IconifyIcon icon="lucide:x" style={{ fontSize: '20px' }} />
+						</div>
+						{opening ? (
+							<Spinner animation="border" variant="light" size="sm" />
+						) : (
+							<>
+								<IconifyIcon icon="lucide:timer" className="fs-5" />
+								{elapsedTime && <small className="text-white-75 lh-1">{elapsedTime}</small>}
+							</>
+						)}
+						<span className="visually-hidden">Abrir caso em andamento</span>
+					</button>
+				</div>
 			</>
 		);
 	})() : null;

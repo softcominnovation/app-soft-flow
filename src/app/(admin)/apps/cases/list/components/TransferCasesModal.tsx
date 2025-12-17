@@ -217,26 +217,45 @@ export default function TransferCasesModal({ show, onHide, selectedCases, cases 
 					margin-top: 5vh !important;
 					margin-bottom: auto !important;
 				}
+				
+				@media (max-width: 575.98px) {
+					.modal-dialog-top {
+						margin-top: 0 !important;
+						margin-bottom: 0 !important;
+					}
+				}
+				
+				.transfer-cases-modal .modal-footer button {
+					width: 100%;
+				}
+				
+				@media (min-width: 576px) {
+					.transfer-cases-modal .modal-footer button {
+						width: auto;
+					}
+				}
 			`}</style>
 			<Modal
 				show={show}
 				onHide={onHide}
 				size="lg"
 				backdrop="static"
-				dialogClassName="modal-dialog-top"
+				fullscreen="sm-down"
+				dialogClassName="modal-dialog-top transfer-cases-modal"
 			>
-			<Modal.Header closeButton className="bg-light border-bottom">
+			<Modal.Header closeButton className="bg-light border-bottom flex-shrink-0">
 				<Modal.Title className="fw-bold text-primary d-flex align-items-center gap-2">
 					<IconifyIcon icon="lucide:move-right" style={{ fontSize: '24px' }} />
-					Transferir Casos
+					<span className="d-none d-sm-inline">Transferir Casos</span>
+					<span className="d-sm-none">Transferir</span>
 				</Modal.Title>
 			</Modal.Header>
 
-			<Modal.Body className="p-4">
+			<Modal.Body className="p-3 p-sm-4">
 				{selectedCasesCount > 0 && (
-					<div className="alert alert-info mb-4 d-flex align-items-center gap-2">
-						<IconifyIcon icon="lucide:info" style={{ fontSize: '20px' }} />
-						<span>
+					<div className="alert alert-info mb-3 mb-sm-4 d-flex align-items-center gap-2">
+						<IconifyIcon icon="lucide:info" style={{ fontSize: '20px' }} className="flex-shrink-0" />
+						<span className="small">
 							<strong>{selectedCasesCount}</strong> {selectedCasesCount === 1 ? 'caso selecionado' : 'casos selecionados'} para transferência
 						</span>
 					</div>
@@ -368,17 +387,24 @@ export default function TransferCasesModal({ show, onHide, selectedCases, cases 
 				</Form>
 			</Modal.Body>
 
-			<Modal.Footer className="border-top bg-light">
-				<Button variant="outline-secondary" onClick={onHide} className="d-flex align-items-center gap-2">
+			<Modal.Footer className="border-top bg-light d-flex flex-column-reverse flex-sm-row gap-2 justify-content-end">
+				<Button 
+					variant="outline-secondary" 
+					onClick={onHide} 
+					className="d-flex align-items-center justify-content-center gap-2"
+				>
 					<IconifyIcon icon="lucide:x" style={{ fontSize: '18px' }} />
 					Fechar
 				</Button>
 				<Button
 					variant="primary"
 					onClick={handleSubmit}
-					className="d-flex align-items-center gap-2"
+					className="d-flex align-items-center justify-content-center gap-2"
 					disabled={selectedCasesCount === 0 || isSubmitting}
-					style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
+					style={{ 
+						backgroundColor: '#0d6efd', 
+						borderColor: '#0d6efd'
+					}}
 				>
 					{isSubmitting ? (
 						<>

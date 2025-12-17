@@ -101,7 +101,10 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 				}}
 			>
 				{/* Header Skeleton */}
-				<div className="bg-body-tertiary border-bottom p-3">
+				<div className={classNames("border-bottom p-3", {
+					'bg-success bg-opacity-10': isTimeStarted,
+					'bg-body-tertiary': !isTimeStarted
+				})}>
 					<div className="d-flex justify-content-between align-items-center mb-2">
 						<div className="flex-grow-1">
 							<Placeholder as="div" animation="glow" className="mb-1">
@@ -130,7 +133,10 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 							<Placeholder xs={5} style={{ height: '12px' }} />
 						</Placeholder>
 					</div>
-					<div className="mb-3 p-2 bg-body-tertiary rounded">
+					<div className={classNames("mb-3 p-2 rounded", {
+						'bg-success bg-opacity-10': isTimeStarted,
+						'bg-body-tertiary': !isTimeStarted
+					})}>
 						<Placeholder as="div" animation="glow" className="mb-2">
 							<Placeholder xs={3} style={{ height: '12px' }} />
 						</Placeholder>
@@ -164,7 +170,10 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 							<Placeholder xs={10} style={{ height: '14px' }} />
 						</Placeholder>
 					</div>
-					<div className="d-flex gap-2 mt-3 pt-3 border-top">
+					<div className={classNames("d-flex gap-2 mt-3 pt-3", {
+						'border-top border-success border-opacity-25': isTimeStarted,
+						'border-top': !isTimeStarted
+					})}>
 						<Placeholder as="div" animation="glow" className="flex-grow-1" style={{ height: '32px', borderRadius: '4px' }} />
 						<Placeholder as="div" animation="glow" className="flex-grow-1" style={{ height: '32px', borderRadius: '4px' }} />
 					</div>
@@ -193,7 +202,12 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 			}}
 		>
 			{/* Header com ID e Badges */}
-			<div className="bg-body-tertiary border-bottom p-3">
+			<div 
+				className={classNames("border-bottom p-3", {
+					'bg-success bg-opacity-10': isTimeStarted,
+					'bg-body-tertiary': !isTimeStarted
+				})}
+			>
 				<div className="d-flex justify-content-between align-items-center mb-2">
 					<div className="d-flex align-items-center gap-2">
 						<div 
@@ -210,8 +224,14 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 							/>
 						</div>
 						<div>
-							<h6 className="mb-0 fw-bold text-body">Caso #{caseId}</h6>
-							<small className="text-muted d-flex align-items-center gap-1">
+							<h6 className={classNames("mb-0 fw-bold", {
+								'text-success': isTimeStarted,
+								'text-body': !isTimeStarted
+							})}>Caso #{caseId}</h6>
+							<small className={classNames("d-flex align-items-center gap-1", {
+								'text-success text-opacity-75': isTimeStarted,
+								'text-muted': !isTimeStarted
+							})}>
 								<IconifyIcon icon="lucide:user" className="fs-6" />
 								{developerName}
 							</small>
@@ -220,16 +240,20 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 				</div>
 				<div className="d-flex gap-2 flex-wrap">
 					<Badge 
-						bg={priorityVariant}
-						className="px-2 py-1 d-flex align-items-center"
+						bg={isTimeStarted ? 'success' : priorityVariant}
+						className={classNames("px-2 py-1 d-flex align-items-center", {
+							'bg-success': isTimeStarted
+						})}
 					>
 						<IconifyIcon icon="lucide:alert-circle" className="me-1" style={{ fontSize: '12px' }} />
 						{priority}
 					</Badge>
 					{statusTipo && (
 						<Badge 
-							bg={statusVariant}
-							className="px-2 py-1 d-flex align-items-center"
+							bg={isTimeStarted ? 'success' : statusVariant}
+							className={classNames("px-2 py-1 d-flex align-items-center", {
+								'bg-success': isTimeStarted
+							})}
 						>
 							<IconifyIcon icon="lucide:circle" className="me-1" style={{ fontSize: '8px' }} />
 							{statusTipo}
@@ -243,42 +267,86 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 				{/* Produto e Versão */}
 				<div className="mb-3">
 					<div className="d-flex align-items-center gap-2 mb-2">
-						<IconifyIcon icon="lucide:package" className="text-primary" style={{ fontSize: '18px' }} />
-						<span className="text-muted small fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>
+						<IconifyIcon 
+							icon="lucide:package" 
+							className={isTimeStarted ? "text-success" : "text-primary"} 
+							style={{ fontSize: '18px' }} 
+						/>
+						<span className={classNames("small fw-semibold text-uppercase", {
+							'text-success': isTimeStarted,
+							'text-muted': !isTimeStarted
+						})} style={{ fontSize: '11px', letterSpacing: '0.5px' }}>
 							Produto
 						</span>
 					</div>
-					<p className="mb-1 fw-semibold text-body" style={{ fontSize: '15px' }}>{productName}</p>
+					<p className={classNames("mb-1 fw-semibold", {
+						'text-success': isTimeStarted,
+						'text-body': !isTimeStarted
+					})} style={{ fontSize: '15px' }}>{productName}</p>
 					<div className="d-flex align-items-center gap-2">
-						<IconifyIcon icon="lucide:tag" className="text-muted" style={{ fontSize: '14px' }} />
-						<span className="text-muted small">v{version}</span>
+						<IconifyIcon 
+							icon="lucide:tag" 
+							className={isTimeStarted ? "text-success" : "text-muted"} 
+							style={{ fontSize: '14px' }} 
+						/>
+						<span className={classNames("small", {
+							'text-success': isTimeStarted,
+							'text-muted': !isTimeStarted
+						})}>v{version}</span>
 						{item.projeto?.id && (
 							<>
-								<span className="text-muted">•</span>
-								<span className="text-muted small">Projeto #{item.projeto.id}</span>
+								<span className={isTimeStarted ? "text-success" : "text-muted"}>•</span>
+								<span className={classNames("small", {
+									'text-success': isTimeStarted,
+									'text-muted': !isTimeStarted
+								})}>Projeto #{item.projeto.id}</span>
 							</>
 						)}
 					</div>
 				</div>
 
 				{/* Tempo */}
-				<div className="mb-3 p-2 bg-body-tertiary rounded">
+				<div 
+					className={classNames("mb-3 p-2 rounded", {
+						'bg-success bg-opacity-10': isTimeStarted,
+						'bg-body-tertiary': !isTimeStarted
+					})}
+				>
 					<div className="d-flex align-items-center gap-2 mb-2">
-						<IconifyIcon icon="lucide:clock" className="text-info" style={{ fontSize: '16px' }} />
-						<span className="text-muted small fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>
+						<IconifyIcon 
+							icon="lucide:clock" 
+							className={isTimeStarted ? "text-success" : "text-info"} 
+							style={{ fontSize: '16px' }} 
+						/>
+						<span className={classNames("small fw-semibold text-uppercase", {
+							'text-success': isTimeStarted,
+							'text-muted': !isTimeStarted
+						})} style={{ fontSize: '11px', letterSpacing: '0.5px' }}>
 							Tempo
 						</span>
 					</div>
 					<div className="d-flex gap-4">
 						<div>
-							<span className="text-muted small d-block mb-1">Estimado</span>
-							<span className="fw-bold text-body" style={{ fontSize: '16px' }}>
+							<span className={classNames("small d-block mb-1", {
+								'text-success text-opacity-75': isTimeStarted,
+								'text-muted': !isTimeStarted
+							})}>Estimado</span>
+							<span className={classNames("fw-bold", {
+								'text-success': isTimeStarted,
+								'text-body': !isTimeStarted
+							})} style={{ fontSize: '16px' }}>
 								{formatMinutesToHM(estimado)}
 							</span>
 						</div>
 						<div>
-							<span className="text-muted small d-block mb-1">Realizado</span>
-							<span className="fw-bold text-body" style={{ fontSize: '16px' }}>
+							<span className={classNames("small d-block mb-1", {
+								'text-success text-opacity-75': isTimeStarted,
+								'text-muted': !isTimeStarted
+							})}>Realizado</span>
+							<span className={classNames("fw-bold", {
+								'text-success': isTimeStarted,
+								'text-body': !isTimeStarted
+							})} style={{ fontSize: '16px' }}>
 								{formatMinutesToHM(realizado)}
 							</span>
 						</div>
@@ -289,13 +357,23 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 				{summary && (
 					<div className="mb-3">
 						<div className="d-flex align-items-center gap-2 mb-2">
-							<IconifyIcon icon="lucide:file-text" className="text-secondary" style={{ fontSize: '16px' }} />
-							<span className="text-muted small fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>
+							<IconifyIcon 
+								icon="lucide:file-text" 
+								className={isTimeStarted ? "text-success" : "text-secondary"} 
+								style={{ fontSize: '16px' }} 
+							/>
+							<span className={classNames("small fw-semibold text-uppercase", {
+								'text-success': isTimeStarted,
+								'text-muted': !isTimeStarted
+							})} style={{ fontSize: '11px', letterSpacing: '0.5px' }}>
 								Resumo
 							</span>
 						</div>
 						<p 
-							className="mb-0 text-body" 
+							className={classNames("mb-0", {
+								'text-success text-opacity-90': isTimeStarted,
+								'text-body': !isTimeStarted
+							})} 
 							style={{ 
 								fontSize: '14px',
 								lineHeight: '1.5',
@@ -313,9 +391,15 @@ export default function MobileCaseCard({ item, onView, onFinalize, isLoading = f
 				)}
 
 				{/* Ações */}
-				<div className="d-flex gap-2 mt-3 pt-3 border-top" onClick={(e) => e.stopPropagation()}>
+				<div 
+					className={classNames("d-flex gap-2 mt-3 pt-3", {
+						'border-top border-success border-opacity-25': isTimeStarted,
+						'border-top': !isTimeStarted
+					})} 
+					onClick={(e) => e.stopPropagation()}
+				>
 					<Button 
-						variant="outline-primary" 
+						variant={isTimeStarted ? "outline-success" : "outline-primary"} 
 						className="flex-grow-1 d-flex align-items-center justify-content-center gap-1"
 						onClick={() => onView(caseId)}
 						size="sm"

@@ -416,7 +416,7 @@ const CaseFilters = ({
 						<Button
 							variant="outline-primary"
 							size="sm"
-							className="d-inline-flex align-items-center justify-content-center gap-1"
+							className="d-inline-flex align-items-center justify-content-center gap-1 transfer-cases-btn"
 							disabled={selectedCases.size === 0}
 							onClick={handleOpenTransferModal}
 						>

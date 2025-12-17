@@ -10,13 +10,15 @@ type Props = {
 	onOpenProducts: () => void;
 	showFiltersDrawer?: boolean;
 	showProductsDrawer?: boolean;
+	onOpenTransfer: () => void;
+	selectedCases: Set<string>;
 };
 
 /**
  * Componente FAB específico para a página de casos
- * Gerencia as ações: Filtros, Adicionar Caso e Produtos Priorizados
+ * Gerencia as ações: Filtros, Adicionar Caso, Produtos Priorizados e Transferir Casos
  */
-export default function CasesFAB({ onOpenFilters, onOpenProducts, showFiltersDrawer, showProductsDrawer }: Props) {
+export default function CasesFAB({ onOpenFilters, onOpenProducts, showFiltersDrawer, showProductsDrawer, onOpenTransfer, selectedCases }: Props) {
 	const { isOpen, toggleModal, openModalWithClass } = useModal();
 	
 	// Esconde o FAB quando qualquer drawer ou modal estiver aberto
@@ -32,6 +34,11 @@ export default function CasesFAB({ onOpenFilters, onOpenProducts, showFiltersDra
 			icon: "lucide:package",
 			label: "Produtos Priorizados",
 			onClick: onOpenProducts,
+		},
+		{
+			icon: "lucide:move-right",
+			label: "Transferir Casos",
+			onClick: onOpenTransfer,
 		},
 		{
 			icon: "lucide:plus",

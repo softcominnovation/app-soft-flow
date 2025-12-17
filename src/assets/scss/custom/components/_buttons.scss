@@ -94,4 +94,64 @@
     .btn-secondary{
         box-shadow: var(--#{$prefix}btn-box-shadow) rgba(var(--#{$prefix}light-rgb), 0.5);
     }
+
+    .btn-outline-primary {
+        --#{$prefix}btn-color: var(--#{$prefix}primary);
+        --#{$prefix}btn-border-color: var(--#{$prefix}primary);
+        --#{$prefix}btn-hover-color: #{$white};
+        --#{$prefix}btn-hover-bg: var(--#{$prefix}primary);
+        --#{$prefix}btn-hover-border-color: var(--#{$prefix}primary);
+        --#{$prefix}btn-active-color: #{$white};
+        --#{$prefix}btn-active-bg: var(--#{$prefix}primary);
+        --#{$prefix}btn-active-border-color: var(--#{$prefix}primary);
+        --#{$prefix}btn-disabled-color: var(--#{$prefix}primary);
+        --#{$prefix}btn-disabled-bg: #{transparent};
+        --#{$prefix}btn-disabled-border-color: var(--#{$prefix}primary);
+        --#{$prefix}btn-focus-shadow-rgb: 0 0 0 $btn-focus-width rgba(var(--#{$prefix}primary-rgb), 0.5);
+        border-width: 2px;
+        font-weight: 500;
+    }
+
+    .transfer-cases-btn {
+        &.btn-outline-primary {
+            --#{$prefix}btn-color: #{$white};
+            --#{$prefix}btn-border-color: #{$white};
+            border-width: 2px;
+            font-weight: 500;
+            color: #{$white} !important;
+            border-color: #{$white} !important;
+            
+            i {
+                color: #{$white} !important;
+            }
+            
+            span {
+                color: #{$white} !important;
+            }
+            
+            &:hover:not(:disabled):not(.disabled) {
+                --#{$prefix}btn-hover-color: #{$black};
+                --#{$prefix}btn-hover-bg: #{$white};
+                --#{$prefix}btn-hover-border-color: #{$white};
+                color: #{$black} !important;
+                background-color: #{$white} !important;
+                border-color: #{$white} !important;
+                
+                i {
+                    color: #{$black} !important;
+                }
+                
+                span {
+                    color: #{$black} !important;
+                }
+            }
+            
+            &:disabled,
+            &.disabled {
+                opacity: 0.5;
+                color: rgba(255, 255, 255, 0.5) !important;
+                border-color: rgba(255, 255, 255, 0.5) !important;
+            }
+        }
+    }
 }
