@@ -153,8 +153,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 				<div>
 					<Card.Body style={{ padding: '1.5rem' }}>
 						<Row className="g-3">
-							{/* Primeira linha: Código, Status, Prioridade */}
-							<Col xs={12} md={4}>
+							{/* Primeira linha: Código, Usuário de Abertura, Status, Prioridade */}
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:hash" className="me-2 text-muted" />
@@ -169,7 +169,22 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col xs={12} md={4}>
+							<Col xs={12} md={3}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:user-plus" className="me-2 text-muted" />
+										Usuário de Abertura
+									</Form.Label>
+									<Form.Control
+										type="text"
+										value={caseData?.caso.usuarios.abertura?.nome || 'Não informado'}
+										placeholder="Usuário de abertura"
+										disabled
+										className="bg-light"
+									/>
+								</Form.Group>
+							</Col>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:activity" className="me-2 text-muted" />
@@ -212,7 +227,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col xs={12} md={4}>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:alert-triangle" className="me-2 text-muted" />
