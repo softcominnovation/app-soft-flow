@@ -56,17 +56,13 @@ export default function ActiveCaseIndicator() {
 	const [finalizing, setFinalizing] = useState<boolean>(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 	const [elapsedTime, setElapsedTime] = useState<string | null>(null);
+	const [remainingTime, setRemainingTime] = useState<string | null>(null);
 	const [caseData, setCaseData] = useState<ICase | null>(null);
 	const [timeLoading, setTimeLoading] = useState<boolean>(false);
 	const [isTimeRunning, setIsTimeRunning] = useState<boolean>(false);
 	const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-	const formatElapsedTime = (startedAt: string) => {
-		const start = new Date(startedAt).getTime();
-		const now = Date.now();
-		const diffMs = Math.max(now - start, 0);
-
-		const totalSeconds = Math.floor(diffMs / 1000);
+	const formatSecondsToHHMMSS = (totalSeconds: number) => {
 		const hours = Math.floor(totalSeconds / 3600)
 			.toString()
 			.padStart(2, '0');
@@ -80,6 +76,27 @@ export default function ActiveCaseIndicator() {
 		return `${hours}:${minutes}:${seconds}`;
 	};
 
+	const formatElapsedTime = (startedAt: string) => {
+		const start = new Date(startedAt).getTime();
+		const now = Date.now();
+		const diffMs = Math.max(now - start, 0);
+
+		return formatSecondsToHHMMSS(Math.floor(diffMs / 1000));
+	};
+
+	const formatRemainingTime = (startedAt: string, estimadoMinutos: number, realizadoMinutos: number) => {
+		const start = new Date(startedAt).getTime();
+		const now = Date.now();
+		const diffMs = Math.max(now - start, 0);
+
+		const totalEstimadoMs = estimadoMinutos * 60 * 1000;
+		const totalRealizadoAteAgoraMs = realizadoMinutos * 60 * 1000;
+
+		const restanteMs = Math.max(totalEstimadoMs - (totalRealizadoAteAgoraMs + diffMs), 0);
+
+		return formatSecondsToHHMMSS(Math.floor(restanteMs / 1000));
+	};
+
 	useEffect(() => {
 		// Garantir que o componente só renderize após a montagem no cliente
 		setMounted(true);
@@ -88,24 +105,41 @@ export default function ActiveCaseIndicator() {
 
 	useEffect(() => {
 		const startedAt = activeCase?.startedAt;
-		if (!startedAt || !isTimeRunning) {
-			// Se o tempo não está rodando, não atualizar o elapsedTime
-			// Mas manter o último valor se existir
+		
+		// Determinar se o tempo está rodando
+		let running = false;
+		if (caseData?.caso.producao) {
+			running = caseData.caso.producao.some((entry) => !entry.datas.fechamento);
+		}
+		setIsTimeRunning(running);
+
+		if (!startedAt || !running) {
+			setElapsedTime(null);
+			setRemainingTime(null);
 			return;
 		}
 
-		const updateElapsedTime = () => {
+		const updateTimes = () => {
 			setElapsedTime(formatElapsedTime(startedAt));
+			if (caseData?.caso.tempos) {
+				setRemainingTime(
+					formatRemainingTime(
+						startedAt,
+						caseData.caso.tempos.estimado_minutos ?? 0,
+						caseData.caso.tempos.realizado_minutos ?? 0
+					)
+				);
+			}
 		};
 
-		updateElapsedTime();
+		updateTimes();
 
-		const intervalId = window.setInterval(updateElapsedTime, 1000);
+		const intervalId = window.setInterval(updateTimes, 1000);
 
 		return () => {
 			window.clearInterval(intervalId);
 		};
-	}, [activeCase?.startedAt ?? null, isTimeRunning]);
+	}, [activeCase?.startedAt, caseData]);
 
 	useEffect(() => {
 		const handleStorageChange = (event: StorageEvent) => {
@@ -228,16 +262,6 @@ export default function ActiveCaseIndicator() {
 			setIsExpanded(false);
 		}
 	}, [activeCase?.caseId]);
-
-	// Verificar se o tempo está rodando
-	useEffect(() => {
-		if (caseData?.caso.producao) {
-			const activeEntry = caseData.caso.producao.find((entry) => !entry.datas.fechamento);
-			setIsTimeRunning(Boolean(activeEntry));
-		} else {
-			setIsTimeRunning(false);
-		}
-	}, [caseData]);
 
 	const handleFinalizeCaseClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -421,14 +445,11 @@ export default function ActiveCaseIndicator() {
 									{elapsedTime && (
 										<small className="text-white-75">Tempo decorrido: {elapsedTime}</small>
 									)}
-									{caseData?.caso.tempos && (() => {
-										const estimado = caseData.caso.tempos.estimado_minutos ?? 0;
-										const realizado = caseData.caso.tempos.realizado_minutos ?? 0;
-										const restante = Math.max(estimado - realizado, 0);
-										return (
-											<small className="text-white-75">Tempo restante: {formatMinutesToHours(restante)}</small>
-										);
-									})()}
+									{caseData?.caso.tempos && (
+										<small className="text-white-75">
+											Tempo restante: {(isTimeRunning && remainingTime) ? remainingTime : formatSecondsToHHMMSS(Math.max(((caseData.caso.tempos.estimado_minutos ?? 0) - (caseData.caso.tempos.realizado_minutos ?? 0)) * 60, 0))}
+										</small>
+									)}
 									<small className="text-white-50 mt-1">Clique para visualizar</small>
 								</div>
 							</div>
