@@ -66,7 +66,7 @@ export default function CasesModal({
                     <Modal.Title className="fw-bold text-primary">Adicionar Novo Caso</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <CaseWizard/>
+                    <CaseWizard onClose={toggleModal}/>
                 </Modal.Body>
             </Modal>
         </>

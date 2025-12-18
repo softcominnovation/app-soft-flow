@@ -6,9 +6,10 @@ type Props = {
 	prevStepButton?: boolean,
 	finishButton?: boolean,
 	closeButton?: boolean,
+	onClose?: () => void,
 }
 
-export default function CaseStepButtons({prevStepButton, nextStepButton, finishButton, closeButton}: Props) {
+export default function CaseStepButtons({prevStepButton, nextStepButton, finishButton, closeButton, onClose}: Props) {
 	const {previousStep, nextStep, goToStep, activeStep} = useWizard() as any;
 	const { trigger, setFocus, getFieldState } = useFormContext();
 
@@ -156,7 +157,7 @@ export default function CaseStepButtons({prevStepButton, nextStepButton, finishB
 			{
 				closeButton &&
 				<li className="next list-inline-item float-end">
-					<Button  onClick={nextStep} variant="secondary">
+					<Button  onClick={onClose || nextStep} variant="secondary">
 						Fechar
 					</Button>
 				</li>

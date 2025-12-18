@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import { useEffect } from 'react';
 
-export default function CaseWizard() {
+export default function CaseWizard({ onClose }: { onClose?: () => void }) {
     const methods = useForm<ICasePost>({
         mode: 'onChange',
         // keep inputs registered even when their components unmount so trigger() validates across wizard steps
@@ -94,7 +94,7 @@ export default function CaseWizard() {
 					<CaseWizardStep1 control={methods.control} />
 					<CaseWizardStep2 />
 					<CaseWizardStep3 />
-					<CaseWizardStep4 />
+					<CaseWizardStep4 onClose={onClose} />
 				</Wizard>
 			</form>
 		</FormProvider>

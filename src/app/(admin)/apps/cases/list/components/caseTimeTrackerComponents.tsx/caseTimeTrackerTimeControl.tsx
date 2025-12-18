@@ -15,6 +15,7 @@ import TimeControlButton from "./components/TimeControlButton";
 import AsyncSelectInput from "@/components/Form/AsyncSelectInput";
 import useAsyncSelect, { AsyncSelectOption } from "@/hooks/useAsyncSelect";
 import { getTamanhos, ITamanho } from "@/services/tamanhosServices";
+import { hasPermissao } from "@/helpers/permissionsHelpers";
 
 interface CaseTimeTrackerTimeControlProps {
   stopCurrentTime: (id: string, isRetry?: boolean) => Promise<void>;
@@ -113,6 +114,7 @@ export default function CaseTimeTrackerTimeControl({
   }, [tamanhoPontos, defaultOptions, setSelectedOption]);
 
   const handleTamanhoChange = useCallback((option: AsyncSelectOption<ITamanho> | null) => {
+    setSelectedOption(option);
     if (option && option.raw) {
       const tamanho = option.raw;
       setSelectedTamanhoId(tamanho.id);
@@ -125,7 +127,7 @@ export default function CaseTimeTrackerTimeControl({
     } else {
       setSelectedTamanhoId(undefined);
     }
-  }, [setTimeInput]);
+  }, [setTimeInput, setSelectedOption]);
 
   const handleStartTime = useCallback(() => {
     if (caseId) {
@@ -151,6 +153,9 @@ export default function CaseTimeTrackerTimeControl({
     return 'Nenhum tempo em andamento';
   }, [isRunning, runningStart]);
 
+  const hasAdmPermission = hasPermissao('ProjetoAdm');
+  const shouldShowPointsInput = hasAdmPermission || !tamanhoPontos;
+
   return (
     <>
       <style>{`
@@ -166,6 +171,11 @@ export default function CaseTimeTrackerTimeControl({
         
         .case-time-control-card .card-header .iconify-icon {
           font-size: 1.125rem;
+        }
+
+        .points-display {
+          flex: 1 1 auto;
+          min-width: 200px;
         }
         
         @media (max-width: 991.98px) {
@@ -218,6 +228,18 @@ export default function CaseTimeTrackerTimeControl({
           .points-selector-container {
             width: 100% !important;
           }
+
+          .points-display {
+            width: 100%;
+          }
+          
+          .points-display .iconify-icon {
+            font-size: 1.1rem;
+          }
+          
+          .points-display span {
+            font-size: 0.875rem;
+          }
         }
       `}</style>
       <div className="d-flex flex-column" style={{ gap: '1.5rem' }}>
@@ -269,31 +291,40 @@ export default function CaseTimeTrackerTimeControl({
 
                   {/* Informações de Tempo */}
                   <div className="d-flex flex-wrap align-items-start gap-3 pt-3 border-top case-time-control-info">
-                    <div className="points-selector-container" style={{ flex: '1 1 auto', minWidth: '220px', zIndex: 1001 }}>
-                      <div className="d-flex align-items-center gap-2 mb-1">
-                        <IconifyIcon icon="lucide:gauge" className="text-primary" />
-                        <span className="small fw-medium">Pontos:</span>
+                    {shouldShowPointsInput ? (
+                      <div className="points-selector-container" style={{ flex: '1 1 auto', minWidth: '220px', zIndex: 1001 }}>
+                        <div className="d-flex align-items-center gap-2 mb-1">
+                          <IconifyIcon icon="lucide:gauge" className="text-primary" />
+                          <span className="small fw-medium">Pontos:</span>
+                        </div>
+                        <AsyncSelectInput
+                          placeholder="Selecione os pontos..."
+                          loadOptions={loadOptions}
+                          isLoading={isLoading}
+                          value={selectedOption}
+                          onChange={handleTamanhoChange}
+                          defaultOptions
+                          noOptionsMessage={() => "Nenhum tamanho encontrado"}
+                          loadingMessage={() => "Carregando..."}
+                          menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '38px',
+                              fontSize: '0.875rem'
+                            }),
+                            menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                          }}
+                        />
                       </div>
-                      <AsyncSelectInput
-                        placeholder="Selecione os pontos..."
-                        loadOptions={loadOptions}
-                        isLoading={isLoading}
-                        value={selectedOption}
-                        onChange={handleTamanhoChange}
-                        defaultOptions
-                        noOptionsMessage={() => "Nenhum tamanho encontrado"}
-                        loadingMessage={() => "Carregando..."}
-                        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                        styles={{
-                          control: (base) => ({
-                            ...base,
-                            minHeight: '38px',
-                            fontSize: '0.875rem'
-                          }),
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 })
-                        }}
-                      />
-                    </div>
+                    ) : (
+                      <div className="d-flex align-items-center gap-2 points-display">
+                        <IconifyIcon icon="lucide:gauge" className="text-primary" />
+                        <span className="small fw-medium">
+                          Pontos: <span className="text-primary">{tamanhoPontos}</span>
+                        </span>
+                      </div>
+                    )}
 
                     <EstimatedTimeDisplay
                       estimadoMinutos={estimadoMinutos}

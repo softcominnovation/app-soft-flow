@@ -2,8 +2,9 @@ import CaseStepButtons from '@/app/(admin)/apps/cases/form/wizard/caseStepButton
 import CasesDescriptionForm from '@/app/(admin)/apps/cases/form/casesDescriptionForm';
 import { Form, Spinner } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
+import { ICase } from '@/types/cases/ICase';
 
-export default function CaseWizardStep4() {
+export default function CaseWizardStep4({ onClose }: { onClose?: () => void }) {
 	const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 	const [message, setMessage] = useState<string | undefined>(undefined);
 
@@ -77,7 +78,7 @@ export default function CaseWizardStep4() {
 					)}
 				</div>
 			</div>
-			<CaseStepButtons closeButton />
+			<CaseStepButtons closeButton onClose={onClose} />
 		</div>
 	)
 }
