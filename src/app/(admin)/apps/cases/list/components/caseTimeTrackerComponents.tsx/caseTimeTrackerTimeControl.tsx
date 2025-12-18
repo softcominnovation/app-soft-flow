@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { Badge, Card, Col, Row } from "react-bootstrap";
 import IconifyIcon from "@/components/wrappers/IconifyIcon";
 import { useGetTipoBadgeVariant, useGetTipoIcon } from "@/hooks/caseTimeTracker/caseTimeTrackerVarianions";
@@ -8,9 +8,13 @@ import { useTimeFormatter } from "./hooks/useTimeFormatter";
 import { useTimeInput } from "./hooks/useTimeInput";
 import { updateCase } from "@/services/caseServices";
 import { toast } from "react-toastify";
+import { useEffect } from "react";
 import EstimatedTimeDisplay from "./components/EstimatedTimeDisplay";
 import TimeInfoItem from "./components/TimeInfoItem";
 import TimeControlButton from "./components/TimeControlButton";
+import AsyncSelectInput from "@/components/Form/AsyncSelectInput";
+import useAsyncSelect, { AsyncSelectOption } from "@/hooks/useAsyncSelect";
+import { getTamanhos, ITamanho } from "@/services/tamanhosServices";
 
 interface CaseTimeTrackerTimeControlProps {
   stopCurrentTime: (id: string, isRetry?: boolean) => Promise<void>;
@@ -23,6 +27,7 @@ interface CaseTimeTrackerTimeControlProps {
   caseId: string | undefined;
   estimadoMinutos: number;
   realizadoMinutos: number;
+  tamanhoPontos?: number | null;
   onCaseUpdated?: () => void;
 }
 
@@ -42,11 +47,12 @@ export default function CaseTimeTrackerTimeControl({
   elapsedMinutes,
   estimadoMinutos,
   realizadoMinutos,
+  tamanhoPontos,
   onCaseUpdated,
 }: CaseTimeTrackerTimeControlProps) {
   const { formatMinutesToHours, validateTime } = useTimeFormatter();
 
-  const handleSaveTime = useCallback(async (time: string) => {
+  const handleSaveTime = useCallback(async (time: string, tamanhoId?: number) => {
     if (!caseId) {
       throw new Error('ID do caso não encontrado');
     }
@@ -58,13 +64,20 @@ export default function CaseTimeTrackerTimeControl({
     const day = String(now.getDate()).padStart(2, '0');
     const tempoEstimado = `${year}-${month}-${day} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
 
-    await updateCase(caseId, { TempoEstimado: tempoEstimado });
+    const updateData: any = { TempoEstimado: tempoEstimado };
+    if (tamanhoId) {
+      updateData.tamanho = tamanhoId;
+    }
+
+    await updateCase(caseId, updateData);
     toast.success('Tempo estimado atualizado com sucesso!');
 
     if (onCaseUpdated) {
       onCaseUpdated();
     }
   }, [caseId, onCaseUpdated]);
+
+  const [selectedTamanhoId, setSelectedTamanhoId] = useState<number | undefined>();
 
   const {
     timeInput,
@@ -74,10 +87,45 @@ export default function CaseTimeTrackerTimeControl({
     handleKeyDown,
     handleFocus,
     handleSave,
+    setTimeInput,
   } = useTimeInput({
     initialMinutes: estimadoMinutos,
-    onSave: handleSaveTime,
+    onSave: (time) => handleSaveTime(time, selectedTamanhoId),
   });
+
+  const { loadOptions, isLoading, defaultOptions, setSelectedOption, selectedOption } = useAsyncSelect<ITamanho>({
+    fetchItems: getTamanhos,
+    getOptionLabel: (item) => `${item.tamanho} | ${item.tempo.split(' ')[1].slice(0, 5)} | ${item.descricao}`,
+    getOptionValue: (item) => item.id,
+  });
+
+  // Efeito para selecionar o ponto inicial baseado no caso carregado
+  useEffect(() => {
+    if (tamanhoPontos && defaultOptions.length > 0) {
+      const initialOption = defaultOptions.find(
+        opt => opt.raw.tamanho === String(tamanhoPontos)
+      );
+      if (initialOption) {
+        setSelectedOption(initialOption);
+        setSelectedTamanhoId(initialOption.raw.id);
+      }
+    }
+  }, [tamanhoPontos, defaultOptions, setSelectedOption]);
+
+  const handleTamanhoChange = useCallback((option: AsyncSelectOption<ITamanho> | null) => {
+    if (option && option.raw) {
+      const tamanho = option.raw;
+      setSelectedTamanhoId(tamanho.id);
+      // tempo: "1899-12-30 01:00:00.000"
+      const timePart = tamanho.tempo.split(' ')[1]; // "01:00:00.000"
+      if (timePart) {
+        const [hours, minutes] = timePart.split(':');
+        setTimeInput(`${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`);
+      }
+    } else {
+      setSelectedTamanhoId(undefined);
+    }
+  }, [setTimeInput]);
 
   const handleStartTime = useCallback(() => {
     if (caseId) {
@@ -166,6 +214,10 @@ export default function CaseTimeTrackerTimeControl({
             font-size: 0.9375rem !important;
             padding: 0.75rem 1rem !important;
           }
+
+          .points-selector-container {
+            width: 100% !important;
+          }
         }
       `}</style>
       <div className="d-flex flex-column" style={{ gap: '1.5rem' }}>
@@ -216,7 +268,33 @@ export default function CaseTimeTrackerTimeControl({
                   )}
 
                   {/* Informações de Tempo */}
-                  <div className="d-flex flex-wrap align-items-center gap-3 pt-3 border-top case-time-control-info">
+                  <div className="d-flex flex-wrap align-items-start gap-3 pt-3 border-top case-time-control-info">
+                    <div className="points-selector-container" style={{ flex: '1 1 auto', minWidth: '220px', zIndex: 1001 }}>
+                      <div className="d-flex align-items-center gap-2 mb-1">
+                        <IconifyIcon icon="lucide:gauge" className="text-primary" />
+                        <span className="small fw-medium">Pontos:</span>
+                      </div>
+                      <AsyncSelectInput
+                        placeholder="Selecione os pontos..."
+                        loadOptions={loadOptions}
+                        isLoading={isLoading}
+                        value={selectedOption}
+                        onChange={handleTamanhoChange}
+                        defaultOptions
+                        noOptionsMessage={() => "Nenhum tamanho encontrado"}
+                        loadingMessage={() => "Carregando..."}
+                        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            minHeight: '38px',
+                            fontSize: '0.875rem'
+                          }),
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                        }}
+                      />
+                    </div>
+
                     <EstimatedTimeDisplay
                       estimadoMinutos={estimadoMinutos}
                       timeInput={timeInput}

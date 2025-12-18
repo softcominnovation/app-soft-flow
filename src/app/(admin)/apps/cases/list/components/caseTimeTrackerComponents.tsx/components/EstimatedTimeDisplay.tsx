@@ -90,16 +90,18 @@ export default function EstimatedTimeDisplay({
           <IconifyIcon icon="lucide:target" className="text-primary" />
           <span className="small fw-medium">Tempo estimado:</span>
         </div>
-        <TimeInput
-          value={timeInput}
-          error={timeError}
-          saving={saving}
-          disabled={!caseId || !isValid}
-          onChange={onTimeChange}
-          onKeyDown={onTimeKeyDown}
-          onFocus={onTimeFocus}
-          onSave={onSave}
-        />
+        <div className="mt-1">
+          <TimeInput
+            value={timeInput}
+            error={timeError}
+            saving={saving}
+            disabled={!caseId || !isValid}
+            onChange={onTimeChange}
+            onKeyDown={onTimeKeyDown}
+            onFocus={onTimeFocus}
+            onSave={onSave}
+          />
+        </div>
       </div>
     </>
   );

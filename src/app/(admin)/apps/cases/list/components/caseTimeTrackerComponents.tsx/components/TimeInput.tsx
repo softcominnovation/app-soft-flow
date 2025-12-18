@@ -56,7 +56,7 @@ export default function TimeInput({
           }
         }
       `}</style>
-      <div className="mt-2 time-input-container">
+      <div className="time-input-container">
         <InputGroup size="sm">
           <Form.Control
             type="text"

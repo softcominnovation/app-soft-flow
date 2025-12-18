@@ -118,6 +118,7 @@ export const useTimeInput = ({ initialMinutes, onSave }: UseTimeInputProps) => {
     handleKeyDown,
     handleFocus,
     handleSave,
+    setTimeInput,
   };
 };
 

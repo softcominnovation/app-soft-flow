@@ -425,6 +425,7 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 	const tempos = currentCase?.caso.tempos;
 	const estimadoMinutos = tempos?.estimado_minutos ?? 0;
 	const realizadoMinutos = tempos?.realizado_minutos ?? 0;
+	const tamanhoPontos = currentCase?.caso.caracteristicas?.tamanho_pontos;
 
 	return (
 		<>
@@ -440,6 +441,7 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 					stopCurrentTime={stopCurrentTime}
 					estimadoMinutos={estimadoMinutos}
 					realizadoMinutos={realizadoMinutos}
+					tamanhoPontos={tamanhoPontos}
 					onCaseUpdated={handleCaseUpdate}
 				/>
 				<CaseTimeTrackerHistory 
