@@ -30,6 +30,8 @@ interface CaseTimeTrackerTimeControlProps {
   realizadoMinutos: number;
   tamanhoPontos?: number | null;
   onCaseUpdated?: () => void;
+  canEditTempoEstimado?: boolean;
+  canEditPontos?: boolean;
 }
 
 const BADGE_BASE_CLASS = "d-inline-flex align-items-center gap-1 text-capitalize py-1 px-2 rounded-2";
@@ -50,6 +52,8 @@ export default function CaseTimeTrackerTimeControl({
   realizadoMinutos,
   tamanhoPontos,
   onCaseUpdated,
+  canEditTempoEstimado,
+  canEditPontos,
 }: CaseTimeTrackerTimeControlProps) {
   const { formatMinutesToHours, validateTime } = useTimeFormatter();
 
@@ -153,8 +157,7 @@ export default function CaseTimeTrackerTimeControl({
     return 'Nenhum tempo em andamento';
   }, [isRunning, runningStart]);
 
-  const hasAdmPermission = hasPermissao('ProjetoAdm');
-  const shouldShowPointsInput = hasAdmPermission || !tamanhoPontos;
+  const shouldShowPointsInput = canEditPontos || !tamanhoPontos;
 
   return (
     <>
@@ -337,6 +340,7 @@ export default function CaseTimeTrackerTimeControl({
                       onTimeKeyDown={handleKeyDown}
                       onTimeFocus={handleFocus}
                       onSave={handleSave}
+                      canEdit={canEditTempoEstimado}
                     />
                     <TimeInfoItem
                       icon="lucide:clock"

@@ -28,6 +28,8 @@ export interface CasePermissions {
 	canEditTesteFaqID: boolean;
 	canEditTesteValeu: boolean;
 	canEditProducao: boolean;
+	canEditTempoEstimado: boolean;
+	canEditPontos: boolean;
 	
 	// Permissões de botões
 	canSave: boolean;
@@ -69,6 +71,8 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 				canEditTesteFaqID: false,
 				canEditTesteValeu: false,
 				canEditProducao: false,
+				canEditTempoEstimado: false,
+				canEditPontos: false,
 				canSave: false,
 				canFinalize: false,
 				canDelete: false,
@@ -78,12 +82,16 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 		}
 
 		// Verifica permissões do usuário
-		const projetoAdm = hasPermissao('ProjetoAdm');
-		const projetoVerCasosEstatistica = hasPermissao('ProjetoVerCasosEstatistica');
-		const projetoEstado = hasPermissao('Projeto_Estado');
-		const projetoCadastroProduto = hasPermissao('ProjetoCadastroProduto');
-		const projetoRelatarCasos = hasPermissao('Projeto_RelatarCasos');
-		const casosAbaTestador = hasPermissao('Casos_AbaTestador');
+		const projetoAdm = hasPermissao('projeto_adm');
+		const projetoVerCasosEstatistica = hasPermissao('projeto_ver_casos_estatistica');
+		const projetoEstado = hasPermissao('projeto_estado');
+		const projetoCadastroProduto = hasPermissao('projeto_cadastro_produto');
+		const projetoRelatarCasos = hasPermissao('projeto_relatar_casos');
+		const casosAbaTestador = hasPermissao('casos_aba_testador');
+
+		// Novas permissões de tempo estimado
+		const projetoTempoEstimado = hasPermissao('projeto_tempo_estimado');
+		const devCasosTempoEstimado = hasPermissao('dev_casos_tempo_estimado');
 
 		// Flags do caso
 		const bloqueado = caseData.caso.flags.bloqueado;
@@ -148,6 +156,8 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 		// Me.Projeto_CasosProducao.Form!btn_producao_editar.Enabled = Not Bloq_Adm
 		// Também permite se tiver ProjetoVerCasosEstatistica
 		const canEditProducao = !bloqAdm || projetoVerCasosEstatistica;
+		const canEditTempoEstimado = projetoVerCasosEstatistica || projetoTempoEstimado || devCasosTempoEstimado || !bloqAdm;
+		const canEditPontos = projetoVerCasosEstatistica || !bloqAdm;
 
 		// Permissões de botões
 		const canDetail = projetoCadastroProduto;
@@ -187,6 +197,8 @@ export function useCasePermissions(caseData: ICase | null): CasePermissions {
 			canEditTesteFaqID,
 			canEditTesteValeu,
 			canEditProducao,
+			canEditTempoEstimado,
+			canEditPontos,
 			canSave,
 			canFinalize,
 			canDelete,

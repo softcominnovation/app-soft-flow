@@ -10,6 +10,8 @@ import { AxiosResponse } from 'axios';
 import { useRouter } from 'next/navigation';
 import * as yup from 'yup';
 
+const PERMISSOES_STORAGE_KEY = 'user_permissoes';
+
 export const loginFormSchema = yup.object({
 	email: yup.string().email('Please enter valid email').required('Please enter email'),
 	password: yup.string().required('Please enter password'),
@@ -28,7 +30,17 @@ export default function useLogin() {
 	const login = async (values: LoginFormFields) => {
 		setLoading(true);
 		try {
-			const res: AxiosResponse<User> = await authApi.login(values);
+			const res: AxiosResponse<any> = await authApi.login(values);
+			console.log('Login Response:', res);
+
+			// Salva permissões no localStorage
+			const permissoes = res.data?.data?.permissoes;
+			if (permissoes) {
+				if (typeof window !== 'undefined') {
+					window.localStorage.setItem(PERMISSOES_STORAGE_KEY, JSON.stringify(permissoes));
+				}
+			}
+
 			showNotification({ message: "Usuário logado com sucesso", type: 'success' });
 			saveSession(true);
 

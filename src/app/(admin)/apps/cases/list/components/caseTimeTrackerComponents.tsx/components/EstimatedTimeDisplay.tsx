@@ -14,6 +14,7 @@ interface EstimatedTimeDisplayProps {
   onTimeKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onTimeFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
   onSave: () => void;
+  canEdit?: boolean;
 }
 
 /**
@@ -30,13 +31,13 @@ export default function EstimatedTimeDisplay({
   onTimeKeyDown,
   onTimeFocus,
   onSave,
+  canEdit,
 }: EstimatedTimeDisplayProps) {
   const { formatMinutesToHours } = useTimeFormatter();
-  const hasAdmPermission = hasPermissao('ProjetoAdm');
 
-  // Se tem permissão Adm, sempre mostra o input
+  // Se tem permissão de edição, sempre mostra o input
   // Se não tem permissão, só mostra o input quando não tem tempo estimado
-  const shouldShowInput = hasAdmPermission || estimadoMinutos === 0;
+  const shouldShowInput = canEdit || estimadoMinutos === 0;
 
   if (!shouldShowInput) {
     return (

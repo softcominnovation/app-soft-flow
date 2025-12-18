@@ -8,6 +8,7 @@ import { ACTIVE_CASE_EVENT, ACTIVE_CASE_STORAGE_KEY, CASE_CONFLICT_MODAL_CLOSE_E
 import CaseActiveTimeConflictModal from './CaseActiveTimeConflictModal';
 import CaseTimeTrackerHistory from './caseTimeTrackerComponents.tsx/caseTimeTrackerHistory';
 import CaseTimeTrackerTimeControl from './caseTimeTrackerComponents.tsx/caseTimeTrackerTimeControl';
+import { useCasePermissions } from '@/hooks/useCasePermissions';
 
 interface CaseTimeTrackerProps {
 	caseData?: ICase | null;
@@ -22,6 +23,7 @@ type PendingAction = {
 export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTrackerProps) {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [localCase, setLocalCase] = useState<ICase | null>(caseData ?? null);
+	const permissions = useCasePermissions(localCase ?? caseData ?? null);
 	const [elapsedMinutes, setElapsedMinutes] = useState<number | null>(null);
 	const [conflictModalOpen, setConflictModalOpen] = useState(false);
 	const [conflictCaseId, setConflictCaseId] = useState<string | null>(null);
@@ -443,6 +445,8 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 					realizadoMinutos={realizadoMinutos}
 					tamanhoPontos={tamanhoPontos}
 					onCaseUpdated={handleCaseUpdate}
+					canEditTempoEstimado={permissions.canEditTempoEstimado}
+					canEditPontos={permissions.canEditPontos}
 				/>
 				<CaseTimeTrackerHistory 
 					historyEntries={historyEntries} 
