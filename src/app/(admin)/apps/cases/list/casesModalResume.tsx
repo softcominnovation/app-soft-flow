@@ -16,9 +16,9 @@ import { useCasePermissions } from '@/hooks/useCasePermissions';
 
 interface Props {
 	open: boolean;
-	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+	setOpen: (open: boolean) => void;
 	case: ICase | null;
-	setCase?: React.Dispatch<React.SetStateAction<ICase | null>>;
+	setCase?: (caseData: ICase | null) => void;
 	openModal?: (caseData: ICase) => void;
 }
 
