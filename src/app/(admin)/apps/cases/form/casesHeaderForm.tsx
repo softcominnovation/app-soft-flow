@@ -98,7 +98,7 @@ export default function CasesHeaderForm({ control }: Props) {
 							raw: statusAberto,
 						};
 						setSelectedStatus(statusOption);
-						setValue('status', { value: statusOption.value, label: statusOption.label });
+						setValue('status', statusOption);
 					}
 				} catch (error) {
 					console.error('Erro ao buscar status Aberto:', error);
