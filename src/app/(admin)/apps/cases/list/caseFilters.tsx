@@ -347,11 +347,17 @@ const CaseFilters = ({
 		// Verifica se versao_produto tem valor válido (não vazio)
 		const hasVersaoProduto = data.versao_produto && data.versao_produto.trim() !== '';
 
+		// Verifica se há status selecionado - usa selectedStatus ao invés de data.status_id
+		// para garantir que só inclui se realmente houver um status selecionado no campo
+		const hasSelectedStatus = selectedStatus !== null && selectedStatus !== undefined && selectedStatus.value;
+
 		const payload: ICaseFilter = trimmedCaseNumber
 			? { numero_caso: trimmedCaseNumber }
 					: {
-							...(data.status_descricao && data.status_descricao.trim() !== '' && { status_descricao: data.status_descricao }),
-							...(data.status_id && { status_id: data.status_id }),
+							// Só inclui status_descricao se houver status selecionado
+							...(hasSelectedStatus && data.status_descricao && data.status_descricao.trim() !== '' && { status_descricao: data.status_descricao }),
+							// Só inclui status_id se houver status selecionado
+							...(hasSelectedStatus && selectedStatus.value && { status_id: selectedStatus.value }),
 							...(hasProdutoId && { produto_id: data.produto_id }),
 							...(data.projeto_id && data.projeto_id.toString().trim() !== '' && { projeto_id: data.projeto_id }),
 							...(hasVersaoProduto && { versao_produto: data.versao_produto }),

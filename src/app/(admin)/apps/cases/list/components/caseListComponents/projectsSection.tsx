@@ -24,7 +24,8 @@ export default function ProjectsSection({
 
     useEffect(() => {
         // Usa pendingFilters primeiro (atualizado imediatamente), depois currentFilters
-        const userId = pendingFilters?.usuario_dev_id || currentFilters?.usuario_dev_id || Cookies.get('user_id');
+        // Só faz a requisição se usuario_dev_id estiver explicitamente nos filtros
+        const userId = pendingFilters?.usuario_dev_id || currentFilters?.usuario_dev_id;
         if (userId) {
             fetchAgendaDev(userId);
         }

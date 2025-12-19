@@ -88,17 +88,12 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 			if (!data || Object.keys(data).length === 0) {
 				filters = defaultFilters;
 			} else {
-				// Se há data, remove usuario_dev_id dos filtros padrão
-				// Só será incluído se for fornecido explicitamente em data
-				const { usuario_dev_id: _, ...filtersWithoutUserId } = defaultFilters;
+				// Se há data, remove usuario_dev_id, status_id e status_descricao dos filtros padrão
+				// Esses campos só serão incluídos se forem fornecidos explicitamente em data
+				const { usuario_dev_id: _, status_id: __, status_descricao: ___, ...baseFilters } = defaultFilters;
 				
-				// Se status_id for fornecido, remove status_descricao dos filtros padrão
-				if (data.status_id) {
-					const { status_descricao, ...filtersWithoutStatusDesc } = filtersWithoutUserId;
-					filters = { ...filtersWithoutStatusDesc, ...data };
-				} else {
-					filters = { ...filtersWithoutUserId, ...data };
-				}
+				// Mescla os filtros base com os dados fornecidos
+				filters = { ...baseFilters, ...data };
 				
 				// Se data.usuario_dev_id foi fornecido e não está vazio, inclui; senão, remove
 				if (data.usuario_dev_id && data.usuario_dev_id !== '') {
