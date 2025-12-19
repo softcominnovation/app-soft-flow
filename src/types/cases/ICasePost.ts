@@ -5,6 +5,8 @@ import { IModuleAssistant } from "@/services/modulesServices";
 
 import { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 
+import IUserAssistant from "../assistant/IUserAssistant";
+
 export default interface ICasePost {
 	product: AsyncSelectOption<IProductAssistant>;
 	project: AsyncSelectOption<any>;
@@ -14,4 +16,5 @@ export default interface ICasePost {
 	status?: AsyncSelectOption<IStatusAssistant>;
 	Id_Origem?: string;
 	modulo?: string;
+	qa_id?: AsyncSelectOption<IUserAssistant>;
 }

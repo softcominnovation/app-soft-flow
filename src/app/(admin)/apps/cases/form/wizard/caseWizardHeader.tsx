@@ -11,7 +11,7 @@ export default function CaseWizardHeader() {
     const { getFieldState, getValues, control } = form ?? ({} as any);
 
     // watch relevant fields so header recomputes validity when they change
-    useWatch({ control, name: ['product','priority','status','version','Id_Origem','descricao_resumo','descricao_completa','usuario_id','project','relator_id'] as any });
+    useWatch({ control, name: ['product','priority','status','version','Id_Origem','modulo','category','descricao_resumo','descricao_completa','usuario_id','project','relator_id'] as any });
 
     const hasError = (fields: string[]) => fields.some((k) => Boolean(getFieldState?.(k)?.error));
     const hasValue = (field: any) => {
@@ -22,7 +22,7 @@ export default function CaseWizardHeader() {
         return Boolean(field);
     };
     const values = getValues?.() || {};
-    const fieldsHeader = ['product','priority','status','version','Id_Origem'];
+    const fieldsHeader = ['product','priority','status','version','Id_Origem','modulo','category'];
     const fieldsDescription = ['descricao_resumo','descricao_completa'];
     const fieldsAssignments = ['usuario_id','project','relator_id'];
 

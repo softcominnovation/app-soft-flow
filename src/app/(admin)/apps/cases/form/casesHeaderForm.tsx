@@ -9,6 +9,7 @@ import { assistant as fetchVersions, IVersionAssistant } from '@/services/versio
 import { assistant as fetchOrigins, IOriginAssistant } from '@/services/originsServices';
 import { assistant as fetchStatus, IStatusAssistant } from '@/services/statusServices';
 import { assistant as fetchModules, IModuleAssistant } from '@/services/modulesServices';
+import { assistant as fetchCategories, ICategoryAssistant } from '@/services/categoriesServices';
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { asyncSelectStyles, filterOption } from '@/components/Form/asyncSelectStyles';
@@ -140,6 +141,20 @@ export default function CasesHeaderForm({ control }: Props) {
 		debounceMs: 1000,
 	});
 
+	const {
+		loadOptions: loadCategoryOptions,
+		selectedOption: selectedCategory,
+		setSelectedOption: setSelectedCategory,
+		defaultOptions: defaultCategoryOptions,
+		triggerDefaultLoad: triggerCategoryDefaultLoad,
+		isLoading: isLoadingCategories,
+	} = useAsyncSelect<ICategoryAssistant>({
+		fetchItems: async (input) => fetchCategories({ search: input }),
+		getOptionLabel: (category) => category.tipo_categoria || 'Categoria sem nome',
+		getOptionValue: (category) => String(category.id),
+		debounceMs: 1000,
+	});
+
 	// Limpar módulo quando produto mudar
 	useEffect(() => {
 		if (!selectedProduct) {
@@ -168,7 +183,16 @@ export default function CasesHeaderForm({ control }: Props) {
 				if (match) setSelectedModule(match);
 			}
 		}
-	}, [getValues, selectedOrigin, setSelectedOrigin, defaultOriginOptions, selectedModule, setSelectedModule, defaultModuleOptions]);
+		if (formValues.category && !selectedCategory) {
+			const v: any = formValues.category as any;
+			if (typeof v === 'object') {
+				setSelectedCategory(v);
+			} else {
+				const match = (defaultCategoryOptions as any)?.find((o: any) => o?.value === v);
+				if (match) setSelectedCategory(match);
+			}
+		}
+	}, [getValues, selectedOrigin, setSelectedOrigin, defaultOriginOptions, selectedModule, setSelectedModule, defaultModuleOptions, selectedCategory, setSelectedCategory, defaultCategoryOptions]);
 
 	return (
 
@@ -383,7 +407,49 @@ export default function CasesHeaderForm({ control }: Props) {
 							/>
 						</div>
 
-						<div className="col-md-4">
+						<div className="col-md-4 mb-3 mb-md-0">
+							<Form.Label className="fw-semibold">Categoria*</Form.Label>
+							<Controller
+								name="category"
+								rules={{ required: 'O campo Categoria é obrigatório.' }}
+								control={control}
+								render={({ field, fieldState }) => (
+									<>
+										<AsyncSelect<AsyncSelectOption<ICategoryAssistant>, false>
+											cacheOptions
+											defaultOptions={selectedCategory ? [selectedCategory] : defaultCategoryOptions}
+											loadOptions={loadCategoryOptions}
+											inputId="categoria-id"
+											className={`react-select ${fieldState.error ? 'is-invalid' : ''}`}
+											{...({ isInvalid: Boolean(fieldState.error) } as any)}
+											classNamePrefix="react-select"
+											placeholder="Pesquise uma categoria..."
+											isClearable
+											styles={asyncSelectStyles}
+											filterOption={filterOption}
+											value={selectedCategory}
+											onChange={(option) => {
+												const typedOption = option as AsyncSelectOption<ICategoryAssistant>;
+												setSelectedCategory(typedOption);
+												field.onChange(typedOption?.value ?? undefined);
+											}}
+											onBlur={field.onBlur}
+											onMenuOpen={() => triggerCategoryDefaultLoad()}
+											noOptionsMessage={() => (isLoadingCategories ? 'Carregando...' : 'Nenhuma categoria encontrada')}
+											loadingMessage={() => 'Carregando...'}
+										/>
+										{fieldState.error && (
+											<Form.Control.Feedback type="invalid" className="d-block">
+												{String(fieldState.error.message)}
+											</Form.Control.Feedback>
+										)}
+									</>
+								)}
+							/>
+						</div>
+					</div>
+					<div className="row mb-3">
+						<div className="col-md-4 mb-3 mb-md-0">
 							<Form.Label className="fw-semibold">Origem*</Form.Label>
 							<Controller
 								name="Id_Origem"

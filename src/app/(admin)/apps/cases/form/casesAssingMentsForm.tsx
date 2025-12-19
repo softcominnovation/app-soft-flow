@@ -43,6 +43,20 @@ export default function CasesAssingMentsForm() {
 		debounceMs: 800,
 	});
 
+	const {
+		loadOptions: loadQaOptions,
+		selectedOption: selectedQa,
+		setSelectedOption: setSelectedQa,
+		defaultOptions: defaultQaOptions,
+		triggerDefaultLoad: triggerQaDefaultLoad,
+		isLoading: isLoadingQa,
+	} = useAsyncSelect<IUserAssistant>({
+		fetchItems: async (input) => fetchUsers({ search: input, nome_suporte: input }),
+		getOptionLabel: (user) => user.nome_suporte || user.setor || 'Usuario sem nome',
+		getOptionValue: (user) => user.id,
+		debounceMs: 800,
+	});
+
 	const projectOnChangeRef = useRef<((val: any) => void) | null>(null);
 
 	const {
@@ -76,18 +90,19 @@ export default function CasesAssingMentsForm() {
 				if (formValues.usuario_id && !selectedUser) setSelectedUser(formValues.usuario_id as any);
 				if (formValues.project && !selectedProject) setSelectedProject(formValues.project as any);
 				if (formValues.relator_id && !selectedRelator) setSelectedRelator(formValues.relator_id as any);
+				if (formValues.qa_id && !selectedQa) setSelectedQa(formValues.qa_id as any);
 			}
 		} catch (e) {
 			// ignore if getValues unavailable
 		}
-	}, [selectedUser, setSelectedProject]);
+	}, [selectedUser, setSelectedProject, selectedQa, setSelectedQa]);
 
 	return (
 		<div className="container mt-4">
 			<Card className="shadow-sm rounded-3">
 				<Card.Body>
 					<div className="row mb-3">
-						<div className="col-md-4 mb-3">
+						<div className="col-md-4 mb-3 mb-md-0">
 							<Form.Label className="fw-semibold">Dev Atribuido</Form.Label>
 							<Controller
 								name={"usuario_id" as any}
@@ -125,7 +140,7 @@ export default function CasesAssingMentsForm() {
 							/>
 						</div>
 
-						<div className="col-md-4">
+						<div className="col-md-4 mb-3 mb-md-0">
 							<Form.Label className="fw-semibold">Projeto*</Form.Label>
 							<Controller
 								name="project"
@@ -168,7 +183,7 @@ export default function CasesAssingMentsForm() {
 							/>
 						</div>
 
-						<div className="col-md-4">
+						<div className="col-md-4 mb-3 mb-md-0">
 							<Form.Label className="fw-semibold">Relator</Form.Label>
 							<Controller
 								name={"relator_id" as any}
@@ -201,6 +216,39 @@ export default function CasesAssingMentsForm() {
 												{String(fieldState.error.message)}
 											</Form.Control.Feedback>
 										)}
+									</>
+								)}
+							/>
+						</div>
+					</div>
+					<div className="row mb-3">
+						<div className="col-md-4 mb-3 mb-md-0">
+							<Form.Label className="fw-semibold">QA</Form.Label>
+							<Controller
+								name={"qa_id" as any}
+								control={control}
+								render={({ field }) => (
+									<>
+										<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
+											cacheOptions
+											defaultOptions={selectedQa ? [selectedQa] : defaultQaOptions}
+											loadOptions={loadQaOptions}
+											inputId="qa-id"
+											className="react-select"
+											classNamePrefix="react-select"
+											placeholder="Pesquise um QA..."
+											isClearable
+											styles={asyncSelectStyles}
+											value={selectedQa}
+											onChange={(option) => {
+												setSelectedQa(option as any);
+												field.onChange(option ? { value: (option as any).value, label: (option as any).label } : undefined);
+											}}
+											onBlur={field.onBlur}
+											onMenuOpen={() => triggerQaDefaultLoad()}
+											noOptionsMessage={() => (isLoadingQa ? 'Carregando...' : 'Nenhum QA encontrado')}
+											loadingMessage={() => 'Carregando...'}
+										/>
 									</>
 								)}
 							/>
