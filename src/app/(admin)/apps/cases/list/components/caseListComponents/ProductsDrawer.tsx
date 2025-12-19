@@ -28,11 +28,13 @@ const mapStatusToId = (status: StatusType): number | number[] | undefined => {
 };
 
 export default function ProductsDrawer({ show, onHide, projects }: Props) {
-	const { fetchCases, loading } = useCasesContext();
+	const { fetchCases, loading, pendingFilters, currentFilters } = useCasesContext();
 
 	const handleStatusClick = (project: IAgendaDevAssistant, status: StatusType) => {
 		const statusId = mapStatusToId(status);
-		const userId = Cookies.get("user_id");
+		// Usa o usuario_dev_id dos filtros atuais/pendentes, se disponível, senão usa o cookie como fallback
+		const selectedUserId = pendingFilters?.usuario_dev_id || currentFilters?.usuario_dev_id;
+		const userId = selectedUserId || Cookies.get("user_id");
 		const currentUserId = Cookies.get("user_id");
 
 		const filters: ICaseFilter = {

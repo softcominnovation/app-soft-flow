@@ -35,7 +35,7 @@ const PrioritizedProducts = ({
   showDrawer: externalShowDrawer, 
   onCloseDrawer 
 }: Props) => {
-  const { fetchCases, loading } = useCasesContext();
+  const { fetchCases, loading, pendingFilters, currentFilters } = useCasesContext();
   const [internalShowDrawer, setInternalShowDrawer] = useState(false);
   
   // Usa controle externo se fornecido, senão usa interno
@@ -47,7 +47,9 @@ const PrioritizedProducts = ({
   const handleStatusClick = useCallback(
     (project: IAgendaDevAssistant, status: StatusType) => {
       const statusId = mapStatusToId(status);
-      const userId = Cookies.get('user_id');
+      // Usa o usuario_dev_id dos filtros atuais/pendentes, se disponível, senão usa o cookie como fallback
+      const selectedUserId = pendingFilters?.usuario_dev_id || currentFilters?.usuario_dev_id;
+      const userId = selectedUserId || Cookies.get('user_id');
       const currentUserId = Cookies.get('user_id');
 
       const filters: ICaseFilter = {
@@ -76,7 +78,7 @@ const PrioritizedProducts = ({
 
       fetchCases(filters);
     },
-    [fetchCases]
+    [fetchCases, pendingFilters?.usuario_dev_id, currentFilters?.usuario_dev_id]
   );
   return (
     <>
