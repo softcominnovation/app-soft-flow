@@ -5,7 +5,9 @@ export const useGetTipoBadgeVariant = (tipo: string) => {
         'desenvolvimento': 'primary',
         'testando': 'warning',
         'retorno': 'info',
-        'nao_planejado': 'danger'
+        'nao_planejado': 'danger',
+        'concluido': 'success',
+        'concluído': 'success'
     };
     return variants[normalizedTipo as keyof typeof variants] || 'secondary';
 };
@@ -17,7 +19,9 @@ export const useGetTipoIcon = (tipo: string) => {
         'desenvolvendo': 'lucide:code',
         'testando': 'lucide:test-tube',
         'retorno': 'lucide:rotate-ccw',
-        'nao_planejado': 'lucide:alert-circle'
+        'nao_planejado': 'lucide:alert-circle',
+        'concluido': 'lucide:check-circle',
+        'concluído': 'lucide:check-circle'
     };
     return icons[normalizedTipo as keyof typeof icons] || 'lucide:clock';
 };

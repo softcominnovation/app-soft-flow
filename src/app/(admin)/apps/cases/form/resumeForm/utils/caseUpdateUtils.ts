@@ -61,21 +61,30 @@ export function createUpdatedCase(caseData: ICase, values: CaseFormValues): ICas
 				tipo_origem: values.origem || caseData.caso.caracteristicas.tipo_origem,
 				modulo: values.modulo || caseData.caso.caracteristicas.modulo,
 			},
-			status: {
-				...caseData.caso.status,
-				status_tipo: (() => {
-					if (typeof values.status === 'object' && values.status !== null) {
-						return values.status.value ?? caseData.caso.status.status_tipo;
+			status: (() => {
+				// Atualiza o status se foi alterado no formulário
+				if (values.status) {
+					if (typeof values.status === 'object' && values.status !== null && values.status.value) {
+						// Se o status foi alterado, atualiza o codigo/status_id com o novo valor
+						return {
+							...caseData.caso.status,
+							codigo: values.status.value,
+							status_id: values.status.value,
+							id: values.status.value,
+						};
 					}
 					if (typeof values.status === 'string') {
-						return values.status;
+						return {
+							...caseData.caso.status,
+							codigo: values.status,
+							status_id: values.status,
+							id: values.status,
+						};
 					}
-					return caseData.caso.status.status_tipo;
-				})(),
-				...(typeof values.status === 'object' && values.status !== null && values.status.value && { 
-					registro: Number(values.status.value) 
-				}),
-			},
+				}
+				// Mantém o status original se não foi alterado
+				return caseData.caso.status;
+			})(),
 			usuarios: {
 				...caseData.caso.usuarios,
 				...(values.qa_id && {

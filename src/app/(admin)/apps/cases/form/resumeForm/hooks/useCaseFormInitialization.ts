@@ -34,6 +34,7 @@ export function useCaseFormInitialization({
 	const initializedRef = useRef<string | null>(null);
 	const versionInitializedRef = useRef<string | null>(null);
 	const previousProdutoIdRef = useRef<string | null>(null);
+	const statusInitializedRef = useRef<string | null>(null);
 
 	// Hooks para produtos, versões e usuários
 	const {
@@ -199,6 +200,7 @@ export function useCaseFormInitialization({
 		initializedRef.current = caseId;
 		versionInitializedRef.current = null;
 		previousProdutoIdRef.current = null;
+		// Não resetar statusInitializedRef aqui para preservar o status após salvar
 
 		// Inicializar produto
 		if (caseData.produto?.id) {
@@ -327,24 +329,31 @@ export function useCaseFormInitialization({
 		// Inicializar status usando os dados que já vêm na resposta da API
 		// Não precisa fazer requisição, os dados já estão em caseData.caso.status
 		const statusId = caseData.caso.status?.codigo || caseData.caso.status?.status_id || caseData.caso.status?.id || '';
-		const statusDescricao = caseData.caso.status?.descricao || '';
+		const statusTipo = caseData.caso.status?.status_tipo || caseData.caso.status?.estado || '';
+		const statusKey = `${caseId}-${statusId}`;
 		
-		if (statusId && statusDescricao) {
+		// Só inicializa o status se ainda não foi inicializado para este caso/status
+		if (statusId && statusTipo && statusInitializedRef.current !== statusKey) {
 			// Criar opção diretamente usando os dados que já vêm na resposta
 			const statusOption: AsyncSelectOption<IStatusAssistant> = {
 				value: String(statusId),
-				label: statusDescricao,
+				label: statusTipo,
 				raw: {
 					Registro: Number(statusId),
-					descricao: statusDescricao,
-					tipo: caseData.caso.status?.status_tipo || caseData.caso.status?.estado || '',
+					descricao: statusTipo,
+					tipo: statusTipo,
 				} as IStatusAssistant,
 			};
 			setSelectedStatus(statusOption);
 			methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
-		} else {
-			setSelectedStatus(null);
-			methods.setValue('status', null);
+			statusInitializedRef.current = statusKey;
+		} else if (!statusId || !statusTipo) {
+			// Só limpa se realmente não houver status
+			if (statusInitializedRef.current !== `${caseId}-null`) {
+				setSelectedStatus(null);
+				methods.setValue('status', null);
+				statusInitializedRef.current = `${caseId}-null`;
+			}
 		}
 
 		// Inicializar Módulo usando os dados que já vêm na resposta da API
@@ -368,29 +377,36 @@ export function useCaseFormInitialization({
 	}, [caseData, methods, setSelectedStatus, setSelectedModule]);
 
 	// Garantir que o status seja definido após o reset do formulário
+	// Mas não atualizar se já foi inicializado (para evitar atualização após salvar)
 	useEffect(() => {
 		if (!caseData?.caso?.id) return;
 		
+		const caseId = String(caseData.caso.id);
 		const statusId = caseData.caso.status?.codigo || caseData.caso.status?.status_id || caseData.caso.status?.id || '';
-		const statusDescricao = caseData.caso.status?.descricao || '';
+		const statusTipo = caseData.caso.status?.status_tipo || caseData.caso.status?.estado || '';
 		const currentStatus = methods.getValues('status');
+		const statusKey = `${caseId}-${statusId}`;
+		
+		// Se o status já foi inicializado para este caso/status, não atualizar
+		if (statusInitializedRef.current === statusKey) return;
 		
 		// Se o status não estiver definido ou estiver como null/string vazia, definir novamente
 		// Usando os dados que já vêm na resposta, sem fazer requisição
-		if (statusId && statusDescricao && (!currentStatus || (typeof currentStatus === 'string' && currentStatus === '') || currentStatus === null)) {
+		if (statusId && statusTipo && (!currentStatus || (typeof currentStatus === 'string' && currentStatus === '') || currentStatus === null)) {
 			// Aguardar um pouco para garantir que o reset já foi executado
 			const timeoutId = setTimeout(() => {
 				const statusOption: AsyncSelectOption<IStatusAssistant> = {
 					value: String(statusId),
-					label: statusDescricao,
+					label: statusTipo,
 					raw: {
 						Registro: Number(statusId),
-						descricao: statusDescricao,
-						tipo: caseData.caso.status?.status_tipo || caseData.caso.status?.estado || '',
+						descricao: statusTipo,
+						tipo: statusTipo,
 					} as IStatusAssistant,
 				};
 				setSelectedStatus(statusOption);
 				methods.setValue('status', { value: statusOption.value, label: statusOption.label }, { shouldValidate: false, shouldDirty: false });
+				statusInitializedRef.current = statusKey;
 			}, 100);
 			
 			return () => clearTimeout(timeoutId);

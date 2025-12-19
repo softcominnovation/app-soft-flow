@@ -347,7 +347,22 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 	const timeEntries = currentCase?.caso.producao ?? [];
 	const activeEntry = timeEntries.find((entry) => !entry.datas.fechamento);
 	const historyEntries = timeEntries.filter((entry) => entry.datas.fechamento);
-	const currentTipo = activeEntry?.tipo ?? historyEntries[0]?.tipo ?? 'desenvolvendo';
+	
+	// Determina o tipo baseado no status do caso
+	// Se o status for registro 3, usa "testando"
+	// Se o status for registro 9 ou 10, usa "concluido"
+	// Caso contrário usa "desenvolvendo"
+	const statusRegistro = currentCase?.caso.status?.codigo || currentCase?.caso.status?.status_id || currentCase?.caso.status?.id || '';
+	let tipoBaseadoNoStatus = 'desenvolvendo';
+	if (statusRegistro === '3' || statusRegistro === 3) {
+		tipoBaseadoNoStatus = 'testando';
+	} else if (statusRegistro === '9' || statusRegistro === 9 || statusRegistro === '10' || statusRegistro === 10) {
+		tipoBaseadoNoStatus = 'concluido';
+	}
+	
+	// Prioriza o tipo baseado no status atualizado, mas se houver produção ativa, usa o tipo dela
+	// Isso permite que a badge seja atualizada quando o status for alterado
+	const currentTipo = activeEntry?.tipo ?? tipoBaseadoNoStatus;
 	const runningStart = activeEntry?.datas.abertura ? formatTime(activeEntry.datas.abertura) : null;
 	const isRunning = Boolean(activeEntry);
 

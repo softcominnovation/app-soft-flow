@@ -23,6 +23,7 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 	const [activeKeys, setActiveKeys] = useState<string[]>(['1']);
 	const caseDescriptionRef = useRef<CaseDescriptionSectionRef>(null);
 	const methods = useForm();
+	const formInitializedRef = useRef<string | null>(null);
 
 	useImperativeHandle(ref, () => ({
 		save: async () => {
@@ -94,12 +95,19 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 		};
 	}, [caseData]);
 
-	// Inicializa o formulário quando os dados do caso mudarem
+	// Inicializa o formulário apenas na primeira vez que os dados do caso são carregados
+	// Não atualiza após salvar para preservar os valores do formulário
 	useEffect(() => {
-		if (initialFormValues) {
+		if (!initialFormValues || !caseData?.caso?.id) return;
+		
+		const caseId = String(caseData.caso.id);
+		
+		// Só inicializa se ainda não foi inicializado para este caso
+		if (formInitializedRef.current !== caseId) {
 			methods.reset(initialFormValues);
+			formInitializedRef.current = caseId;
 		}
-	}, [initialFormValues, methods]);
+	}, [initialFormValues, methods, caseData]);
 
 	return (
 		<FormProvider {...methods}>

@@ -81,7 +81,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			Projeto: toString(values.produto_id), // produto_id é o Projeto (id do Produto)
 			QaId: toString(values.qa_id),
 			Relator: toString(values.relator_id || values.desenvolvedor_id), // Relator pode ser o desenvolvedor se não houver relator específico
-			Status: statusValue,
+			status: statusValue,
 			VersaoProduto: toString(values.versao),
 		};
 	}, [getValues]);
