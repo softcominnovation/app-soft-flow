@@ -1,8 +1,8 @@
-import { ICaseFilter } from '@/types/cases/ICaseFilter';
+import ICaseFilter from '@/types/cases/ICaseFilter';
 import { UseFormReturn } from 'react-hook-form';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
-import IStatusAssistant from '@/types/assistant/IStatusAssistant';
+import { IStatusAssistant } from '@/services/statusServices';
 
 interface UseCaseFiltersSearchProps {
 	methods: UseFormReturn<ICaseFilter>;
