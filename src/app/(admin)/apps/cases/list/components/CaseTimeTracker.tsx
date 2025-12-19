@@ -353,10 +353,11 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 	// Se o status for registro 9 ou 10, usa "concluido"
 	// Caso contrário usa "desenvolvendo"
 	const statusRegistro = currentCase?.caso.status?.codigo || currentCase?.caso.status?.status_id || currentCase?.caso.status?.id || '';
+	const statusRegistroNum = typeof statusRegistro === 'string' ? parseInt(statusRegistro, 10) : Number(statusRegistro);
 	let tipoBaseadoNoStatus = 'desenvolvendo';
-	if (statusRegistro === '3' || statusRegistro === 3) {
+	if (statusRegistroNum === 3) {
 		tipoBaseadoNoStatus = 'testando';
-	} else if (statusRegistro === '9' || statusRegistro === 9 || statusRegistro === '10' || statusRegistro === 10) {
+	} else if (statusRegistroNum === 9 || statusRegistroNum === 10) {
 		tipoBaseadoNoStatus = 'concluido';
 	}
 	
