@@ -15,6 +15,7 @@ import type { ICategoryAssistant } from '@/services/categoriesServices';
 import { IOriginAssistant } from '@/services/originsServices';
 import { IVersionAssistant } from '@/services/versionsServices';
 import { IStatusAssistant } from '@/services/statusServices';
+import { IModuleAssistant } from '@/services/modulesServices';
 import { asyncSelectStyles, selectStyles } from '@/components/Form/asyncSelectStyles';
 import { useCasePermissions } from '@/hooks/useCasePermissions';
 
@@ -92,6 +93,13 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 		defaultCategoryOptions,
 		triggerCategoryDefaultLoad,
 		isLoadingCategories,
+		// Módulo
+		loadModuleOptions,
+		selectedModule,
+		setSelectedModule,
+		defaultModuleOptions,
+		triggerModuleDefaultLoad,
+		isLoadingModules,
 	} = useCaseFormInitialization({
 		caseData: caseData || null,
 		methods,
@@ -137,6 +145,11 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 		setSelectedCategory(option);
 		methods.setValue('categoria_id', option?.value ?? '');
 		methods.setValue('categoria', option?.raw?.tipo_categoria || '');
+	};
+
+	const handleModuleChange = (option: AsyncSelectOption<IModuleAssistant> | null) => {
+		setSelectedModule(option);
+		methods.setValue('modulo', option?.raw?.nome || '');
 	};
 
 	return (
@@ -256,8 +269,8 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 								</Form.Group>
 							</Col>
 
-							{/* Segunda linha: Projeto, Categoria, Origem */}
-							<Col xs={12} md={4}>
+							{/* Segunda linha: Projeto, Categoria, Módulo, Origem */}
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:folder" className="me-2 text-muted" />
@@ -294,7 +307,7 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col xs={12} md={4}>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:tag" className="me-2 text-muted" />
@@ -331,7 +344,48 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 									/>
 								</Form.Group>
 							</Col>
-							<Col xs={12} md={4}>
+							<Col xs={12} md={3}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:layers" className="me-2 text-muted" />
+										Módulo
+									</Form.Label>
+									<Controller
+										name="modulo"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IModuleAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedModule ? [selectedModule] : defaultModuleOptions}
+												loadOptions={loadModuleOptions}
+												inputId="modulo-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder={!produtoId ? 'Selecione um produto primeiro' : 'Pesquise um módulo...'}
+												isClearable
+												isDisabled={!produtoId || !permissions.canEditProjeto}
+												styles={asyncSelectStyles}
+												value={selectedModule}
+												onChange={(option) => {
+													handleModuleChange(option);
+													field.onChange(option?.raw?.nome ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={() => {
+													if (produtoId) {
+														triggerModuleDefaultLoad();
+													}
+												}}
+												noOptionsMessage={() =>
+													isLoadingModules ? 'Carregando...' : 'Nenhum módulo encontrado'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
+							<Col xs={12} md={3}>
 								<Form.Group>
 									<Form.Label className="fw-semibold d-flex align-items-center">
 										<IconifyIcon icon="lucide:arrow-right" className="me-2 text-muted" />

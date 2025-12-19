@@ -1,6 +1,7 @@
 import IProductAssistant from "../assistant/IProductAssistant";
 import { IVersionAssistant } from "@/services/versionsServices";
 import { IStatusAssistant } from "@/services/statusServices";
+import { IModuleAssistant } from "@/services/modulesServices";
 
 import { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 
@@ -12,4 +13,5 @@ export default interface ICasePost {
 	priority: string | undefined;
 	status?: AsyncSelectOption<IStatusAssistant>;
 	Id_Origem?: string;
+	modulo?: string;
 }

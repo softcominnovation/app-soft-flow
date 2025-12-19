@@ -65,15 +65,6 @@ export default function CaseWizardHeader() {
                     <span className="d-none d-sm-inline">Atribuições</span>
                 </button>
             </li>
-            <li className="nav-item">
-                <button
-                    type="button"
-                    style={{ pointerEvents: 'none' }}
-                    className={classNames('nav-link rounded-0 py-2', activeStep === 3 && 'active')}>
-                    <i className="mdi mdi-checkbox-marked-circle-outline font-18 align-middle me-1"></i>
-                    <span className="d-none d-sm-inline">Finalizar</span>
-                </button>
-            </li>
 		</ul>
 	)
 }

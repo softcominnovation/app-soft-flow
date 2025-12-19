@@ -14,6 +14,7 @@ import { assistant as fetchProjects } from '@/services/projectsServices';
 import { assistant as fetchOrigins, IOriginAssistant } from '@/services/originsServices';
 import { assistant as fetchCategories, type ICategoryAssistant } from '@/services/categoriesServices';
 import { assistant as fetchStatus, IStatusAssistant } from '@/services/statusServices';
+import { assistant as fetchModules, IModuleAssistant } from '@/services/modulesServices';
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
 import IProjectAssistant from '@/types/assistant/IProjectAssistant';
@@ -159,15 +160,34 @@ export function useCaseFormInitialization({
 		debounceMs: 800,
 	});
 
-	// Limpar versão quando produto mudar
+	const {
+		loadOptions: loadModuleOptions,
+		selectedOption: selectedModule,
+		setSelectedOption: setSelectedModule,
+		defaultOptions: defaultModuleOptions,
+		triggerDefaultLoad: triggerModuleDefaultLoad,
+		isLoading: isLoadingModules,
+	} = useAsyncSelect<IModuleAssistant>({
+		fetchItems: async (input) => {
+			if (!produtoId) return [];
+			return fetchModules({ produto_id: produtoId, search: input });
+		},
+		getOptionLabel: (module) => module.nome || 'Módulo sem nome',
+		getOptionValue: (module) => module.nome,
+		debounceMs: 1000,
+	});
+
+	// Limpar versão e módulo quando produto mudar
 	useEffect(() => {
 		if (previousProdutoIdRef.current !== null && previousProdutoIdRef.current !== produtoId) {
 			setSelectedVersion(null);
 			methods.setValue('versao', '');
 			versionInitializedRef.current = null;
+			setSelectedModule(null);
+			methods.setValue('modulo', '');
 		}
 		previousProdutoIdRef.current = produtoId || null;
-	}, [produtoId, setSelectedVersion, methods]);
+	}, [produtoId, setSelectedVersion, setSelectedModule, methods]);
 
 	// Inicializar campos básicos (produto, desenvolvedor, status)
 	useEffect(() => {
@@ -326,7 +346,26 @@ export function useCaseFormInitialization({
 			setSelectedStatus(null);
 			methods.setValue('status', null);
 		}
-	}, [caseData, methods, setSelectedStatus]);
+
+		// Inicializar Módulo usando os dados que já vêm na resposta da API
+		// O módulo está em caseData.caso.caracteristicas.modulo
+		const moduloNome = caseData.caso?.caracteristicas?.modulo;
+		
+		if (moduloNome) {
+			const moduleOption: AsyncSelectOption<IModuleAssistant> = {
+				value: moduloNome,
+				label: moduloNome,
+				raw: {
+					nome: moduloNome,
+				} as IModuleAssistant,
+			};
+			setSelectedModule(moduleOption);
+			methods.setValue('modulo', moduloNome);
+		} else {
+			setSelectedModule(null);
+			methods.setValue('modulo', '');
+		}
+	}, [caseData, methods, setSelectedStatus, setSelectedModule]);
 
 	// Garantir que o status seja definido após o reset do formulário
 	useEffect(() => {
@@ -453,6 +492,14 @@ export function useCaseFormInitialization({
 		defaultStatusOptions,
 		triggerStatusDefaultLoad,
 		isLoadingStatus,
+
+		// Módulo
+		loadModuleOptions,
+		selectedModule,
+		setSelectedModule,
+		defaultModuleOptions,
+		triggerModuleDefaultLoad,
+		isLoadingModules,
 	};
 }
 

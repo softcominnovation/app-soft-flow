@@ -12,6 +12,7 @@ export interface CaseFormValues {
 	categoria_id?: string;
 	origem_id?: string;
 	origem?: string;
+	modulo?: string;
 	status?: {
 		value?: string;
 		label?: string;
@@ -58,6 +59,7 @@ export function createUpdatedCase(caseData: ICase, values: CaseFormValues): ICas
 				tipo_categoria: values.categoria || caseData.caso.caracteristicas.tipo_categoria,
 				id_origem: values.origem_id ? Number(values.origem_id) : caseData.caso.caracteristicas.id_origem,
 				tipo_origem: values.origem || caseData.caso.caracteristicas.tipo_origem,
+				modulo: values.modulo || caseData.caso.caracteristicas.modulo,
 			},
 			status: {
 				...caseData.caso.status,

@@ -85,6 +85,7 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 				: '',
 			origem: caseData.caso.caracteristicas.tipo_origem || '',
 			origem_id: caseData.caso.caracteristicas.id_origem?.toString() || '',
+			modulo: caseData.caso.caracteristicas.modulo || '',
 			resumo: caseData.caso.textos.descricao_resumo || '',
 			descricao_completa: caseData.caso.textos.descricao_completa || '',
 			anexo: anexoValue,

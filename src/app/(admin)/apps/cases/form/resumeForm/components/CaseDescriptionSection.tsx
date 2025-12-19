@@ -76,6 +76,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			DescricaoResumo: toString(values.resumo),
 			Id_Origem: toString(values.origem_id),
 			InformacoesAdicionais: toString(values.informacoes_adicionais),
+			Modulo: toString(values.modulo),
 			Prioridade: toString(values.prioridade),
 			Projeto: toString(values.produto_id), // produto_id é o Projeto (id do Produto)
 			QaId: toString(values.qa_id),

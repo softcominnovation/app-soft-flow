@@ -32,6 +32,8 @@ export default function CaseWizard({ onClose }: { onClose?: () => void }) {
             register('priority', { required: 'O campo Prioridade (1,2,3,4,5,6,7,8,9,10) é obrigatório.' });
             register('version', { required: 'O campo Versão do Produto é obrigatório.' });
             register('Id_Origem', { required: 'O campo ID Origem é obrigatório.' });
+            register('modulo', { required: 'O campo Módulo é obrigatório.' });
+            register('status', { required: 'O campo Status é obrigatório.' });
 
             register('descricao_resumo', { required: 'O campo Descrição Resumo é obrigatório.' });
             register('descricao_completa', { required: 'O campo Descrição Completa é obrigatório.' });
@@ -66,6 +68,7 @@ export default function CaseWizard({ onClose }: { onClose?: () => void }) {
             DescricaoCompleta: descricaoCompleta ?? undefined,
             Anexo: data.anexo ?? undefined,
             Id_Origem: (data as any).Id_Origem?.value ?? (data as any).Id_Origem ?? (data as any).id_origem ?? undefined,
+            Modulo: data.modulo ?? undefined,
             Id_Usuario_AberturaCaso: data.Id_Usuario_AberturaCaso ?? Cookies.get('user_id') ?? undefined,
         };
 
