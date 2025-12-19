@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { ICaseEspecifiedResponse, ICaseResponse, ICreateAnotacaoResponse } from '@/types/cases/ICase';
+import { ICaseEspecifiedResponse, ICaseResponse, ICreateAnotacaoResponse, IUpdateAnotacaoResponse, IDeleteAnotacaoResponse } from '@/types/cases/ICase';
 import { ICaseProducaoResponse } from '@/types/cases/ICaseProducao';
 import IAgendaDevAssistant from '@/types/assistant/IAgendaDevAssistant';
 
@@ -120,6 +120,34 @@ export async function createAnotacao(registro: number, anotacoes: string): Promi
 			registro,
 			anotacoes,
 		});
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
+export async function updateAnotacao(id: number, anotacoes: string): Promise<IUpdateAnotacaoResponse> {
+	try {
+		const res: AxiosResponse<IUpdateAnotacaoResponse> = await axios.put(`/api/cases/anotacoes/${id}`, {
+			anotacoes,
+		});
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
+export async function deleteAnotacao(id: number): Promise<IDeleteAnotacaoResponse> {
+	try {
+		const res: AxiosResponse<IDeleteAnotacaoResponse> = await axios.delete(`/api/cases/anotacoes/${id}`);
 		return res.data;
 	} catch (err: unknown) {
 		if (err instanceof Error) {

@@ -189,3 +189,18 @@ export interface ICreateAnotacaoResponse {
 		anotacoes: string;
 	};
 }
+
+export interface IUpdateAnotacaoResponse {
+	message: string;
+	data: {
+		sequencia: number;
+		registro: number;
+		data_anotacao: string;
+		usuario: string;
+		anotacoes: string;
+	};
+}
+
+export interface IDeleteAnotacaoResponse {
+	message: string;
+}
