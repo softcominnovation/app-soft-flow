@@ -179,6 +179,36 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 		}
 	};
 
+	const handleShareCase = async () => {
+		if (!displayCaseData?.caso.id) {
+			return;
+		}
+
+		const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app-soft-flowss.vercel.app';
+		const shareUrl = `${baseUrl}/apps/cases/list?caseId=${displayCaseData.caso.id}`;
+
+		try {
+			await navigator.clipboard.writeText(shareUrl);
+			toast.success('Link copiado para a área de transferência!');
+		} catch (error) {
+			console.error('Erro ao copiar link:', error);
+			// Fallback para navegadores que não suportam clipboard API
+			const textArea = document.createElement('textarea');
+			textArea.value = shareUrl;
+			textArea.style.position = 'fixed';
+			textArea.style.opacity = '0';
+			document.body.appendChild(textArea);
+			textArea.select();
+			try {
+				document.execCommand('copy');
+				toast.success('Link copiado para a área de transferência!');
+			} catch (err) {
+				toast.error('Erro ao copiar link. Tente novamente.');
+			}
+			document.body.removeChild(textArea);
+		}
+	};
+
 	const handleDeleteCaseClick = () => {
 		if (!displayCaseData?.caso.id || deleting) {
 			return;
@@ -773,7 +803,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 									flex: '1 1 0%', 
 									fontSize: '0.8rem', 
 									padding: '0.4rem 0.5rem',
-									maxWidth: 'calc(50% - 0.25rem)'
+									maxWidth: 'calc(33.333% - 0.333rem)'
 								}}
 							>
 								{cloning ? (
@@ -789,6 +819,23 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 								)}
 							</Button>
 							<Button 
+								variant="info" 
+								onClick={handleShareCase} 
+								disabled={!displayCaseData}
+								className="d-flex align-items-center justify-content-center"
+								style={{ 
+									minHeight: '44px', 
+									flex: '1 1 0%', 
+									fontSize: '0.8rem', 
+									padding: '0.4rem 0.5rem',
+									maxWidth: 'calc(33.333% - 0.333rem)'
+								}}
+								title="Compartilhar link do caso"
+							>
+								<IconifyIcon icon="lucide:share-2" className="me-1" style={{ fontSize: '0.9rem', flexShrink: 0 }} />
+								<span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Compartilhar</span>
+							</Button>
+							<Button 
 								variant="success" 
 								onClick={handleFinalizeCaseClick} 
 								disabled={finalizing || !displayCaseData}
@@ -798,7 +845,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 									flex: '1 1 0%', 
 									fontSize: '0.8rem', 
 									padding: '0.4rem 0.5rem',
-									maxWidth: 'calc(50% - 0.25rem)'
+									maxWidth: 'calc(33.333% - 0.333rem)'
 								}}
 							>
 								{finalizing ? (
@@ -853,6 +900,16 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 									Clonar
 								</>
 							)}
+						</Button>
+						<Button 
+							variant="info" 
+							onClick={handleShareCase} 
+							disabled={!displayCaseData}
+							className="d-flex align-items-center"
+							title="Compartilhar link do caso"
+						>
+							<IconifyIcon icon="lucide:share-2" className="me-1" />
+							Compartilhar
 						</Button>
 						<Button 
 							variant="success" 
