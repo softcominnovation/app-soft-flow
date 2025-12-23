@@ -82,23 +82,25 @@ const PrioritizedProducts = ({
   );
   return (
     <>
-      <Card style={{ height: 411, overflowY: 'auto', maxHeight: 411 }} className="d-none d-lg-block">
-        <Card.Body>
-          <CardTitle
-            containerClass="d-flex align-items-center justify-content-between mb-2"
-            title="Produtos"
-          />
+      <Card style={{ height: 411, maxHeight: 411 }} className="d-none d-lg-block">
+        <Card.Body style={{ display: 'flex', flexDirection: 'column', padding: 0, height: '100%' }}>
+          <div style={{ padding: '1.25rem', paddingBottom: '0.5rem', flexShrink: 0 }}>
+            <CardTitle
+              containerClass="d-flex align-items-center justify-content-between mb-2"
+              title="Produtos"
+            />
+          </div>
 
         {/* Desktop (lg+) - tabela */}
-        <div className="d-none d-lg-block">
-          <Table responsive hover className="table-centered mb-0">
-            <thead>
+        <div className="d-none d-lg-block" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 1.25rem 1.25rem' }}>
+          <Table hover className="table-centered mb-0">
+            <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'var(--bs-body-bg, #fafbfe)' }}>
               <tr>
-                <th>Produto</th>
-                <th className="text-center">Abertos</th>
-                <th className="text-center">Corrigidos</th>
-                <th className="text-center">Resolvidos</th>
-                <th className="text-center">Retornos</th>
+                <th style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Produto</th>
+                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Abertos</th>
+                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Corrigidos</th>
+                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Resolvidos</th>
+                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Retornos</th>
               </tr>
             </thead>
             <tbody>
