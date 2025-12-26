@@ -14,7 +14,7 @@ import { assistant as fetchVersions, IVersionAssistant } from '@/services/versio
 import AsyncSelect from 'react-select/async';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import Cookies from 'js-cookie';
-import { updateProductOrder, deleteProduct, addPersonalizedProduct } from '@/services/personalizedProductsServices';
+import { updateProductOrder, deleteProduct, addPersonalizedProduct, updateProductsOrder } from '@/services/personalizedProductsServices';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface PersonalizedProductsModalProps {
@@ -129,24 +129,24 @@ function DraggableProductRow({
 						</div>
 
 						<div className="d-flex align-items-center flex-shrink-0" style={{ gap: '4px', marginLeft: '8px' }}>
-							<button
-								type="button"
-								className="btn btn-link text-danger flex-shrink-0 p-2"
-								style={{
-									minWidth: 'auto',
-									textDecoration: 'none',
-								}}
-								onClick={(e) => {
-									e.stopPropagation();
+						<button
+							type="button"
+							className="btn btn-link text-danger flex-shrink-0 p-2"
+							style={{
+								minWidth: 'auto',
+								textDecoration: 'none',
+							}}
+							onClick={(e) => {
+								e.stopPropagation();
 									onDelete(product.id);
-								}}
-								title="Excluir produto"
-							>
-								<IconifyIcon 
-									icon="lucide:trash-2" 
-									style={{ fontSize: '18px' }}
-								/>
-							</button>
+							}}
+							title="Excluir produto"
+						>
+							<IconifyIcon 
+								icon="lucide:trash-2" 
+								style={{ fontSize: '18px' }}
+							/>
+						</button>
 						</div>
 					</div>
 				</div>
@@ -251,14 +251,20 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 			}
 		}, 0);
 
-		// Faz PUT para atualizar a ordem do produto arrastado
-		const newOrder = result.destination.index;
+		// Atualiza a ordem de todos os produtos que mudaram de posição
 		setUpdatingOrder(true);
 		try {
-			await updateProductOrder(reorderedItem.id, newOrder);
+			// Cria array com todas as atualizações de ordem
+			const updates = reordered.map((item, index) => ({
+				id: item.id,
+				ordem: index,
+			}));
+
+			// Faz PUT para atualizar a ordem de todos os produtos
+			await updateProductsOrder(updates);
 		} catch (error) {
-			console.error('Erro ao atualizar ordem do produto:', error);
-			toast.error('Erro ao atualizar ordem do produto');
+			console.error('Erro ao atualizar ordem dos produtos:', error);
+			toast.error('Erro ao atualizar ordem dos produtos');
 			// Reverte a mudança em caso de erro
 			refreshProducts();
 		} finally {
@@ -326,27 +332,27 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 
 		setAddingProduct(true);
 		try {
-			// Obtém id_colaborador do cookie (mesmo usado no hook)
-			const colaboradorId = Number(Cookies.get('user_id') || '0');
+		// Obtém id_colaborador do cookie (mesmo usado no hook)
+		const colaboradorId = Number(Cookies.get('user_id') || '0');
 
 			// A ordem sempre será a última (tamanho atual da lista)
 			const novaOrdem = localProducts.length;
 
 			// Faz POST para adicionar o produto
 			const newProduct = await addPersonalizedProduct({
-				id_colaborador: colaboradorId,
-				id_produto: productId,
-				versao: versionString,
+			id_colaborador: colaboradorId,
+			id_produto: productId,
+			versao: versionString,
 				ordem: novaOrdem,
-				selecionado: false,
+			selecionado: false,
 			});
 
 			// Recarrega os produtos do servidor para garantir sincronização
 			await refreshProducts();
-			
-			setSelectedProduct(null);
-			setSelectedVersion(null);
-			toast.success('Produto adicionado à lista');
+
+		setSelectedProduct(null);
+		setSelectedVersion(null);
+		toast.success('Produto adicionado à lista');
 		} catch (error) {
 			console.error('Erro ao adicionar produto:', error);
 			toast.error('Erro ao adicionar produto');
@@ -480,34 +486,34 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 						minHeight: 0,
 					}}>
 						<div style={{ padding: '0 4px' }}>
-							<div 
+						<div 
 								className="alert alert-info d-flex align-items-center mb-3"
-								style={{
-									backgroundColor: '#e7f1ff',
-									border: '1px solid #b6d4fe',
-									color: '#084298',
-									borderRadius: '8px',
+							style={{
+								backgroundColor: '#e7f1ff',
+								border: '1px solid #b6d4fe',
+								color: '#084298',
+								borderRadius: '8px',
 									padding: '12px 16px',
-								}}
-							>
-								<IconifyIcon 
-									icon="lucide:info" 
+							}}
+						>
+							<IconifyIcon 
+								icon="lucide:info" 
 									className="me-2 flex-shrink-0"
-									style={{ fontSize: '18px' }}
-								/>
+								style={{ fontSize: '18px' }}
+							/>
 								<div style={{ lineHeight: '1.5' }}>
 									<strong>Como usar:</strong> Arraste os cards para reordenar os produtos na lista.
-								</div>
 							</div>
+						</div>
 
-							{/* Formulário para adicionar produto */}
-							<div 
-								className="mb-4 p-3 rounded-3"
-								style={{
-									backgroundColor: '#f8f9fa',
-									border: '1px solid #e9ecef',
-								}}
-							>
+						{/* Formulário para adicionar produto */}
+						<div 
+							className="mb-4 p-3 rounded-3"
+							style={{
+								backgroundColor: '#f8f9fa',
+								border: '1px solid #e9ecef',
+							}}
+						>
 							<Row className="g-3 align-items-end">
 								<Col xs={12} md={5}>
 									<label className="form-label fw-semibold small mb-2">
@@ -580,14 +586,14 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 											</>
 										) : (
 											<>
-												<IconifyIcon icon="lucide:plus" className="me-1" style={{ fontSize: '16px' }} />
-												Adicionar
+										<IconifyIcon icon="lucide:plus" className="me-1" style={{ fontSize: '16px' }} />
+										Adicionar
 											</>
 										)}
 									</Button>
 								</Col>
 							</Row>
-							</div>
+						</div>
 						</div>
 						{updatingOrder && (
 							<div className="d-flex align-items-center justify-content-center mb-3" style={{ padding: '0 4px' }}>

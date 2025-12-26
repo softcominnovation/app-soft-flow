@@ -27,7 +27,7 @@ export async function PUT(request: Request) {
 
 		// Atualiza cada produto individualmente
 		const updatePromises = body.updates.map((update) =>
-			axios.patch(
+			axios.put(
 				`${getBaseApiUrl()}/projeto-dev-produtos-ordem/${update.id}`,
 				{
 					ordem: update.ordem,

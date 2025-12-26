@@ -19,7 +19,7 @@ interface CasesContextType {
 	fetchCases: (data?: ICaseFilter, shouldSaveToLocalStorage?: boolean) => Promise<void>;
 	loadMoreCases: () => Promise<void>;
 	fetchEspecifiedCases: (id: string) => Promise<ICaseEspecifiedResponse | undefined>;
-	fetchAgendaDev: (userId: string) => Promise<void>;
+	fetchAgendaDev: (userId: string, forceRefresh?: boolean) => Promise<void>;
 }
 
 export const CasesContext = createContext<CasesContextType | undefined>(undefined);
@@ -174,15 +174,21 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	}
 
-	const fetchAgendaDev = useCallback(async (userId: string) => {
+	const fetchAgendaDev = useCallback(async (userId: string, forceRefresh: boolean = false) => {
 		if (!userId) {
 			setAgendaDev([]);
 			return;
 		}
 
+		// Se forceRefresh for true, invalida o cache
+		if (forceRefresh) {
+			agendaDevCacheRef.current = null;
+		}
+
 		// Verifica se há cache válido
 		const now = Date.now();
 		if (
+			!forceRefresh &&
 			agendaDevCacheRef.current &&
 			agendaDevCacheRef.current.userId === userId &&
 			(now - agendaDevCacheRef.current.timestamp) < CACHE_DURATION

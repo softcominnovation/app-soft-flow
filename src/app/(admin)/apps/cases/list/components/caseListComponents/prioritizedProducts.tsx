@@ -36,7 +36,7 @@ const PrioritizedProducts = ({
   showDrawer: externalShowDrawer, 
   onCloseDrawer 
 }: Props) => {
-  const { fetchCases, loading, pendingFilters, currentFilters } = useCasesContext();
+  const { fetchCases, loading, pendingFilters, currentFilters, fetchAgendaDev } = useCasesContext();
   const [internalShowDrawer, setInternalShowDrawer] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   
@@ -203,7 +203,14 @@ const PrioritizedProducts = ({
       {/* Modal de edição de produtos personalizados */}
       <PersonalizedProductsModal
         show={showEditModal}
-        onHide={() => setShowEditModal(false)}
+        onHide={() => {
+          setShowEditModal(false);
+          // Atualiza a seção de produtos priorizados ao fechar o modal, forçando refresh
+          const userId = pendingFilters?.usuario_dev_id || currentFilters?.usuario_dev_id || Cookies.get('user_id');
+          if (userId && fetchAgendaDev) {
+            fetchAgendaDev(userId, true);
+          }
+        }}
       />
     </>
   );
