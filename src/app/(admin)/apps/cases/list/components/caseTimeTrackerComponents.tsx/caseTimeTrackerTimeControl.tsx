@@ -16,6 +16,8 @@ import AsyncSelectInput from "@/components/Form/AsyncSelectInput";
 import useAsyncSelect, { AsyncSelectOption } from "@/hooks/useAsyncSelect";
 import { getTamanhos, ITamanho } from "@/services/tamanhosServices";
 import { hasPermissao } from "@/helpers/permissionsHelpers";
+import { useThemeContext } from "@/common/context";
+import { getAsyncSelectStyles } from "@/components/Form/asyncSelectStyles";
 
 interface CaseTimeTrackerTimeControlProps {
   stopCurrentTime: (id: string, isRetry?: boolean) => Promise<void>;
@@ -55,6 +57,8 @@ export default function CaseTimeTrackerTimeControl({
   canEditTempoEstimado,
   canEditPontos,
 }: CaseTimeTrackerTimeControlProps) {
+  const { settings } = useThemeContext();
+  const isDarkMode = settings.theme === 'dark';
   const { formatMinutesToHours, validateTime } = useTimeFormatter();
 
   const handleSaveTime = useCallback(async (time: string, tamanhoId?: number) => {
@@ -311,8 +315,9 @@ export default function CaseTimeTrackerTimeControl({
                           loadingMessage={() => "Carregando..."}
                           menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                           styles={{
-                            control: (base) => ({
-                              ...base,
+                            ...getAsyncSelectStyles(isDarkMode),
+                            control: (base, state) => ({
+                              ...getAsyncSelectStyles(isDarkMode).control(base, state),
                               minHeight: '38px',
                               fontSize: '0.875rem'
                             }),

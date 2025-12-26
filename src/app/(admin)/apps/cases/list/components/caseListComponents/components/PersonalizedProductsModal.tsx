@@ -12,7 +12,7 @@ import IProductAssistant from '@/types/assistant/IProductAssistant';
 import { assistant as fetchProducts } from '@/services/productsServices';
 import { assistant as fetchVersions, IVersionAssistant } from '@/services/versionsServices';
 import AsyncSelect from 'react-select/async';
-import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
+import { getAsyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import Cookies from 'js-cookie';
 import { updateProductOrder, deleteProduct, addPersonalizedProduct, updateProductsOrder } from '@/services/personalizedProductsServices';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -510,7 +510,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 										classNamePrefix="react-select"
 										placeholder="Pesquise um produto..."
 										isClearable
-										styles={asyncSelectStyles}
+										styles={getAsyncSelectStyles(isDarkMode)}
 										value={selectedProduct}
 										onChange={(option) => {
 											setSelectedProduct(option);
@@ -538,7 +538,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 										placeholder="Pesquise uma versão..."
 										isClearable
 										isDisabled={!selectedProduct}
-										styles={asyncSelectStyles}
+										styles={getAsyncSelectStyles(isDarkMode)}
 										value={selectedVersion}
 										onChange={(option) => {
 											setSelectedVersion(option);

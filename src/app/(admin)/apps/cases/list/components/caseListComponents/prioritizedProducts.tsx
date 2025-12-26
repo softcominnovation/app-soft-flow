@@ -103,13 +103,13 @@ const PrioritizedProducts = ({
         {/* Desktop (lg+) - tabela */}
         <div className="d-none d-lg-block" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 1.25rem 1.25rem' }}>
           <Table hover className="table-centered mb-0">
-            <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'var(--bs-body-bg, #fafbfe)' }}>
+            <thead className="table-light text-muted" style={{ position: 'sticky', top: 0, zIndex: 10 }}>
               <tr>
-                <th style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Produto</th>
-                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Abertos</th>
-                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Corrigidos</th>
-                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Resolvidos</th>
-                <th className="text-center" style={{ backgroundColor: 'var(--bs-body-bg, #fafbfe)', position: 'sticky', top: 0 }}>Retornos</th>
+                <th style={{ position: 'sticky', top: 0 }}>Produto</th>
+                <th className="text-center" style={{ position: 'sticky', top: 0 }}>Abertos</th>
+                <th className="text-center" style={{ position: 'sticky', top: 0 }}>Corrigidos</th>
+                <th className="text-center" style={{ position: 'sticky', top: 0 }}>Resolvidos</th>
+                <th className="text-center" style={{ position: 'sticky', top: 0 }}>Retornos</th>
               </tr>
             </thead>
             <tbody>
