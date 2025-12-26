@@ -16,6 +16,7 @@ import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import Cookies from 'js-cookie';
 import { updateProductOrder, deleteProduct, addPersonalizedProduct, updateProductsOrder } from '@/services/personalizedProductsServices';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { useThemeContext } from '@/common/context';
 
 interface PersonalizedProductsModalProps {
 	show: boolean;
@@ -29,10 +30,12 @@ function DraggableProductRow({
 	product,
 	index,
 	onDelete,
+	isDarkMode,
 }: {
 	product: IPersonalizedProduct;
 	index: number;
 	onDelete: (productId: number) => void;
+	isDarkMode: boolean;
 }) {
 	return (
 		<Draggable draggableId={product.id.toString()} index={index}>
@@ -47,12 +50,8 @@ function DraggableProductRow({
 					className={`mb-3 ${snapshot.isDragging ? 'opacity-75' : ''}`}
 				>
 					<div
-						className="d-flex align-items-center p-3 rounded-3"
+						className={`d-flex align-items-center p-3 rounded-3 bg-body border ${snapshot.isDragging ? 'border-primary border-2' : ''}`}
 						style={{
-							backgroundColor: snapshot.isDragging ? '#ffffff' : '#ffffff',
-							border: snapshot.isDragging 
-								? '2px solid #0d6efd' 
-								: '1px solid #e9ecef',
 							boxShadow: snapshot.isDragging
 								? '0 8px 24px rgba(13, 110, 253, 0.25)'
 								: '0 2px 8px rgba(0, 0, 0, 0.08)',
@@ -63,12 +62,11 @@ function DraggableProductRow({
 					>
 						<div className="d-flex align-items-center" style={{ gap: '12px', flexShrink: 0 }}>
 							<div
-								className="d-flex align-items-center justify-content-center"
+								className="d-flex align-items-center justify-content-center bg-secondary bg-opacity-25"
 								style={{
 									width: '40px',
 									height: '40px',
 									borderRadius: '10px',
-									backgroundColor: '#f8f9fa',
 									flexShrink: 0,
 								}}
 							>
@@ -80,13 +78,11 @@ function DraggableProductRow({
 							</div>
 							
 							<div
-								className="d-flex align-items-center justify-content-center"
+								className={`d-flex align-items-center justify-content-center ${isDarkMode ? 'bg-primary' : 'bg-primary bg-opacity-10'} text-white`}
 								style={{
 									width: '36px',
 									height: '36px',
 									borderRadius: '8px',
-									backgroundColor: '#e7f1ff',
-									color: '#0d6efd',
 									fontWeight: '600',
 									fontSize: '14px',
 									flexShrink: 0,
@@ -97,12 +93,11 @@ function DraggableProductRow({
 						</div>
 
 						<div 
-							className="flex-grow-1" 
+							className="flex-grow-1 text-body" 
 							style={{ 
 								minWidth: 0,
 								fontSize: '15px',
 								fontWeight: '500',
-								color: '#212529',
 							}}
 						>
 							{product.nome_produto || `Produto ${product.id_produto}`}
@@ -115,13 +110,10 @@ function DraggableProductRow({
 								style={{ fontSize: '14px' }}
 							/>
 							<span
-								className="px-2 py-1 rounded"
+								className="px-2 py-1 rounded bg-secondary bg-opacity-25 text-body-emphasis border"
 								style={{
 									fontSize: '13px',
-									backgroundColor: '#f8f9fa',
-									color: '#6c757d',
 									fontFamily: 'monospace',
-									border: '1px solid #e9ecef',
 								}}
 							>
 								{product.versao}
@@ -159,6 +151,8 @@ function DraggableProductRow({
  * Modal principal para editar produtos personalizados
  */
 export default function PersonalizedProductsModal({ show, onHide }: PersonalizedProductsModalProps) {
+	const { settings } = useThemeContext();
+	const isDarkMode = settings.theme === 'dark';
 	const { products, loading, error, refreshProducts, saveOrder } = usePersonalizedProducts();
 	const [localProducts, setLocalProducts] = useState<IPersonalizedProduct[]>([]);
 	const [saving, setSaving] = useState(false);
@@ -388,6 +382,8 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 				styleElement.id = styleId;
 				document.head.appendChild(styleElement);
 			}
+			const scrollbarThumbColor = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)';
+			const scrollbarThumbHoverColor = isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
 			styleElement.textContent = `
 				.modal.show:not(.confirm-dialog-wrapper) .modal-content {
 					height: 90vh !important;
@@ -408,11 +404,11 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 					background: transparent;
 				}
 				.products-scroll-container::-webkit-scrollbar-thumb {
-					background-color: rgba(0, 0, 0, 0.2);
+					background-color: ${scrollbarThumbColor};
 					border-radius: 3px;
 				}
 				.products-scroll-container::-webkit-scrollbar-thumb:hover {
-					background-color: rgba(0, 0, 0, 0.3);
+					background-color: ${scrollbarThumbHoverColor};
 				}
 			`;
 
@@ -443,7 +439,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 				style.remove();
 			}
 		};
-	}, [show]);
+	}, [show, isDarkMode]);
 
 	return (
 		<>
@@ -459,7 +455,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 					<IconifyIcon icon="lucide:package" className="me-2 text-primary d-none d-lg-block" />
 					<IconifyIcon icon="lucide:package" className="me-2 text-primary d-lg-none" style={{ fontSize: '1.25rem' }} />
 					<Modal.Title className="fw-bold text-body mb-0">
-						SOFTCOM - Painel do Desenvolvedor
+						Painel do Desenvolvedor
 					</Modal.Title>
 				</div>
 			</Modal.Header>
@@ -486,34 +482,19 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 						minHeight: 0,
 					}}>
 						<div style={{ padding: '0 4px' }}>
-						<div 
-								className="alert alert-info d-flex align-items-center mb-3"
-							style={{
-								backgroundColor: '#e7f1ff',
-								border: '1px solid #b6d4fe',
-								color: '#084298',
-								borderRadius: '8px',
-									padding: '12px 16px',
-							}}
-						>
+						<div className="alert alert-info d-flex align-items-center mb-3" style={{ borderRadius: '8px', padding: '12px 16px' }}>
 							<IconifyIcon 
 								icon="lucide:info" 
-									className="me-2 flex-shrink-0"
+								className="me-2 flex-shrink-0"
 								style={{ fontSize: '18px' }}
 							/>
-								<div style={{ lineHeight: '1.5' }}>
-									<strong>Como usar:</strong> Arraste os cards para reordenar os produtos na lista.
+							<div style={{ lineHeight: '1.5' }}>
+								<strong>Como usar:</strong> Arraste os cards para reordenar os produtos na lista.
 							</div>
 						</div>
 
 						{/* Formulário para adicionar produto */}
-						<div 
-							className="mb-4 p-3 rounded-3"
-							style={{
-								backgroundColor: '#f8f9fa',
-								border: '1px solid #e9ecef',
-							}}
-						>
+						<div className="mb-4 p-3 rounded-3 bg-body-tertiary border">
 							<Row className="g-3 align-items-end">
 								<Col xs={12} md={5}>
 									<label className="form-label fw-semibold small mb-2">
@@ -577,7 +558,6 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 										onClick={handleAddProduct}
 										disabled={!selectedProduct || !selectedVersion || addingProduct}
 										className="w-100"
-										style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
 									>
 										{addingProduct ? (
 											<>
@@ -613,7 +593,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 									overflowX: 'hidden',
 									minHeight: 0,
 									scrollbarWidth: 'thin',
-									scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
+									scrollbarColor: isDarkMode ? 'rgba(255, 255, 255, 0.2) transparent' : 'rgba(0, 0, 0, 0.2) transparent',
 									opacity: updatingOrder ? 0.5 : 1,
 									transition: 'opacity 0.2s ease',
 								}}
@@ -623,7 +603,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 										<div
 											ref={provided.innerRef}
 											{...provided.droppableProps}
-											className={`rounded-3 p-2 ${snapshot.isDraggingOver ? 'bg-light' : ''}`}
+											className={`rounded-3 p-2 ${snapshot.isDraggingOver ? 'bg-body-secondary' : ''}`}
 											style={{
 												minHeight: '100px',
 												transition: 'background-color 0.2s ease',
@@ -641,6 +621,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 														product={product} 
 														index={index} 
 														onDelete={handleDeleteClick}
+														isDarkMode={isDarkMode}
 													/>
 												))
 											)}
