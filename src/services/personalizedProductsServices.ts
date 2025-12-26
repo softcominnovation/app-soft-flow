@@ -56,3 +56,24 @@ export async function deleteProduct(id: number): Promise<void> {
 	}
 }
 
+export interface IAddPersonalizedProduct {
+	id_colaborador: number;
+	id_produto: number;
+	versao: string;
+	ordem: number;
+	selecionado: boolean;
+}
+
+export async function addPersonalizedProduct(data: IAddPersonalizedProduct): Promise<IPersonalizedProduct> {
+	try {
+		const res: AxiosResponse<IPersonalizedProduct> = await axios.post('/api/personalized-products', data);
+		return res.data;
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+

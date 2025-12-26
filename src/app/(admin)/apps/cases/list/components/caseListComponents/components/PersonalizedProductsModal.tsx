@@ -3,7 +3,7 @@ import { Modal, Button, Row, Col } from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { IPersonalizedProduct } from '@/types/personalizedProducts/IPersonalizedProduct';
 import { usePersonalizedProducts } from '../hooks/usePersonalizedProducts';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { useAsyncSelect } from '@/hooks';
@@ -14,7 +14,7 @@ import { assistant as fetchVersions, IVersionAssistant } from '@/services/versio
 import AsyncSelect from 'react-select/async';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import Cookies from 'js-cookie';
-import { updateProductOrder, deleteProduct } from '@/services/personalizedProductsServices';
+import { updateProductOrder, deleteProduct, addPersonalizedProduct } from '@/services/personalizedProductsServices';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface PersonalizedProductsModalProps {
@@ -186,6 +186,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 	const [deleting, setDeleting] = useState(false);
 	const [updatingOrder, setUpdatingOrder] = useState(false);
 	const [addingProduct, setAddingProduct] = useState(false);
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
 	// Autocomplete de Produto
 	const {
@@ -247,6 +248,9 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 			return;
 		}
 
+		// Salva a posição do scroll antes de atualizar
+		const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+
 		const items = Array.from(localProducts);
 		const [reorderedItem] = items.splice(result.source.index, 1);
 		items.splice(result.destination.index, 0, reorderedItem);
@@ -258,6 +262,13 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 		}));
 
 		setLocalProducts(reordered);
+
+		// Restaura a posição do scroll após a atualização
+		setTimeout(() => {
+			if (scrollContainerRef.current) {
+				scrollContainerRef.current.scrollTop = scrollTop;
+			}
+		}, 0);
 
 		// Faz PUT para atualizar a ordem do produto arrastado
 		const newOrder = result.destination.index;
@@ -337,18 +348,21 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 			// Obtém id_colaborador do cookie (mesmo usado no hook)
 			const colaboradorId = Number(Cookies.get('user_id') || '0');
 
-			// Adiciona novo produto
-			const newProduct: IPersonalizedProduct = {
-				id: Date.now(), // ID temporário
+			// A ordem sempre será a última (tamanho atual da lista)
+			const novaOrdem = localProducts.length;
+
+			// Faz POST para adicionar o produto
+			const newProduct = await addPersonalizedProduct({
 				id_colaborador: colaboradorId,
 				id_produto: productId,
-				nome_produto: selectedProduct.label,
 				versao: versionString,
-				ordem: localProducts.length,
+				ordem: novaOrdem,
 				selecionado: false,
-			};
+			});
 
-			setLocalProducts([...localProducts, newProduct]);
+			// Recarrega os produtos do servidor para garantir sincronização
+			await refreshProducts();
+			
 			setSelectedProduct(null);
 			setSelectedVersion(null);
 			toast.success('Produto adicionado à lista');
@@ -604,6 +618,7 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 						)}
 						<DragDropContext onDragEnd={handleDragEnd}>
 							<div 
+								ref={scrollContainerRef}
 								className="products-scroll-container"
 								style={{ 
 									flex: 1,
@@ -612,6 +627,8 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 									minHeight: 0,
 									scrollbarWidth: 'thin',
 									scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
+									opacity: updatingOrder ? 0.5 : 1,
+									transition: 'opacity 0.2s ease',
 								}}
 							>
 								<Droppable droppableId="products">
