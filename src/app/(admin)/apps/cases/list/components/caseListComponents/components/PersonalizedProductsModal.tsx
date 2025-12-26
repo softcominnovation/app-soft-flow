@@ -388,13 +388,13 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 				document.head.appendChild(styleElement);
 			}
 			styleElement.textContent = `
-				.modal.show:not(.confirm-dialog-modal) .modal-content {
+				.modal.show:not(.confirm-dialog-wrapper) .modal-content {
 					height: 90vh !important;
 					max-height: 90vh !important;
 					display: flex !important;
 					flex-direction: column !important;
 				}
-				.modal.show:not(.confirm-dialog-modal) .modal-dialog {
+				.modal.show:not(.confirm-dialog-wrapper) .modal-dialog {
 					margin-top: 5vh !important;
 					transform: none !important;
 					display: flex !important;
