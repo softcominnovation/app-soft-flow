@@ -131,25 +131,6 @@ function DraggableProductRow({
 						<div className="d-flex align-items-center flex-shrink-0" style={{ gap: '4px', marginLeft: '8px' }}>
 							<button
 								type="button"
-								className="btn btn-link flex-shrink-0"
-								style={{
-									minWidth: 'auto',
-									textDecoration: 'none',
-									color: '#22c55e',
-								}}
-								onClick={(e) => {
-									e.stopPropagation();
-									// TODO: Implementar função de edição
-								}}
-								title="Editar produto"
-							>
-								<IconifyIcon 
-									icon="lucide:edit" 
-									style={{ fontSize: '18px' }}
-								/>
-							</button>
-							<button
-								type="button"
 								className="btn btn-link text-danger flex-shrink-0 p-2"
 								style={{
 									minWidth: 'auto',
