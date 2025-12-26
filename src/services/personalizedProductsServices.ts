@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { IPersonalizedProductsResponse, IUpdateProductOrder } from '@/types/personalizedProducts/IPersonalizedProduct';
+import { IPersonalizedProduct, IPersonalizedProductsResponse, IUpdateProductOrder } from '@/types/personalizedProducts/IPersonalizedProduct';
 
 export async function getPersonalizedProducts(colaboradorId: number): Promise<IPersonalizedProductsResponse> {
 	try {
