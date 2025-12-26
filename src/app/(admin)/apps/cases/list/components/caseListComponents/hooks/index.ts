@@ -1,0 +1,2 @@
+export { usePersonalizedProducts } from './usePersonalizedProducts';
+

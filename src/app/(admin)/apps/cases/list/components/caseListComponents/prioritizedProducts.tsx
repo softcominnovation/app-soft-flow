@@ -9,6 +9,7 @@ import Cookies from 'js-cookie';
 import { useCallback, useState } from 'react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import ProductsDrawer from './ProductsDrawer';
+import PersonalizedProductsModal from './components/PersonalizedProductsModal';
 
 type Props = {
   projects: IAgendaDevAssistant[];
@@ -37,6 +38,7 @@ const PrioritizedProducts = ({
 }: Props) => {
   const { fetchCases, loading, pendingFilters, currentFilters } = useCasesContext();
   const [internalShowDrawer, setInternalShowDrawer] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   
   // Usa controle externo se fornecido, senão usa interno
   const showDrawer = externalShowDrawer !== undefined ? externalShowDrawer : internalShowDrawer;
@@ -85,10 +87,17 @@ const PrioritizedProducts = ({
       <Card style={{ height: 411, maxHeight: 411 }} className="d-none d-lg-block">
         <Card.Body style={{ display: 'flex', flexDirection: 'column', padding: 0, height: '100%' }}>
           <div style={{ padding: '1.25rem', paddingBottom: '0.5rem', flexShrink: 0 }}>
-            <CardTitle
-              containerClass="d-flex align-items-center justify-content-between mb-2"
-              title="Produtos"
-            />
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <h4 className="header-title mb-0">Produtos</h4>
+              <button
+                type="button"
+                className="btn btn-sm btn-light"
+                onClick={() => setShowEditModal(true)}
+                title="Editar produtos personalizados"
+              >
+                <i className="mdi mdi-pencil"></i>
+              </button>
+            </div>
           </div>
 
         {/* Desktop (lg+) - tabela */}
@@ -189,6 +198,12 @@ const PrioritizedProducts = ({
           }
         }}
         projects={projects}
+      />
+
+      {/* Modal de edição de produtos personalizados */}
+      <PersonalizedProductsModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
       />
     </>
   );
