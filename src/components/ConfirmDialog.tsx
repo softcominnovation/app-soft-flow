@@ -1,6 +1,7 @@
 'use client';
 import { Modal, Button } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import { useEffect } from 'react';
 
 interface ConfirmDialogProps {
 	show: boolean;
@@ -25,6 +26,59 @@ export default function ConfirmDialog({
 	onCancel,
 	loading = false,
 }: ConfirmDialogProps) {
+	useEffect(() => {
+		const styleId = 'confirm-dialog-styles';
+		let styleElement = document.getElementById(styleId) as HTMLStyleElement;
+		if (!styleElement) {
+			styleElement = document.createElement('style');
+			styleElement.id = styleId;
+			document.head.appendChild(styleElement);
+		}
+		
+		styleElement.textContent = `
+			.confirm-dialog-modal {
+				z-index: 1070 !important;
+			}
+			.confirm-dialog-modal + .modal-backdrop {
+				z-index: 1069 !important;
+			}
+			.confirm-dialog-modal .modal-dialog {
+				max-width: 400px !important;
+				width: 90% !important;
+				margin: 1.75rem auto !important;
+				height: auto !important;
+				max-height: none !important;
+				transform: translate(-50%, -50%) !important;
+				position: fixed !important;
+				top: 50% !important;
+				left: 50% !important;
+				margin-top: 0 !important;
+				margin-left: 0 !important;
+			}
+			.confirm-dialog-modal .modal-content {
+				max-height: none !important;
+				height: auto !important;
+				display: flex !important;
+				flex-direction: column !important;
+				overflow: visible !important;
+				border-radius: 0.5rem !important;
+			}
+			.confirm-dialog-modal .modal-header,
+			.confirm-dialog-modal .modal-body,
+			.confirm-dialog-modal .modal-footer {
+				flex-shrink: 0 !important;
+				overflow: visible !important;
+			}
+		`;
+
+		return () => {
+			const style = document.getElementById(styleId);
+			if (style) {
+				style.remove();
+			}
+		};
+	}, []);
+
 	return (
 		<Modal
 			show={show}
@@ -34,17 +88,19 @@ export default function ConfirmDialog({
 			centered
 			size="sm"
 			contentClassName="shadow-lg"
+			dialogClassName="confirm-dialog-modal"
+			enforceFocus={false}
 		>
-			<Modal.Header closeButton={!loading}>
-				<Modal.Title className="d-flex align-items-center">
+			<Modal.Header closeButton={!loading} style={{ padding: '1rem', flexShrink: 0 }}>
+				<Modal.Title className="d-flex align-items-center" style={{ fontSize: '1.1rem', margin: 0 }}>
 					<IconifyIcon icon="lucide:alert-circle" className="me-2 text-warning" />
 					{title}
 				</Modal.Title>
 			</Modal.Header>
-			<Modal.Body>
-				<p className="mb-0">{message}</p>
+			<Modal.Body style={{ padding: '1rem', flexShrink: 0 }}>
+				<p className="mb-0" style={{ margin: 0 }}>{message}</p>
 			</Modal.Body>
-			<Modal.Footer>
+			<Modal.Footer style={{ padding: '0.75rem 1rem', flexShrink: 0 }}>
 				<Button variant="secondary" onClick={onCancel} disabled={loading}>
 					{cancelText}
 				</Button>

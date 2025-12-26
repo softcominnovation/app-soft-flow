@@ -30,3 +30,29 @@ export async function updateProductsOrder(updates: IUpdateProductOrder[]): Promi
 	}
 }
 
+export async function updateProductOrder(id: number, ordem: number): Promise<void> {
+	try {
+		await axios.put(`/api/personalized-products/order/${id}`, {
+			ordem,
+		});
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
+export async function deleteProduct(id: number): Promise<void> {
+	try {
+		await axios.delete(`/api/personalized-products/order/${id}`);
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
