@@ -316,11 +316,15 @@ export default function CaseTimeTrackerTimeControl({
                           menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                           styles={{
                             ...getAsyncSelectStyles(isDarkMode),
-                            control: (base, state) => ({
-                              ...getAsyncSelectStyles(isDarkMode).control(base, state),
-                              minHeight: '38px',
-                              fontSize: '0.875rem'
-                            }),
+                            control: (base, state) => {
+                              const baseStyles = getAsyncSelectStyles(isDarkMode);
+                              const baseControl = baseStyles.control?.(base, state) || base;
+                              return {
+                                ...baseControl,
+                                minHeight: '38px',
+                                fontSize: '0.875rem'
+                              };
+                            },
                             menuPortal: (base) => ({ ...base, zIndex: 9999 })
                           }}
                         />
