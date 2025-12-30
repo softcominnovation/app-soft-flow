@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
 import { UseFormReturn } from 'react-hook-form';
+import { useQuery } from '@/hooks';
+import { extractCaseFiltersFromUrl } from '@/utils/caseFilterUtils';
 import { assistant as fetchProducts } from '@/services/productsServices';
 import { assistant as fetchUsers } from '@/services/usersServices';
 import { assistant as fetchVersions } from '@/services/versionsServices';
@@ -142,5 +144,33 @@ export function useCaseFiltersInitialization({
 				});
 		}
 	}, [setSelectedUser, methods, selectedUser]);
+
+	// Inicializar campos do formulário com valores da URL
+	const queryParams = useQuery();
+	const urlFiltersInitializedRef = useRef(false);
+	
+	useEffect(() => {
+		if (urlFiltersInitializedRef.current) return;
+		
+		const urlFilters = extractCaseFiltersFromUrl(queryParams);
+		
+		// Inicializar campos de texto da URL
+		if (urlFilters.descricao_resumo) {
+			methods.setValue('descricao_resumo', urlFilters.descricao_resumo);
+		}
+		if (urlFilters.descricao_completa) {
+			methods.setValue('descricao_completa', urlFilters.descricao_completa);
+		}
+		if (urlFilters.data_producao_inicio) {
+			methods.setValue('data_producao_inicio', urlFilters.data_producao_inicio);
+		}
+		if (urlFilters.data_producao_fim) {
+			methods.setValue('data_producao_fim', urlFilters.data_producao_fim);
+		}
+		
+		if (urlFilters.descricao_resumo || urlFilters.descricao_completa || urlFilters.data_producao_inicio || urlFilters.data_producao_fim) {
+			urlFiltersInitializedRef.current = true;
+		}
+	}, [methods, queryParams]);
 }
 

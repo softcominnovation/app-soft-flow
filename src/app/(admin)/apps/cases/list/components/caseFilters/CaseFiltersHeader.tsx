@@ -14,6 +14,7 @@ interface CaseFiltersHeaderProps {
 	onSubmit: () => void;
 	selectedCases: Set<string>;
 	onOpenTransferModal: () => void;
+	onClearAllFilters?: () => void;
 }
 
 /**
@@ -31,6 +32,7 @@ export default function CaseFiltersHeader({
 	onSubmit,
 	selectedCases,
 	onOpenTransferModal,
+	onClearAllFilters,
 }: CaseFiltersHeaderProps) {
 	return (
 		<div className="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 mb-0 mb-lg-3">
@@ -98,6 +100,22 @@ export default function CaseFiltersHeader({
 							{loading ? 'Pesquisando...' : 'Pesquisar'}
 						</Button>
 					</>
+				)}
+
+				{/* Botão para limpar todos os filtros - aparece quando os filtros estão fechados */}
+				{!showFiltersDesktop && onClearAllFilters && (
+					<Button
+						type="button"
+						variant="outline-danger"
+						size="sm"
+						disabled={loading}
+						onClick={onClearAllFilters}
+						className="d-inline-flex align-items-center gap-1"
+						title="Limpar todos os filtros"
+					>
+						<i className="mdi mdi-filter-off" />
+						<span className="d-none d-sm-inline">Limpar Filtros</span>
+					</Button>
 				)}
 			</div>
 			{/* Desktop: mostra botões de adicionar e transferir casos */}

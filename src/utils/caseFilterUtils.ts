@@ -57,6 +57,26 @@ export const extractCaseFiltersFromUrl = (queryParams: QueryParams): ICaseFilter
 		filters.versao_produto = versaoProduto;
 	}
 
+	const descricaoResumo = getStringValue(queryParams['descricao_resumo']);
+	if (descricaoResumo) {
+		filters.descricao_resumo = descricaoResumo;
+	}
+
+	const descricaoCompleta = getStringValue(queryParams['descricao_completa']);
+	if (descricaoCompleta) {
+		filters.descricao_completa = descricaoCompleta;
+	}
+
+	const dataProducaoInicio = getStringValue(queryParams['data_producao_inicio']);
+	if (dataProducaoInicio) {
+		filters.data_producao_inicio = dataProducaoInicio;
+	}
+
+	const dataProducaoFim = getStringValue(queryParams['data_producao_fim']);
+	if (dataProducaoFim) {
+		filters.data_producao_fim = dataProducaoFim;
+	}
+
 	const sortBy = getStringValue(queryParams['sort_by']);
 	if (sortBy) {
 		filters.sort_by = sortBy;
@@ -83,6 +103,10 @@ export const hasFilterParams = (queryParams: QueryParams): boolean => {
 		queryParams['produto_id'] ||
 		queryParams['versao_produto'] ||
 		queryParams['status_id'] ||
+		queryParams['descricao_resumo'] ||
+		queryParams['descricao_completa'] ||
+		queryParams['data_producao_inicio'] ||
+		queryParams['data_producao_fim'] ||
 		queryParams['sort_by']
 	);
 };
@@ -107,6 +131,22 @@ export const buildFilterQueryParams = (filters: ICaseFilter): string[] => {
 
 	if (filters.versao_produto) {
 		params.push(`versao_produto=${encodeURIComponent(filters.versao_produto)}`);
+	}
+
+	if (filters.descricao_resumo) {
+		params.push(`descricao_resumo=${encodeURIComponent(filters.descricao_resumo)}`);
+	}
+
+	if (filters.descricao_completa) {
+		params.push(`descricao_completa=${encodeURIComponent(filters.descricao_completa)}`);
+	}
+
+	if (filters.data_producao_inicio) {
+		params.push(`data_producao_inicio=${encodeURIComponent(filters.data_producao_inicio)}`);
+	}
+
+	if (filters.data_producao_fim) {
+		params.push(`data_producao_fim=${encodeURIComponent(filters.data_producao_fim)}`);
 	}
 
 	if (filters.sort_by) {

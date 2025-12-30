@@ -54,6 +54,7 @@ interface CaseFiltersMobileProps {
 	loadingRegistro: boolean;
 	onSubmit: () => void;
 	methods: any;
+	onClearAllFilters?: () => void;
 }
 
 /**
@@ -98,6 +99,7 @@ export default function CaseFiltersMobile({
 	loadingRegistro,
 	onSubmit,
 	methods,
+	onClearAllFilters,
 }: CaseFiltersMobileProps) {
 	return (
 		<div className="d-lg-none">
@@ -147,6 +149,7 @@ export default function CaseFiltersMobile({
 					methods={methods}
 					isMobile={true}
 					onCloseDrawer={onHide}
+					onClearAllFilters={onClearAllFilters}
 				/>
 			</BottomDrawer>
 		</div>

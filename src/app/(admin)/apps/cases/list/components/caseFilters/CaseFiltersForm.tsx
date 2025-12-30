@@ -55,6 +55,7 @@ interface CaseFiltersFormProps {
 	methods: any; // UseFormReturn - precisa para setValue
 	isMobile?: boolean;
 	onCloseDrawer?: () => void;
+	onClearAllFilters?: () => void;
 }
 
 /**
@@ -99,6 +100,7 @@ export default function CaseFiltersForm({
 	methods,
 	isMobile = false,
 	onCloseDrawer,
+	onClearAllFilters,
 }: CaseFiltersFormProps) {
 	const handleSubmit = () => {
 		onSubmit();
@@ -108,6 +110,7 @@ export default function CaseFiltersForm({
 	};
 
 	return (
+		<>
 		<Row className={isMobile ? 'g-3 align-items-end' : 'g-3 g-lg-4 align-items-end'}>
 			<CaseFilterField<IProductAssistant>
 				name="produto_id"
@@ -201,29 +204,96 @@ export default function CaseFiltersForm({
 			<Col
 				xs={12}
 				sm={isMobile ? 12 : 6}
-				md={isMobile ? 12 : 4}
-				lg={isMobile ? 12 : 2}
-				className="d-grid"
+				md={isMobile ? 12 : 6}
+				lg={isMobile ? 12 : 3}
 			>
+				<Form.Label className="fw-medium text-muted small">Descrição Resumo</Form.Label>
+				<Form.Control
+					type="text"
+					{...methods.register('descricao_resumo')}
+					placeholder="Pesquise por descrição resumo..."
+					className="form-control-sm"
+				/>
+			</Col>
+
+			<Col
+				xs={12}
+				sm={isMobile ? 12 : 6}
+				md={isMobile ? 12 : 6}
+				lg={isMobile ? 12 : 3}
+			>
+				<Form.Label className="fw-medium text-muted small">Descrição Completa</Form.Label>
+				<Form.Control
+					type="text"
+					{...methods.register('descricao_completa')}
+					placeholder="Pesquise por descrição completa..."
+					className="form-control-sm"
+				/>
+			</Col>
+
+			<Col
+				xs={12}
+				sm={isMobile ? 12 : 6}
+				md={isMobile ? 12 : 6}
+				lg={isMobile ? 12 : 3}
+			>
+				<Form.Label className="fw-medium text-muted small">Data Produção Início</Form.Label>
+				<Form.Control
+					type="date"
+					{...methods.register('data_producao_inicio')}
+					className="form-control-sm"
+				/>
+			</Col>
+
+			<Col
+				xs={12}
+				sm={isMobile ? 12 : 6}
+				md={isMobile ? 12 : 6}
+				lg={isMobile ? 12 : 3}
+			>
+				<Form.Label className="fw-medium text-muted small">Data Produção Fim</Form.Label>
+				<Form.Control
+					type="date"
+					{...methods.register('data_producao_fim')}
+					className="form-control-sm"
+				/>
+			</Col>
+
+		</Row>
+		<Row className={isMobile ? 'g-3 mt-2' : 'g-3 g-lg-4 mt-2'}>
+			<Col xs={12} className="d-flex justify-content-end gap-2">
 				<Button
 					type="submit"
 					variant="primary"
 					size="sm"
 					disabled={loading || loadingRegistro}
-					className={isMobile ? 'w-100' : 'filter-search-button w-100'}
 					onClick={handleSubmit}
 				>
 					{loading || loadingRegistro ? (
-						<span className={isMobile ? 'text-center d-flex align-items-center justify-content-center gap-2' : 'text-center'}>
-							<span style={isMobile ? {} : { marginRight: '10px' }}>Pesquisando</span>
+						<span className="d-flex align-items-center gap-2">
+							<span>Pesquisando</span>
 							<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />
 						</span>
 					) : (
 						'Pesquisar'
 					)}
 				</Button>
+				{onClearAllFilters && (
+					<Button
+						type="button"
+						variant="outline-danger"
+						size="sm"
+						disabled={loading || loadingRegistro}
+						onClick={onClearAllFilters}
+						title="Limpar todos os filtros"
+					>
+						<i className="mdi mdi-filter-off" />
+						<span className="ms-1">Limpar Filtros</span>
+					</Button>
+				)}
 			</Col>
 		</Row>
+		</>
 	);
 }
 

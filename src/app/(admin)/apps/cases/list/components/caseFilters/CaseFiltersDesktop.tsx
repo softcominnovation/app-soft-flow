@@ -53,6 +53,7 @@ interface CaseFiltersDesktopProps {
 	loadingRegistro: boolean;
 	onSubmit: () => void;
 	methods: any;
+	onClearAllFilters?: () => void;
 }
 
 /**
@@ -96,6 +97,7 @@ export default function CaseFiltersDesktop({
 	loadingRegistro,
 	onSubmit,
 	methods,
+	onClearAllFilters,
 }: CaseFiltersDesktopProps) {
 	return (
 		<Collapse in={show} mountOnEnter unmountOnExit className="d-none d-lg-block">
@@ -138,6 +140,7 @@ export default function CaseFiltersDesktop({
 					onSubmit={onSubmit}
 					methods={methods}
 					isMobile={false}
+					onClearAllFilters={onClearAllFilters}
 				/>
 			</div>
 		</Collapse>
