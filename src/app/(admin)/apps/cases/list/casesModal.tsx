@@ -58,7 +58,7 @@ export default function CasesModal({
             <Modal
                 show={isOpen}
                 onHide={toggleModal}
-                size="lg"
+                size="xl"
                 backdrop="static"
                 fullscreen="sm-down"
             >

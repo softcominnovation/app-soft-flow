@@ -101,7 +101,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			Liberacao: toBoolean(values.liberacao),
 			// nao_planejado é gerenciado pelo controle de tempo, não pelo formulário de resumo
 			entregue: toBoolean(values.entregue),
-			atualizacao_automatica: toBoolean(values.atualizacao_auto), // API usa "atualizacao_automatica"
+			atualizacao_automatica: toBoolean(values.atualizacao_auto),
 		};
 	}, [getValues]);
 

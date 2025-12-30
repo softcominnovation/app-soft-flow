@@ -17,4 +17,12 @@ export default interface ICasePost {
 	Id_Origem?: string;
 	modulo?: string;
 	qa_id?: AsyncSelectOption<IUserAssistant>;
+	// Campos de Viabilidade
+	viabilidade?: boolean;
+	entendivel?: boolean;
+	realizavel?: boolean;
+	completo?: boolean;
+	liberacao?: boolean;
+	entregue?: boolean;
+	atualizacao_auto?: boolean;
 }

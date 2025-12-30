@@ -9,6 +9,7 @@ import IProjectAssistant from '@/types/assistant/IProjectAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { useEffect, useRef } from 'react';
 import { asyncSelectStyles } from '@/components/Form/asyncSelectStyles';
+import ViabilitySection from './resumeForm/components/ViabilitySection';
 
 export default function CasesAssingMentsForm() {
 	const methods = useFormContext();
@@ -254,6 +255,9 @@ export default function CasesAssingMentsForm() {
 							/>
 						</div>
 					</div>
+
+					{/* Seção de Viabilidade */}
+					<ViabilitySection control={control} />
 				</Card.Body>
 			</Card>
 		</div>

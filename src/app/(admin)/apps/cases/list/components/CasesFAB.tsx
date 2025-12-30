@@ -56,7 +56,7 @@ export default function CasesFAB({ onOpenFilters, onOpenProducts, showFiltersDra
 			<Modal
 				show={isOpen}
 				onHide={toggleModal}
-				size="lg"
+				size="xl"
 				backdrop="static"
 				fullscreen="sm-down"
 			>

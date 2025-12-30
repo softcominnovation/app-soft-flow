@@ -56,6 +56,15 @@ export default function CaseWizard({ onClose }: { onClose?: () => void }) {
 		const descricaoResumo = resolve('descricao_resumo', 'description-resumo', 'descriptionSummary', 'descricaoResumo', 'description_resumo');
 		const descricaoCompleta = resolve('descricao_completa', 'description-completa', 'description', 'description-resumo');
 
+		// Função auxiliar para converter valores booleanos para número inteiro (0 ou 1)
+		const toInt = (value: any): number => {
+			if (value === null || value === undefined) return 0;
+			if (typeof value === 'boolean') return value ? 1 : 0;
+			if (typeof value === 'string') return value === 'true' || value === '1' ? 1 : 0;
+			if (typeof value === 'number') return value !== 0 ? 1 : 0;
+			return Boolean(value) ? 1 : 0;
+		};
+
         const payload: any = {
             Projeto: data.product?.value ?? data.product ?? null,
             AtribuidoPara: data.usuario_id?.value ?? data.usuario_id ?? null,
@@ -72,6 +81,14 @@ export default function CaseWizard({ onClose }: { onClose?: () => void }) {
             Modulo: data.modulo ?? undefined,
             QaId: (data as any).qa_id?.value ?? (data as any).qa_id ?? undefined,
             Id_Usuario_AberturaCaso: data.Id_Usuario_AberturaCaso ?? Cookies.get('user_id') ?? undefined,
+            // Campos de Viabilidade
+            Viabilidade: toInt(data.viabilidade),
+            Viabilidade_Entendido: toInt(data.entendivel),
+            Viabilidade_Realizavel: toInt(data.realizavel),
+            Viabilidade_Completo: toInt(data.completo),
+            Liberacao: toInt(data.liberacao),
+            entregue: toInt(data.entregue),
+            atualizacao_automatica: toInt(data.atualizacao_auto),
         };
 
 		console.log('Payload to API:', payload);
