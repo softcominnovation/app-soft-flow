@@ -35,7 +35,8 @@ export default function ViabilityGroupHeader({ control }: ViabilityGroupHeaderPr
 			control={control}
 			render={({ field }) => {
 				// Usa allChecked para mostrar o estado visual, mas mantém field.value para controle
-				const displayChecked = allChecked;
+				// Garante que sempre seja um booleano para evitar erro de componente não controlado
+				const displayChecked = Boolean(allChecked);
 				
 				const handleChange = (checked: boolean) => {
 					field.onChange(checked);

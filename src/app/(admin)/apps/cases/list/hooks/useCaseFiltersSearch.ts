@@ -32,7 +32,6 @@ export function useCaseFiltersSearch({
 		const hasSelectedStatus =
 			selectedStatus !== null && selectedStatus !== undefined && selectedStatus.value;
 		const hasDescricaoResumo = data.descricao_resumo && data.descricao_resumo.trim() !== '';
-		const hasDescricaoCompleta = data.descricao_completa && data.descricao_completa.trim() !== '';
 		const hasDataProducaoInicio = data.data_producao_inicio && data.data_producao_inicio.trim() !== '';
 		const hasDataProducaoFim = data.data_producao_fim && data.data_producao_fim.trim() !== '';
 
@@ -48,7 +47,6 @@ export function useCaseFiltersSearch({
 					...(hasVersaoProduto && { versao_produto: data.versao_produto }),
 					...(usuarioId && usuarioId !== '' ? { usuario_dev_id: usuarioId } : {}),
 					...(hasDescricaoResumo && { descricao_resumo: data.descricao_resumo.trim() }),
-					...(hasDescricaoCompleta && { descricao_completa: data.descricao_completa.trim() }),
 					...(hasDataProducaoInicio && { data_producao_inicio: data.data_producao_inicio.trim() }),
 					...(hasDataProducaoFim && { data_producao_fim: data.data_producao_fim.trim() }),
 					sort_by: 'prioridade',

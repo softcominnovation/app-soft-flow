@@ -62,11 +62,6 @@ export const extractCaseFiltersFromUrl = (queryParams: QueryParams): ICaseFilter
 		filters.descricao_resumo = descricaoResumo;
 	}
 
-	const descricaoCompleta = getStringValue(queryParams['descricao_completa']);
-	if (descricaoCompleta) {
-		filters.descricao_completa = descricaoCompleta;
-	}
-
 	const dataProducaoInicio = getStringValue(queryParams['data_producao_inicio']);
 	if (dataProducaoInicio) {
 		filters.data_producao_inicio = dataProducaoInicio;
@@ -104,7 +99,6 @@ export const hasFilterParams = (queryParams: QueryParams): boolean => {
 		queryParams['versao_produto'] ||
 		queryParams['status_id'] ||
 		queryParams['descricao_resumo'] ||
-		queryParams['descricao_completa'] ||
 		queryParams['data_producao_inicio'] ||
 		queryParams['data_producao_fim'] ||
 		queryParams['sort_by']
@@ -135,10 +129,6 @@ export const buildFilterQueryParams = (filters: ICaseFilter): string[] => {
 
 	if (filters.descricao_resumo) {
 		params.push(`descricao_resumo=${encodeURIComponent(filters.descricao_resumo)}`);
-	}
-
-	if (filters.descricao_completa) {
-		params.push(`descricao_completa=${encodeURIComponent(filters.descricao_completa)}`);
 	}
 
 	if (filters.data_producao_inicio) {

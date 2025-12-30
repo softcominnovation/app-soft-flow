@@ -14,7 +14,6 @@ interface CaseFiltersHeaderProps {
 	onSubmit: () => void;
 	selectedCases: Set<string>;
 	onOpenTransferModal: () => void;
-	onClearAllFilters?: () => void;
 }
 
 /**
@@ -32,7 +31,6 @@ export default function CaseFiltersHeader({
 	onSubmit,
 	selectedCases,
 	onOpenTransferModal,
-	onClearAllFilters,
 }: CaseFiltersHeaderProps) {
 	return (
 		<div className="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 mb-0 mb-lg-3">
@@ -64,15 +62,17 @@ export default function CaseFiltersHeader({
 					/>
 				</div>
 
-				{/* Desktop: mantém Collapse */}
+				{/* Desktop: botão para abrir drawer lateral */}
 				<Button
 					type="button"
 					variant="outline-secondary"
 					size="sm"
 					onClick={onToggleFiltersDesktop}
-					className="d-none d-lg-inline-flex"
+					className="d-none d-lg-inline-flex align-items-center gap-1"
+					title="Abrir filtros"
 				>
-					<i className="uil uil-search" />
+					<i className="mdi mdi-filter" />
+					<span>Filtros</span>
 				</Button>
 
 				{/* Mobile: botão para abrir drawer */}
@@ -86,37 +86,17 @@ export default function CaseFiltersHeader({
 					<i className="uil uil-search" />
 				</Button>
 
-				{!showFiltersDesktop && (
-					<>
-						{/* Desktop e telas >= sm: comportamento antigo (sem expandir) */}
-						<Button
-							type="submit"
-							variant="primary"
-							size="sm"
-							disabled={loading}
-							className="d-none d-sm-inline-flex"
-							onClick={onSubmit}
-						>
-							{loading ? 'Pesquisando...' : 'Pesquisar'}
-						</Button>
-					</>
-				)}
-
-				{/* Botão para limpar todos os filtros - aparece quando os filtros estão fechados */}
-				{!showFiltersDesktop && onClearAllFilters && (
-					<Button
-						type="button"
-						variant="outline-danger"
-						size="sm"
-						disabled={loading}
-						onClick={onClearAllFilters}
-						className="d-inline-flex align-items-center gap-1"
-						title="Limpar todos os filtros"
-					>
-						<i className="mdi mdi-filter-off" />
-						<span className="d-none d-sm-inline">Limpar Filtros</span>
-					</Button>
-				)}
+				{/* Botão de pesquisar - sempre visível */}
+				<Button
+					type="submit"
+					variant="primary"
+					size="sm"
+					disabled={loading}
+					className="d-none d-sm-inline-flex"
+					onClick={onSubmit}
+				>
+					{loading ? 'Pesquisando...' : 'Pesquisar'}
+				</Button>
 			</div>
 			{/* Desktop: mostra botões de adicionar e transferir casos */}
 			<div className="d-none d-lg-flex gap-2 align-items-center flex-shrink-0">

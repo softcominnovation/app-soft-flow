@@ -56,6 +56,7 @@ interface CaseFiltersFormProps {
 	isMobile?: boolean;
 	onCloseDrawer?: () => void;
 	onClearAllFilters?: () => void;
+	showButtonsInContent?: boolean;
 }
 
 /**
@@ -101,17 +102,18 @@ export default function CaseFiltersForm({
 	isMobile = false,
 	onCloseDrawer,
 	onClearAllFilters,
+	showButtonsInContent = true,
 }: CaseFiltersFormProps) {
 	const handleSubmit = () => {
 		onSubmit();
-		if (isMobile && onCloseDrawer) {
+		if (onCloseDrawer) {
 			onCloseDrawer();
 		}
 	};
 
 	return (
 		<>
-		<Row className={isMobile ? 'g-3 align-items-end' : 'g-3 g-lg-4 align-items-end'}>
+		<Row className={isMobile ? 'g-3 align-items-end' : 'g-3 align-items-end'}>
 			<CaseFilterField<IProductAssistant>
 				name="produto_id"
 				control={control}
@@ -124,7 +126,7 @@ export default function CaseFiltersForm({
 				isLoading={isLoadingProducts}
 				placeholder="Pesquise um produto..."
 				inputId="produto-id"
-				colSize={isMobile ? { xs: 12 } : { xs: 12, sm: 6, md: 6, lg: 3 }}
+				colSize={isMobile ? { xs: 12 } : { xs: 12 }}
 			/>
 
 			<CaseFilterField<IVersionAssistant>
@@ -142,7 +144,7 @@ export default function CaseFiltersForm({
 				isDisabled={!produtoId}
 				useCustomStyles
 				getValue={(option) => option?.raw?.versao || undefined}
-				colSize={isMobile ? { xs: 12 } : { xs: 12, sm: 6, md: 6, lg: 3 }}
+				colSize={isMobile ? { xs: 12 } : { xs: 12 }}
 			/>
 
 			<CaseFilterField<IProjectAssistant>
@@ -157,7 +159,7 @@ export default function CaseFiltersForm({
 				isLoading={isLoadingProjects}
 				placeholder="Pesquise um projeto..."
 				inputId="projeto-id"
-				colSize={isMobile ? { xs: 12 } : { xs: 12, sm: 6, md: 6, lg: 3 }}
+				colSize={isMobile ? { xs: 12 } : { xs: 12 }}
 			/>
 
 			<CaseFilterField<IUserAssistant>
@@ -178,7 +180,7 @@ export default function CaseFiltersForm({
 				placeholder="Pesquise um usuario..."
 				inputId="usuario-id"
 				getValue={(option) => (option ? option.value : '')}
-				colSize={isMobile ? { xs: 12 } : { xs: 12, sm: 6, md: 6, lg: 3 }}
+				colSize={isMobile ? { xs: 12 } : { xs: 12 }}
 			/>
 
 			<CaseFilterField<IStatusAssistant>
@@ -198,15 +200,10 @@ export default function CaseFiltersForm({
 				inputId="status-descricao"
 				useCustomStyles
 				getValue={(option) => option?.raw?.descricao ?? ''}
-				colSize={isMobile ? { xs: 12 } : { xs: 12, sm: 6, md: 6, lg: 3 }}
+				colSize={isMobile ? { xs: 12 } : { xs: 12 }}
 			/>
 
-			<Col
-				xs={12}
-				sm={isMobile ? 12 : 6}
-				md={isMobile ? 12 : 6}
-				lg={isMobile ? 12 : 3}
-			>
+			<Col xs={12}>
 				<Form.Label className="fw-medium text-muted small">Descrição Resumo</Form.Label>
 				<Form.Control
 					type="text"
@@ -216,27 +213,7 @@ export default function CaseFiltersForm({
 				/>
 			</Col>
 
-			<Col
-				xs={12}
-				sm={isMobile ? 12 : 6}
-				md={isMobile ? 12 : 6}
-				lg={isMobile ? 12 : 3}
-			>
-				<Form.Label className="fw-medium text-muted small">Descrição Completa</Form.Label>
-				<Form.Control
-					type="text"
-					{...methods.register('descricao_completa')}
-					placeholder="Pesquise por descrição completa..."
-					className="form-control-sm"
-				/>
-			</Col>
-
-			<Col
-				xs={12}
-				sm={isMobile ? 12 : 6}
-				md={isMobile ? 12 : 6}
-				lg={isMobile ? 12 : 3}
-			>
+			<Col xs={12}>
 				<Form.Label className="fw-medium text-muted small">Data Produção Início</Form.Label>
 				<Form.Control
 					type="date"
@@ -245,12 +222,7 @@ export default function CaseFiltersForm({
 				/>
 			</Col>
 
-			<Col
-				xs={12}
-				sm={isMobile ? 12 : 6}
-				md={isMobile ? 12 : 6}
-				lg={isMobile ? 12 : 3}
-			>
+			<Col xs={12}>
 				<Form.Label className="fw-medium text-muted small">Data Produção Fim</Form.Label>
 				<Form.Control
 					type="date"
@@ -260,39 +232,45 @@ export default function CaseFiltersForm({
 			</Col>
 
 		</Row>
-		<Row className={isMobile ? 'g-3 mt-2' : 'g-3 g-lg-4 mt-2'}>
-			<Col xs={12} className="d-flex justify-content-end gap-2">
-				<Button
-					type="submit"
-					variant="primary"
-					size="sm"
-					disabled={loading || loadingRegistro}
-					onClick={handleSubmit}
-				>
-					{loading || loadingRegistro ? (
-						<span className="d-flex align-items-center gap-2">
-							<span>Pesquisando</span>
-							<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />
-						</span>
-					) : (
-						'Pesquisar'
-					)}
-				</Button>
-				{onClearAllFilters && (
+		{showButtonsInContent && (
+			<Row className={isMobile ? 'g-3 mt-2' : 'g-3 mt-2'}>
+				<Col xs={12} className="d-grid">
 					<Button
-						type="button"
-						variant="outline-danger"
+						type="submit"
+						variant="primary"
 						size="sm"
 						disabled={loading || loadingRegistro}
-						onClick={onClearAllFilters}
-						title="Limpar todos os filtros"
+						onClick={handleSubmit}
+						className="w-100"
 					>
-						<i className="mdi mdi-filter-off" />
-						<span className="ms-1">Limpar Filtros</span>
+						{loading || loadingRegistro ? (
+							<span className="d-flex align-items-center justify-content-center gap-2">
+								<span>Pesquisando</span>
+								<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />
+							</span>
+						) : (
+							'Pesquisar'
+						)}
 					</Button>
+				</Col>
+				{onClearAllFilters && (
+					<Col xs={12} className="d-grid">
+						<Button
+							type="button"
+							variant="outline-danger"
+							size="sm"
+							disabled={loading || loadingRegistro}
+							onClick={onClearAllFilters}
+							title="Limpar todos os filtros"
+							className="w-100"
+						>
+							<i className="mdi mdi-filter-off" />
+							<span className="ms-1">Limpar Filtros</span>
+						</Button>
+					</Col>
 				)}
-			</Col>
-		</Row>
+			</Row>
+		)}
 		</>
 	);
 }

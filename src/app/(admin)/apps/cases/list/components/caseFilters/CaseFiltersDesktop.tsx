@@ -1,4 +1,4 @@
-import { Collapse } from 'react-bootstrap';
+import SideDrawer from '@/components/SideDrawer';
 import CaseFiltersForm from './CaseFiltersForm';
 import { Control } from 'react-hook-form';
 import ICaseFilter from '@/types/cases/ICaseFilter';
@@ -8,9 +8,12 @@ import IProjectAssistant from '@/types/assistant/IProjectAssistant';
 import IUserAssistant from '@/types/assistant/IUserAssistant';
 import { IVersionAssistant } from '@/services/versionsServices';
 import { IStatusAssistant } from '@/services/statusServices';
+import { Row, Col, Button } from 'react-bootstrap';
+import Spinner from '@/components/Spinner';
 
 interface CaseFiltersDesktopProps {
 	show: boolean;
+	onHide: () => void;
 	control: Control<ICaseFilter>;
 	// Produtos
 	loadProductOptions: (input: string) => Promise<AsyncSelectOption<IProductAssistant>[]>;
@@ -57,10 +60,11 @@ interface CaseFiltersDesktopProps {
 }
 
 /**
- * Versão desktop dos filtros com Collapse
+ * Versão desktop dos filtros com Drawer lateral direito
  */
 export default function CaseFiltersDesktop({
 	show,
+	onHide,
 	control,
 	loadProductOptions,
 	selectedProduct,
@@ -99,9 +103,59 @@ export default function CaseFiltersDesktop({
 	methods,
 	onClearAllFilters,
 }: CaseFiltersDesktopProps) {
+	const handleSubmit = () => {
+		onSubmit();
+		onHide();
+	};
+
 	return (
-		<Collapse in={show} mountOnEnter unmountOnExit className="d-none d-lg-block">
-			<div>
+		<div className="d-none d-lg-block">
+			<SideDrawer
+				show={show}
+				onHide={onHide}
+				title="Filtros de Casos"
+				icon="lucide:filter"
+				width="550px"
+				footer={
+					<Row className="g-2">
+						<Col xs={12} className="d-grid">
+							<Button
+								type="button"
+								variant="primary"
+								size="sm"
+								disabled={loading || loadingRegistro}
+								onClick={handleSubmit}
+								className="w-100"
+							>
+								{loading || loadingRegistro ? (
+									<span className="d-flex align-items-center justify-content-center gap-2">
+										<span>Pesquisando</span>
+										<Spinner className="spinner-grow-sm" tag="span" color="white" type="bordered" />
+									</span>
+								) : (
+									'Pesquisar'
+								)}
+							</Button>
+						</Col>
+						{onClearAllFilters && (
+							<Col xs={12} className="d-grid">
+								<Button
+									type="button"
+									variant="outline-danger"
+									size="sm"
+									disabled={loading || loadingRegistro}
+									onClick={onClearAllFilters}
+									title="Limpar todos os filtros"
+									className="w-100"
+								>
+									<i className="mdi mdi-filter-off" />
+									<span className="ms-1">Limpar Filtros</span>
+								</Button>
+							</Col>
+						)}
+					</Row>
+				}
+			>
 				<CaseFiltersForm
 					control={control}
 					loadProductOptions={loadProductOptions}
@@ -140,10 +194,12 @@ export default function CaseFiltersDesktop({
 					onSubmit={onSubmit}
 					methods={methods}
 					isMobile={false}
+					onCloseDrawer={onHide}
 					onClearAllFilters={onClearAllFilters}
+					showButtonsInContent={false}
 				/>
-			</div>
-		</Collapse>
+			</SideDrawer>
+		</div>
 	);
 }
 

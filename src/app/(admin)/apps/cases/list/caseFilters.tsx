@@ -5,6 +5,16 @@ import { useCasesContext } from '@/contexts/casesContext';
 import { ICase } from '@/types/cases/ICase';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
+import { assistant as fetchProducts } from '@/services/productsServices';
+import { assistant as fetchUsers } from '@/services/usersServices';
+import { assistant as fetchVersions } from '@/services/versionsServices';
+import { assistant as fetchStatus } from '@/services/statusServices';
+import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
+import IProductAssistant from '@/types/assistant/IProductAssistant';
+import IUserAssistant from '@/types/assistant/IUserAssistant';
+import { IVersionAssistant } from '@/services/versionsServices';
+import { IStatusAssistant } from '@/services/statusServices';
 import {
 	useCaseFilters,
 	useCaseSearchByRegistro,
@@ -45,8 +55,8 @@ const CaseFilters = ({
 	const router = useRouter();
 	const [internalShowFilters, setInternalShowFilters] = useState(false);
 
-	// Desktop sempre usa estado interno para o Collapse
-	// Mobile usa estado externo para o Drawer
+	// Desktop sempre usa estado interno para o Drawer lateral
+	// Mobile usa estado externo para o Drawer inferior
 	const showFiltersDesktop = internalShowFilters;
 	const showFiltersMobile = externalShowFilters !== undefined ? externalShowFilters : false;
 
@@ -148,47 +158,163 @@ const CaseFilters = ({
 		}
 	};
 
-	// Função para limpar todos os filtros
-	const clearAllFilters = () => {
-		// Limpa todos os selects primeiro
-		setSelectedProduct(null);
+	// Função para restaurar o estado inicial dos filtros (localStorage + usuário logado)
+	const restoreInitialFilters = async () => {
+		// Limpa campos que não fazem parte do estado inicial
 		setSelectedProject(null);
-		setSelectedUser(null);
-		setSelectedVersion(null);
-		setSelectedStatus(null);
+		methods.setValue('projeto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+		methods.setValue('descricao_resumo', undefined as any, { shouldValidate: false, shouldDirty: false });
+		methods.setValue('data_producao_inicio', undefined as any, { shouldValidate: false, shouldDirty: false });
+		methods.setValue('data_producao_fim', undefined as any, { shouldValidate: false, shouldDirty: false });
 		
 		// Limpa o input de registro
 		setRegistroValue('');
 		
-		// Limpa explicitamente todos os campos do formulário com undefined/null
-		// Usa setValue para garantir que os valores sejam realmente limpos
-		methods.setValue('produto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('projeto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('usuario_id', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('status_id', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('status_descricao', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('descricao_resumo', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('descricao_completa', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('data_producao_inicio', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('data_producao_fim', undefined as any, { shouldValidate: false, shouldDirty: false });
-		methods.setValue('sort_by', undefined as any, { shouldValidate: false, shouldDirty: false });
+		// Restaura valores do localStorage
+		try {
+			const savedData = localStorage.getItem('lastSelectedProduct');
+			if (savedData) {
+				const parsed = JSON.parse(savedData);
+				
+				// Restaurar produto se existir
+				if (parsed.produto_id) {
+					methods.setValue('produto_id', parsed.produto_id);
+					try {
+						const products = await fetchProducts({ search: '', nome: '' });
+						const savedProduct = products.find((p) => p.id === parsed.produto_id);
+						if (savedProduct) {
+							const productOption: AsyncSelectOption<IProductAssistant> = {
+								value: savedProduct.id,
+								label: savedProduct.nome_projeto || savedProduct.setor || 'Produto sem nome',
+								raw: savedProduct,
+							};
+							setSelectedProduct(productOption);
+							
+							// Restaurar versão se existir
+							if (parsed.versao_produto && parsed.versao_produto.trim() !== '') {
+								methods.setValue('versao_produto', parsed.versao_produto);
+								try {
+									const versions = await fetchVersions({ produto_id: parsed.produto_id, search: '' });
+									const savedVersion = versions.find((v) => v.versao === parsed.versao_produto);
+									if (savedVersion) {
+										const versionOption: AsyncSelectOption<IVersionAssistant> = {
+											value: savedVersion.id,
+											label: savedVersion.versao || 'Versão sem nome',
+											raw: savedVersion,
+										};
+										setSelectedVersion(versionOption);
+									} else {
+										setSelectedVersion(null);
+										methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+									}
+								} catch (error) {
+									console.error('Erro ao buscar versão salva:', error);
+									setSelectedVersion(null);
+									methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+								}
+							} else {
+								setSelectedVersion(null);
+								methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+							}
+						} else {
+							setSelectedProduct(null);
+							setSelectedVersion(null);
+							methods.setValue('produto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+							methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+						}
+					} catch (error) {
+						console.error('Erro ao buscar produto salvo:', error);
+						setSelectedProduct(null);
+						setSelectedVersion(null);
+						methods.setValue('produto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+						methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+					}
+				} else {
+					setSelectedProduct(null);
+					setSelectedVersion(null);
+					methods.setValue('produto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+					methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+				}
+				
+				// Restaurar status se existir
+				if (parsed.status_id) {
+					methods.setValue('status_id', parsed.status_id);
+					try {
+						const statuses = await fetchStatus({ search: '' });
+						const savedStatus = statuses.find((s) => String(s.Registro) === String(parsed.status_id));
+						if (savedStatus) {
+							const statusOption: AsyncSelectOption<IStatusAssistant> = {
+								value: String(savedStatus.Registro),
+								label: savedStatus.descricao || savedStatus.tipo || 'Status sem nome',
+								raw: savedStatus,
+							};
+							setSelectedStatus(statusOption);
+							methods.setValue('status_descricao', savedStatus.descricao);
+						} else {
+							setSelectedStatus(null);
+							methods.setValue('status_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+							methods.setValue('status_descricao', undefined as any, { shouldValidate: false, shouldDirty: false });
+						}
+					} catch (error) {
+						console.error('Erro ao buscar status salvo:', error);
+						setSelectedStatus(null);
+						methods.setValue('status_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+						methods.setValue('status_descricao', undefined as any, { shouldValidate: false, shouldDirty: false });
+					}
+				} else {
+					setSelectedStatus(null);
+					methods.setValue('status_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+					methods.setValue('status_descricao', undefined as any, { shouldValidate: false, shouldDirty: false });
+				}
+			} else {
+				// Se não há dados salvos, limpa produto, versão e status
+				setSelectedProduct(null);
+				setSelectedVersion(null);
+				setSelectedStatus(null);
+				methods.setValue('produto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+				methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+				methods.setValue('status_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+				methods.setValue('status_descricao', undefined as any, { shouldValidate: false, shouldDirty: false });
+			}
+		} catch (error) {
+			console.error('Erro ao carregar do localStorage:', error);
+			// Em caso de erro, limpa tudo
+			setSelectedProduct(null);
+			setSelectedVersion(null);
+			setSelectedStatus(null);
+			methods.setValue('produto_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+			methods.setValue('versao_produto', undefined as any, { shouldValidate: false, shouldDirty: false });
+			methods.setValue('status_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+			methods.setValue('status_descricao', undefined as any, { shouldValidate: false, shouldDirty: false });
+		}
 		
-		// Limpa o formulário (reset) com valores undefined
-		// keepValues: false garante que os valores sejam realmente limpos
-		methods.reset({
-			produto_id: undefined,
-			versao_produto: undefined,
-			projeto_id: undefined,
-			usuario_id: undefined,
-			status_id: undefined,
-			status_descricao: undefined,
-			descricao_resumo: undefined,
-			descricao_completa: undefined,
-			data_producao_inicio: undefined,
-			data_producao_fim: undefined,
-			sort_by: undefined,
-		}, { keepDefaultValues: false, keepValues: false });
+		// Restaura o usuário logado
+		const currentUserId = Cookies.get('user_id');
+		if (currentUserId) {
+			try {
+				const users = await fetchUsers({ search: '', nome_suporte: '' });
+				const loggedUser = users.find((user) => user.id === currentUserId);
+				if (loggedUser) {
+					const userOption: AsyncSelectOption<IUserAssistant> = {
+						value: loggedUser.id,
+						label: loggedUser.nome_suporte || loggedUser.setor || 'Usuario sem nome',
+						raw: loggedUser,
+					};
+					setSelectedUser(userOption);
+					methods.setValue('usuario_id', loggedUser.id);
+				} else {
+					setSelectedUser(null);
+					methods.setValue('usuario_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+				}
+			} catch (error) {
+				console.error('Erro ao buscar usuário logado:', error);
+				setSelectedUser(null);
+				methods.setValue('usuario_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+			}
+		} else {
+			setSelectedUser(null);
+			methods.setValue('usuario_id', undefined as any, { shouldValidate: false, shouldDirty: false });
+		}
 		
 		// Limpa a URL removendo todos os parâmetros de filtro
 		if (typeof window !== 'undefined') {
@@ -203,7 +329,6 @@ const CaseFilters = ({
 				'projeto_id',
 				'usuario_id',
 				'descricao_resumo',
-				'descricao_completa',
 				'data_producao_inicio',
 				'data_producao_fim',
 			];
@@ -230,6 +355,11 @@ const CaseFilters = ({
 		}
 	};
 
+	// Função para limpar todos os filtros e restaurar ao estado inicial
+	const clearAllFilters = () => {
+		restoreInitialFilters();
+	};
+
 	return (
 		<FormProvider {...methods}>
 			<form onSubmit={methods.handleSubmit(handleSearch)} className="mb-0 mb-lg-3">
@@ -245,11 +375,11 @@ const CaseFilters = ({
 					onSubmit={() => methods.handleSubmit(handleSearch)()}
 					selectedCases={selectedCases}
 					onOpenTransferModal={handleOpenTransferModal}
-					onClearAllFilters={clearAllFilters}
 				/>
 
 				<CaseFiltersDesktop
 					show={showFiltersDesktop}
+					onHide={() => setInternalShowFilters(false)}
 					control={methods.control}
 					loadProductOptions={loadProductOptions}
 					selectedProduct={selectedProduct}

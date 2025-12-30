@@ -158,9 +158,6 @@ export function useCaseFiltersInitialization({
 		if (urlFilters.descricao_resumo) {
 			methods.setValue('descricao_resumo', urlFilters.descricao_resumo);
 		}
-		if (urlFilters.descricao_completa) {
-			methods.setValue('descricao_completa', urlFilters.descricao_completa);
-		}
 		if (urlFilters.data_producao_inicio) {
 			methods.setValue('data_producao_inicio', urlFilters.data_producao_inicio);
 		}
@@ -168,7 +165,7 @@ export function useCaseFiltersInitialization({
 			methods.setValue('data_producao_fim', urlFilters.data_producao_fim);
 		}
 		
-		if (urlFilters.descricao_resumo || urlFilters.descricao_completa || urlFilters.data_producao_inicio || urlFilters.data_producao_fim) {
+		if (urlFilters.descricao_resumo || urlFilters.data_producao_inicio || urlFilters.data_producao_fim) {
 			urlFiltersInitializedRef.current = true;
 		}
 	}, [methods, queryParams]);
