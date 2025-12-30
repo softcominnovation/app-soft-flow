@@ -185,31 +185,33 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 									<Form.Group style={{ marginBottom: '24px' }}>
 										<Form.Label className="fw-semibold mb-2">Anexo</Form.Label>
 									{isAnexoDisabled && anexoValue ? (
-										<div className="form-control" style={{ 
-											backgroundColor: 'var(--bs-tertiary-bg, #e9ecef)',
-											borderColor: 'var(--bs-border-color, #dee2e6)',
-											cursor: 'not-allowed',
-											display: 'flex',
-											alignItems: 'center',
-											padding: '0.375rem 0.75rem'
-										}}>
+										<Form.Control
+											as="div"
+											disabled
+											className="d-flex align-items-center"
+											style={{ 
+												cursor: 'not-allowed',
+												padding: '0.375rem 0.75rem'
+											}}
+										>
 											<a 
 												href={anexoValue.startsWith('http://') || anexoValue.startsWith('https://') ? anexoValue : `https://${anexoValue}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="text-primary text-decoration-underline d-flex align-items-center"
 												style={{ 
-													color: 'var(--bs-link-color, #0d6efd)',
+													color: 'var(--bs-link-color, #0d6efd) !important',
 													textDecoration: 'underline',
 													cursor: 'pointer',
-													pointerEvents: 'auto'
+													pointerEvents: 'auto',
+													width: '100%'
 												}}
 												onClick={(e) => e.stopPropagation()}
 											>
-												<IconifyIcon icon="lucide:external-link" className="me-1" style={{ fontSize: '1rem' }} />
-												{anexoValue}
+												<IconifyIcon icon="lucide:external-link" className="me-1" style={{ fontSize: '1rem', color: 'var(--bs-link-color, #0d6efd)' }} />
+												<span style={{ color: 'var(--bs-link-color, #0d6efd)' }}>{anexoValue}</span>
 											</a>
-										</div>
+										</Form.Control>
 									) : (
 										<TextInput 
 											type="text" 

@@ -25,12 +25,14 @@ export default function ViabilityCheckboxItem({ name, label, control, id }: Viab
 					<div 
 						className="viability-checkbox-item p-3 rounded h-100 position-relative"
 						style={{ 
-							backgroundColor: isChecked ? 'var(--bs-primary-bg-subtle, #f0f7ff)' : '#ffffff', 
-							border: `2px solid ${isChecked ? 'var(--bs-primary)' : '#e9ecef'}`,
+							backgroundColor: isChecked 
+								? 'rgba(var(--bs-primary-rgb, 13, 110, 253), 0.15)' 
+								: 'transparent', 
+							border: `2px solid ${isChecked ? 'var(--bs-primary)' : 'rgba(var(--bs-border-color-rgb, 222, 226, 230), 0.3)'}`,
 							transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
 							cursor: 'pointer',
 							boxShadow: isChecked 
-								? '0 2px 8px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.15)' 
+								? '0 4px 12px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
 								: '0 1px 3px rgba(0, 0, 0, 0.05)',
 						}}
 						onClick={() => field.onChange(!field.value)}
@@ -39,12 +41,18 @@ export default function ViabilityCheckboxItem({ name, label, control, id }: Viab
 								e.currentTarget.style.borderColor = 'var(--bs-primary)';
 								e.currentTarget.style.boxShadow = '0 2px 8px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.2)';
 								e.currentTarget.style.transform = 'translateY(-2px)';
+							} else {
+								e.currentTarget.style.boxShadow = '0 6px 16px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+								e.currentTarget.style.transform = 'translateY(-1px)';
 							}
 						}}
 						onMouseLeave={(e) => {
 							if (!isChecked) {
-								e.currentTarget.style.borderColor = '#e9ecef';
+								e.currentTarget.style.borderColor = 'rgba(var(--bs-border-color-rgb, 222, 226, 230), 0.3)';
 								e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+								e.currentTarget.style.transform = 'translateY(0)';
+							} else {
+								e.currentTarget.style.boxShadow = '0 4px 12px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
 								e.currentTarget.style.transform = 'translateY(0)';
 							}
 						}}
@@ -70,7 +78,7 @@ export default function ViabilityCheckboxItem({ name, label, control, id }: Viab
 							style={{ 
 								fontSize: '0.95rem',
 								fontWeight: isChecked ? '600' : '500',
-								color: isChecked ? 'var(--bs-primary)' : '#495057',
+								color: isChecked ? 'var(--bs-primary)' : 'inherit',
 								transition: 'all 0.2s ease',
 								cursor: 'pointer',
 								margin: 0,
@@ -84,11 +92,12 @@ export default function ViabilityCheckboxItem({ name, label, control, id }: Viab
 							<div 
 								className="position-absolute top-0 end-0 m-2"
 								style={{
-									width: '8px',
-									height: '8px',
+									width: '10px',
+									height: '10px',
 									backgroundColor: 'var(--bs-primary)',
 									borderRadius: '50%',
-									boxShadow: '0 0 0 3px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.2)'
+									boxShadow: '0 0 0 2px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.3), 0 2px 4px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.4)',
+									animation: 'pulse 2s ease-in-out infinite'
 								}}
 							/>
 						)}

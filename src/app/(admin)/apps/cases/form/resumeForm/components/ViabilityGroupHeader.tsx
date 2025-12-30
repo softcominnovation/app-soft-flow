@@ -48,7 +48,7 @@ export default function ViabilityGroupHeader({ control }: ViabilityGroupHeaderPr
 				
 				return (
 					<div 
-						className="viability-group-header d-flex align-items-center justify-content-between p-3 rounded mb-3 bg-light border"
+						className="viability-group-header d-flex align-items-center justify-content-between p-3 rounded mb-3 border"
 						style={{ 
 							transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
 						}}
@@ -66,7 +66,6 @@ export default function ViabilityGroupHeader({ control }: ViabilityGroupHeaderPr
 								className="fw-semibold" 
 								style={{ 
 									fontSize: '0.95rem', 
-									color: '#212529',
 									letterSpacing: '0.01em'
 								}}
 							>

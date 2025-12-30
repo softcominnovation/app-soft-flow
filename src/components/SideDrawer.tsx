@@ -90,7 +90,7 @@ export default function SideDrawer({
 					{children}
 				</div>
 				{footer && (
-					<div className="border-top bg-white px-4 py-3" style={{ flexShrink: 0 }}>
+					<div className="border-top px-4 py-3" style={{ flexShrink: 0 }}>
 						{footer}
 					</div>
 				)}

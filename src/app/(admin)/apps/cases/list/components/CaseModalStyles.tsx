@@ -18,6 +18,18 @@ export default function CaseModalStyles({ hasAnotacoes }: CaseModalStylesProps) 
 				}
 			` : ''}
 			
+			/* Animação de pulso para indicador de viabilidade */
+			@keyframes pulse {
+				0%, 100% {
+					opacity: 1;
+					transform: scale(1);
+				}
+				50% {
+					opacity: 0.7;
+					transform: scale(1.1);
+				}
+			}
+
 			/* Prevenir scroll do body quando modal está aberto */
 			body.modal-open {
 				overflow: hidden !important;
