@@ -46,9 +46,9 @@ export function useCaseFiltersSearch({
 					...(data.projeto_id && data.projeto_id.toString().trim() !== '' && { projeto_id: data.projeto_id }),
 					...(hasVersaoProduto && { versao_produto: data.versao_produto }),
 					...(usuarioId && usuarioId !== '' ? { usuario_dev_id: usuarioId } : {}),
-					...(hasDescricaoResumo && { descricao_resumo: data.descricao_resumo.trim() }),
-					...(hasDataProducaoInicio && { data_producao_inicio: data.data_producao_inicio.trim() }),
-					...(hasDataProducaoFim && { data_producao_fim: data.data_producao_fim.trim() }),
+				...(hasDescricaoResumo && data.descricao_resumo && { descricao_resumo: data.descricao_resumo.trim() }),
+				...(hasDataProducaoInicio && data.data_producao_inicio && { data_producao_inicio: data.data_producao_inicio.trim() }),
+				...(hasDataProducaoFim && data.data_producao_fim && { data_producao_fim: data.data_producao_fim.trim() }),
 					sort_by: 'prioridade',
 				};
 	};
