@@ -173,12 +173,20 @@ export interface Producao {
 }
 
 export interface ICaseResponse {
+	success: boolean;
 	data: ICase[];
 	pagination: {
 		has_more: boolean
 		next_cursor: "string" 
 		per_page: number
 		prev_cursor: number | null
+	}
+	totalizadores?: {
+		tempo_total_estimado_minutos: number;
+		tempo_total_realizado_minutos: number;
+		total_pontos: number;
+		custo_estimado_ponto: number;
+		custo_real_ponto: number;
 	}
 }
 

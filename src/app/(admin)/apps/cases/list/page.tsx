@@ -16,9 +16,10 @@ import { ICase } from '@/types/cases/ICase';
 import { findCase } from '@/services/caseServices';
 import Spinner from '@/components/Spinner';
 import { Form } from 'react-bootstrap';
+import CasesTotalizadores from './components/CasesTotalizadores';
 
 const CasesList = () => {
-	const { cases, loading } = useCasesContext();
+	const { cases, loading, totalizadores } = useCasesContext();
 	const [showFiltersDrawer, setShowFiltersDrawer] = useState(false);
 	const [showProductsDrawer, setShowProductsDrawer] = useState(false);
 	const [selectedCases, setSelectedCases] = useState<Set<string>>(new Set());
@@ -153,6 +154,11 @@ const CasesList = () => {
 									onCloseProductsDrawer={() => setShowProductsDrawer(false)}
 									mobileOnly
 								/>
+							</div>
+							
+							{/* Totalizadores - acima da tabela */}
+							<div className="mb-3">
+								<CasesTotalizadores totalizadores={totalizadores} loading={loading} />
 							</div>
 							
 							<div className="table-responsive">

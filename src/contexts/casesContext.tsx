@@ -12,6 +12,7 @@ interface CasesContextType {
 	loading: boolean;
 	loadingMore: boolean;
 	pagination: ICaseResponse['pagination'] | null;
+	totalizadores: ICaseResponse['totalizadores'] | null;
 	currentFilters: ICaseFilter | undefined;
 	pendingFilters: ICaseFilter | undefined;
 	agendaDev: IAgendaDevAssistant[];
@@ -37,6 +38,7 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [loadingMore, setLoadingMore] = useState<boolean>(false);
 	const [pagination, setPagination] = useState<ICaseResponse['pagination'] | null>(null);
+	const [totalizadores, setTotalizadores] = useState<ICaseResponse['totalizadores'] | null>(null);
 	const [currentFilters, setCurrentFilters] = useState<ICaseFilter | undefined>(undefined);
 	const [pendingFilters, setPendingFilters] = useState<ICaseFilter | undefined>(undefined);
 	const [agendaDev, setAgendaDev] = useState<IAgendaDevAssistant[]>([]);
@@ -113,6 +115,7 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 			const response = await allCase(sanitizedFilters);
 			setCases(response.data);
 			setPagination(response.pagination ?? null);
+			setTotalizadores(response.totalizadores ?? null);
 			setCurrentFilters(sanitizedFilters);
 			// Limpa os filtros pendentes após sucesso, pois agora estão confirmados em currentFilters
 			setPendingFilters(undefined);
@@ -262,7 +265,7 @@ export const CasesProvider = ({ children }: { children: React.ReactNode }) => {
 	}, [fetchCases]);
 
 	return (
-		<CasesContext.Provider value={{ cases, loading, loadingMore, pagination, currentFilters, pendingFilters, agendaDev, agendaDevLoading, fetchCases, loadMoreCases, fetchEspecifiedCases, fetchAgendaDev }}>
+		<CasesContext.Provider value={{ cases, loading, loadingMore, pagination, totalizadores, currentFilters, pendingFilters, agendaDev, agendaDevLoading, fetchCases, loadMoreCases, fetchEspecifiedCases, fetchAgendaDev }}>
 			{children}
 		</CasesContext.Provider>
 	);
