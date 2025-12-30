@@ -465,6 +465,8 @@ export default function ActiveCaseIndicator() {
 									e.stopPropagation();
 									setIsExpanded(!isExpanded);
 								}}
+								estimadoMinutos={caseData?.caso.tempos.estimado_minutos}
+								naoPlanejado={caseData?.caso.flags.nao_planejado}
 							/>
 							<CaseDescriptionCollapse caseData={caseData} isExpanded={isExpanded} />
 						</Card.Body>

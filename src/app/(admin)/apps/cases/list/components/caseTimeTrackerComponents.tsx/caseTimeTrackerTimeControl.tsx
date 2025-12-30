@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useCallback, useState, useEffect } from "react";
-import { Badge, Card, Col, Row, Form } from "react-bootstrap";
+import { Badge, Card, Col, Row, Form, Spinner } from "react-bootstrap";
 import IconifyIcon from "@/components/wrappers/IconifyIcon";
 import { useGetTipoBadgeVariant, useGetTipoIcon } from "@/hooks/caseTimeTracker/caseTimeTrackerVarianions";
 import { formatTipoLabel } from "@/hooks/caseTimeTracker/useFormatLabel";
@@ -91,6 +91,7 @@ export default function CaseTimeTrackerTimeControl({
   }, [caseId, onCaseUpdated]);
 
   const [naoPlanejadoValue, setNaoPlanejadoValue] = useState<boolean>(naoPlanejado);
+  const [naoPlanejadoLoading, setNaoPlanejadoLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setNaoPlanejadoValue(naoPlanejado);
@@ -99,6 +100,7 @@ export default function CaseTimeTrackerTimeControl({
   const handleNaoPlanejadoChange = useCallback(async (checked: boolean) => {
     setNaoPlanejadoValue(checked);
     if (caseId) {
+      setNaoPlanejadoLoading(true);
       try {
         await updateCase(caseId, { NaoPlanejado: checked ? 1 : 0 });
         toast.success('Campo atualizado com sucesso!');
@@ -108,6 +110,8 @@ export default function CaseTimeTrackerTimeControl({
       } catch (error) {
         setNaoPlanejadoValue(!checked);
         toast.error('Erro ao atualizar campo');
+      } finally {
+        setNaoPlanejadoLoading(false);
       }
     }
   }, [caseId, onCaseUpdated]);
@@ -188,6 +192,12 @@ export default function CaseTimeTrackerTimeControl({
   }, [isRunning, runningStart]);
 
   const shouldShowPointsInput = canEditPontos || !tamanhoPontos;
+
+  // Desabilita o botão de iniciar apenas se não tiver tempo estimado E não for não planejado
+  // Se não planejado for true, o botão fica habilitado mesmo sem tempo estimado
+  const shouldDisableStartButton = useMemo(() => {
+    return (!estimadoMinutos || estimadoMinutos === 0) && !naoPlanejadoValue;
+  }, [estimadoMinutos, naoPlanejadoValue]);
 
   return (
     <>
@@ -331,18 +341,20 @@ export default function CaseTimeTrackerTimeControl({
                         id="nao-planejado-time-checkbox"
                         checked={naoPlanejadoValue}
                         onChange={(e) => handleNaoPlanejadoChange(e.target.checked)}
+                        disabled={naoPlanejadoLoading}
                         className="mb-0"
                         style={{ 
-                          cursor: 'pointer',
+                          cursor: naoPlanejadoLoading ? 'wait' : 'pointer',
                           accentColor: 'var(--bs-primary)',
-                          marginTop: '0.125rem'
+                          marginTop: '0.125rem',
+                          opacity: naoPlanejadoLoading ? 0.6 : 1
                         }}
                       />
                       <Form.Label 
                         htmlFor="nao-planejado-time-checkbox"
                         className="mb-0 d-flex align-items-center gap-1"
                         style={{ 
-                          cursor: 'pointer',
+                          cursor: naoPlanejadoLoading ? 'wait' : 'pointer',
                           fontSize: '0.875rem',
                           fontWeight: naoPlanejadoValue ? '600' : '500',
                           color: naoPlanejadoValue ? 'var(--bs-primary)' : '#6c757d',
@@ -351,13 +363,25 @@ export default function CaseTimeTrackerTimeControl({
                           margin: 0
                         }}
                       >
-                        <IconifyIcon 
-                          icon="lucide:calendar-x" 
-                          style={{ 
-                            fontSize: '0.875rem',
-                            color: naoPlanejadoValue ? 'var(--bs-primary)' : '#6c757d'
-                          }} 
-                        />
+                        {naoPlanejadoLoading ? (
+                          <Spinner
+                            animation="border"
+                            size="sm"
+                            style={{ 
+                              width: '0.875rem',
+                              height: '0.875rem',
+                              borderWidth: '0.125rem'
+                            }}
+                          />
+                        ) : (
+                          <IconifyIcon 
+                            icon="lucide:calendar-x" 
+                            style={{ 
+                              fontSize: '0.875rem',
+                              color: naoPlanejadoValue ? 'var(--bs-primary)' : '#6c757d'
+                            }} 
+                          />
+                        )}
                         <span>Não Planejado</span>
                       </Form.Label>
                     </div>
@@ -449,7 +473,7 @@ export default function CaseTimeTrackerTimeControl({
                       icon="lucide:play"
                       label="Iniciar tempo"
                       loading={loading}
-                      disabled={loading || !caseId}
+                      disabled={loading || !caseId || shouldDisableStartButton}
                       onClick={handleStartTime}
                     />
                   )}

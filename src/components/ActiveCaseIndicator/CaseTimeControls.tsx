@@ -12,6 +12,8 @@ interface CaseTimeControlsProps {
 	onStopTime: (e: React.MouseEvent) => void;
 	onFinalize: (e: React.MouseEvent) => void;
 	onToggleExpand: (e: React.MouseEvent) => void;
+	estimadoMinutos?: number;
+	naoPlanejado?: boolean;
 }
 
 export default function CaseTimeControls({
@@ -23,7 +25,12 @@ export default function CaseTimeControls({
 	onStopTime,
 	onFinalize,
 	onToggleExpand,
+	estimadoMinutos,
+	naoPlanejado = false,
 }: CaseTimeControlsProps) {
+	// Desabilita o botão de iniciar apenas se não tiver tempo estimado E não for não planejado
+	// Se não planejado for true, o botão fica habilitado mesmo sem tempo estimado
+	const shouldDisableStartButton = (!estimadoMinutos || estimadoMinutos === 0) && !naoPlanejado;
 	return (
 		<div className="d-flex gap-2">
 			{isTimeRunning ? (
@@ -71,7 +78,7 @@ export default function CaseTimeControls({
 					size="sm"
 					className="fw-semibold flex-grow-1"
 					onClick={onStartTime}
-					disabled={timeLoading}
+					disabled={timeLoading || shouldDisableStartButton}
 					style={{ 
 						fontSize: '0.75rem',
 						borderWidth: '2px',
