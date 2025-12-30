@@ -14,7 +14,7 @@ import { assistant as fetchVersions, IVersionAssistant } from '@/services/versio
 import AsyncSelect from 'react-select/async';
 import { getAsyncSelectStyles } from '@/components/Form/asyncSelectStyles';
 import Cookies from 'js-cookie';
-import { updateProductOrder, deleteProduct, addPersonalizedProduct, updateProductsOrder } from '@/services/personalizedProductsServices';
+import { updateProductOrder, deleteProduct, addPersonalizedProduct, bulkUpdateProductsOrder } from '@/services/personalizedProductsServices';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useThemeContext } from '@/common/context';
 
@@ -88,7 +88,7 @@ function DraggableProductRow({
 									flexShrink: 0,
 								}}
 							>
-								{product.ordem + 1}
+								{Number(product.ordem) + 1}
 							</div>
 						</div>
 
@@ -100,7 +100,7 @@ function DraggableProductRow({
 								fontWeight: '500',
 							}}
 						>
-							{product.nome_produto || `Produto ${product.id_produto}`}
+							{product.produto_nome || product.nome_produto || `Produto ${product.id_produto}`}
 						</div>
 
 						<div className="d-flex align-items-center flex-shrink-0">
@@ -248,14 +248,17 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 		// Atualiza a ordem de todos os produtos que mudaram de posição
 		setUpdatingOrder(true);
 		try {
-			// Cria array com todas as atualizações de ordem
-			const updates = reordered.map((item, index) => ({
-				id: item.id,
-				ordem: index,
-			}));
+			// Obtém id_colaborador do cookie
+			const colaboradorId = Number(Cookies.get('user_id') || '0');
+			if (!colaboradorId) {
+				throw new Error('ID do colaborador não encontrado');
+			}
 
-			// Faz PUT para atualizar a ordem de todos os produtos
-			await updateProductsOrder(updates);
+			// Extrai os IDs na ordem correta (a ordem dos IDs define a ordenação)
+			const ids = reordered.map((item) => item.id);
+
+			// Faz POST para atualizar a ordem em lote
+			await bulkUpdateProductsOrder(colaboradorId, ids, 0);
 		} catch (error) {
 			console.error('Erro ao atualizar ordem dos produtos:', error);
 			toast.error('Erro ao atualizar ordem dos produtos');
@@ -277,19 +280,29 @@ export default function PersonalizedProductsModal({ show, onHide }: Personalized
 		setDeleting(true);
 		try {
 			await deleteProduct(productToDelete);
-			toast.success('Produto excluído com sucesso');
-			// Remove o produto da lista local
-			setLocalProducts(localProducts.filter(p => p.id !== productToDelete));
-			// Atualiza a ordem dos produtos restantes
-			const updatedProducts = localProducts
+			
+			// Remove o produto da lista local e atualiza a ordem
+			const remainingProducts = localProducts
 				.filter(p => p.id !== productToDelete)
 				.map((item, index) => ({
 					...item,
 					ordem: index,
 				}));
-			setLocalProducts(updatedProducts);
+			
+			setLocalProducts(remainingProducts);
+
+			// Atualiza a ordem dos produtos restantes usando bulk-update
+			if (remainingProducts.length > 0) {
+				const colaboradorId = Number(Cookies.get('user_id') || '0');
+				if (colaboradorId) {
+					const ids = remainingProducts.map((item) => item.id);
+					await bulkUpdateProductsOrder(colaboradorId, ids, 0);
+				}
+			}
+
 			// Recarrega os produtos do servidor
 			await refreshProducts();
+			toast.success('Produto excluído com sucesso');
 		} catch (error) {
 			console.error('Erro ao excluir produto:', error);
 			toast.error('Erro ao excluir produto');

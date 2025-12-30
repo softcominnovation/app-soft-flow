@@ -5,7 +5,8 @@ export interface IPersonalizedProduct {
 	versao: string;
 	ordem: number;
 	selecionado: boolean;
-	nome_produto?: string; // Placeholder para quando a API retornar
+	produto_nome?: string; // Nome do produto retornado pela API
+	nome_produto?: string; // Mantido para compatibilidade
 }
 
 export interface IPersonalizedProductsResponse {

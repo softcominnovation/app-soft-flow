@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Cookies from 'js-cookie';
-import { getPersonalizedProducts, updateProductsOrder } from '@/services/personalizedProductsServices';
+import { getPersonalizedProducts, bulkUpdateProductsOrder } from '@/services/personalizedProductsServices';
 import { IPersonalizedProduct } from '@/types/personalizedProducts/IPersonalizedProduct';
 
 interface UsePersonalizedProductsReturn {
@@ -31,8 +31,16 @@ export function usePersonalizedProducts(): UsePersonalizedProductsReturn {
 
 		try {
 			const response = await getPersonalizedProducts(Number(colaboradorId));
+			// Converte campos numéricos que podem vir como string da API
+			const normalizedProducts = response.data.map((product) => ({
+				...product,
+				id: Number(product.id),
+				id_colaborador: Number(product.id_colaborador),
+				id_produto: Number(product.id_produto),
+				ordem: Number(product.ordem),
+			}));
 			// Ordena por ordem
-			const sortedProducts = [...response.data].sort((a, b) => a.ordem - b.ordem);
+			const sortedProducts = normalizedProducts.sort((a, b) => a.ordem - b.ordem);
 			setProducts(sortedProducts);
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
@@ -48,12 +56,16 @@ export function usePersonalizedProducts(): UsePersonalizedProductsReturn {
 		setError(null);
 
 		try {
-			const updates = orderedProducts.map((product, index) => ({
-				id: product.id,
-				ordem: index,
-			}));
+			const colaboradorId = Cookies.get('user_id');
+			if (!colaboradorId) {
+				throw new Error('ID do colaborador não encontrado');
+			}
 
-			await updateProductsOrder(updates);
+			// Extrai os IDs na ordem correta (a ordem dos IDs define a ordenação)
+			const ids = orderedProducts.map((product) => product.id);
+
+			// Faz POST para atualizar a ordem em lote
+			await bulkUpdateProductsOrder(Number(colaboradorId), ids, 0);
 			setProducts(orderedProducts);
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar ordem';
