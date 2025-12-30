@@ -6,20 +6,27 @@ import { CasesProvider, useCasesContext } from '@/contexts/casesContext';
 import { ToastContainer } from 'react-toastify';
 import ProjectsSection from './components/caseListComponents/projectsSection';
 import CasesFAB from './components/CasesFAB';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useApplyUrlCaseFilters } from '@/hooks';
 import TransferCasesModal from './components/TransferCasesModal';
 import { Modal } from 'react-bootstrap';
-import { Button } from 'react-bootstrap';
+import { Button, Badge } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { ICase } from '@/types/cases/ICase';
-import { findCase } from '@/services/caseServices';
+import { findCase, allCase } from '@/services/caseServices';
 import Spinner from '@/components/Spinner';
 import { Form } from 'react-bootstrap';
 import CasesTotalizadores from './components/CasesTotalizadores';
+import Cookies from 'js-cookie';
+import ICaseFilter from '@/types/cases/ICaseFilter';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
 const CasesList = () => {
-	const { cases, loading, totalizadores } = useCasesContext();
+	const { cases, loading, totalizadores, fetchCases } = useCasesContext();
+	const [hasCasesWithReturn, setHasCasesWithReturn] = useState<boolean>(false);
+	const [showingReturns, setShowingReturns] = useState<boolean>(false);
+	const [returnCases, setReturnCases] = useState<ICase[]>([]);
+	const [loadingReturns, setLoadingReturns] = useState<boolean>(false);
 	const [showFiltersDrawer, setShowFiltersDrawer] = useState(false);
 	const [showProductsDrawer, setShowProductsDrawer] = useState(false);
 	const [selectedCases, setSelectedCases] = useState<Set<string>>(new Set());
@@ -104,6 +111,46 @@ const CasesList = () => {
 		}
 	};
 
+	// Verifica se há casos com retorno ao carregar a página e guarda os dados
+	useEffect(() => {
+		const checkCasesWithReturn = async () => {
+			const userId = Cookies.get('user_id');
+			if (!userId) return;
+
+			try {
+				setLoadingReturns(true);
+				const filters: ICaseFilter = {
+					usuario_dev_id: userId,
+					status_id: 4, // Status retorno
+					sort_by: 'prioridade',
+				};
+
+				const response = await allCase(filters);
+				const hasReturns = response.data && response.data.length > 0;
+				setHasCasesWithReturn(hasReturns);
+				
+				if (hasReturns) {
+					setReturnCases(response.data);
+				}
+			} catch (error) {
+				console.error('Erro ao verificar casos com retorno:', error);
+			} finally {
+				setLoadingReturns(false);
+			}
+		};
+
+		checkCasesWithReturn();
+	}, []);
+
+	// Handler para alternar entre casos normais e casos com retorno (sem fazer requisição)
+	const handleToggleReturnView = useCallback(() => {
+		setShowingReturns(!showingReturns);
+	}, [showingReturns]);
+
+	// Determina quais casos exibir
+	const displayCases = showingReturns ? returnCases : cases;
+	const displayLoading = showingReturns ? loadingReturns : loading;
+
 	return (
 		<>
 			<Row>
@@ -161,10 +208,70 @@ const CasesList = () => {
 								<CasesTotalizadores totalizadores={totalizadores} loading={loading} />
 							</div>
 							
-							<div className="table-responsive">
+							{/* Header da seção de casos */}
+							<style>{`
+								@keyframes pulse-radiation {
+									0% {
+										box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+									}
+									50% {
+										box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+									}
+									100% {
+										box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+									}
+								}
+								.return-badge-radiation {
+									animation: pulse-radiation 2s infinite;
+								}
+								.cases-title-clickable {
+									cursor: pointer;
+									transition: all 0.2s ease;
+								}
+								.cases-title-clickable:hover {
+									color: var(--bs-primary) !important;
+									transform: translateX(3px);
+								}
+								.return-badge-hover:hover {
+									transform: scale(1.05);
+									transition: all 0.3s ease;
+								}
+							`}</style>
+							<div className="mb-3 d-flex align-items-center justify-content-between">
+								<h5 
+									className={`mb-0 d-flex align-items-center fw-semibold ${showingReturns ? 'cases-title-clickable' : ''}`}
+									onClick={showingReturns ? () => setShowingReturns(false) : undefined}
+									style={showingReturns ? { cursor: 'pointer' } : {}}
+								>
+									<IconifyIcon icon="lucide:list" className="me-2 text-primary" style={{ fontSize: '1.125rem' }} />
+									Casos
+									{showingReturns && (
+										<span className="text-muted ms-2 small">(clique para voltar)</span>
+									)}
+								</h5>
+								{hasCasesWithReturn && (
+									<Badge
+										bg="danger"
+										className={`d-flex align-items-center gap-1 cursor-pointer return-badge-hover ${showingReturns ? 'bg-secondary' : 'return-badge-radiation'}`}
+										onClick={handleToggleReturnView}
+										style={{ 
+											cursor: 'pointer',
+											padding: '0.5rem 0.75rem',
+											fontSize: '0.875rem',
+											fontWeight: '600',
+											transition: 'all 0.3s ease'
+										}}
+									>
+										<i className="mdi mdi-alert-circle me-1"></i>
+										Casos com Retorno!
+									</Badge>
+								)}
+							</div>
+							
+							<div className="table-responsive" style={{ marginLeft: '-1.25rem', marginRight: '-1.25rem', paddingLeft: '1.25rem', paddingRight: '1.25rem' }}>
 								<CasesTable 
-									data={cases} 
-									loading={loading}
+									data={displayCases} 
+									loading={displayLoading}
 									selectedCases={selectedCases}
 									onSelectedCasesChange={setSelectedCases}
 									onOpenCaseModalRef={openCaseModalRef}
