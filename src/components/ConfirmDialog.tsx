@@ -125,7 +125,7 @@ export default function ConfirmDialog({
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div
-					className="bg-white rounded shadow-lg"
+					className="bg-body rounded shadow-lg"
 					style={{
 						display: 'flex',
 						flexDirection: 'column',
@@ -136,7 +136,7 @@ export default function ConfirmDialog({
 						className="d-flex align-items-center justify-content-between p-3 border-bottom"
 						style={{ flexShrink: 0 }}
 					>
-						<h5 className="d-flex align-items-center mb-0" style={{ fontSize: '1.1rem' }}>
+						<h5 className="d-flex align-items-center mb-0 text-body" style={{ fontSize: '1.1rem' }}>
 							<IconifyIcon icon="lucide:alert-circle" className="me-2 text-warning" />
 							{title}
 						</h5>
@@ -152,7 +152,7 @@ export default function ConfirmDialog({
 
 					{/* Body */}
 					<div className="p-3" style={{ flexShrink: 0 }}>
-						<p className="mb-0">{message}</p>
+						<p className="mb-0 text-body">{message}</p>
 					</div>
 
 					{/* Footer */}
