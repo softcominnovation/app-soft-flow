@@ -30,6 +30,17 @@ const mapStatusToId = (status: StatusType): number | number[] | undefined => {
   return statusMap[status];
 };
 
+// Função para formatar minutos em horas:minutos
+const formatMinutes = (minutes: string | number): string => {
+  const totalMinutes = typeof minutes === 'string' ? parseInt(minutes) || 0 : minutes;
+  if (totalMinutes === 0) return '0min';
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (hours === 0) return `${mins}min`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}min`;
+};
+
 const PrioritizedProducts = ({ 
   projects, 
   onOpenDrawer, 
@@ -110,6 +121,7 @@ const PrioritizedProducts = ({
                 <th className="text-center" style={{ position: 'sticky', top: 0 }}>Corrigidos</th>
                 <th className="text-center" style={{ position: 'sticky', top: 0 }}>Resolvidos</th>
                 <th className="text-center" style={{ position: 'sticky', top: 0 }}>Retornos</th>
+                <th className="text-center" style={{ position: 'sticky', top: 0 }}>Tempo aberto estimado</th>
               </tr>
             </thead>
             <tbody>
@@ -177,7 +189,11 @@ const PrioritizedProducts = ({
                       {project.retornos}
                     </button>
                   </td>
-                  
+                  <td className="text-center py-1">
+                    <span className="text-muted small">
+                      {formatMinutes(project.abertos_estimado)}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

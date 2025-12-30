@@ -27,6 +27,17 @@ const mapStatusToId = (status: StatusType): number | number[] | undefined => {
 	return statusMap[status];
 };
 
+// Função para formatar minutos em horas:minutos
+const formatMinutes = (minutes: string | number): string => {
+	const totalMinutes = typeof minutes === 'string' ? parseInt(minutes) || 0 : minutes;
+	if (totalMinutes === 0) return '0min';
+	const hours = Math.floor(totalMinutes / 60);
+	const mins = totalMinutes % 60;
+	if (hours === 0) return `${mins}min`;
+	if (mins === 0) return `${hours}h`;
+	return `${hours}h ${mins}min`;
+};
+
 export default function ProductsDrawer({ show, onHide, projects }: Props) {
 	const { fetchCases, loading, pendingFilters, currentFilters } = useCasesContext();
 
@@ -121,6 +132,21 @@ export default function ProductsDrawer({ show, onHide, projects }: Props) {
 											</div>
 										</div>
 									</div>
+
+									{/* Tempo aberto estimado */}
+									{project.abertos_estimado && parseInt(project.abertos_estimado) > 0 && (
+										<div className="mb-3 pb-3 border-bottom">
+											<div className="d-flex align-items-center justify-content-between">
+												<span className="text-muted small d-flex align-items-center gap-1">
+													<IconifyIcon icon="lucide:clock" style={{ fontSize: "14px" }} />
+													Tempo aberto estimado:
+												</span>
+												<span className="fw-bold text-primary">
+													{formatMinutes(project.abertos_estimado)}
+												</span>
+											</div>
+										</div>
+									)}
 
 									{/* Grid de Status */}
 									<Row className="g-2">
