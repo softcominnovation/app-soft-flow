@@ -92,6 +92,16 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 			anexo: anexoValue,
 			status: null, // Será inicializado pelo hook useCaseFormInitialization
 			informacoes_adicionais: caseData.caso.textos.informacoes_adicionais || '',
+			// Campos de Viabilidade
+			viabilidade: caseData.caso.viabilidade?.viabilidade ?? false,
+			entendivel: caseData.caso.viabilidade?.entendido ?? false,
+			realizavel: caseData.caso.viabilidade?.realizavel ?? false,
+			completo: caseData.caso.viabilidade?.completo ?? false,
+			// Outros flags
+			liberacao: caseData.caso.flags.liberacao || false,
+			nao_planejado: caseData.caso.flags.nao_planejado || false,
+			entregue: caseData.caso.flags.entregue || false,
+			atualizacao_auto: caseData.caso.flags_adicionais?.atualizacao_automatica ?? false,
 		};
 	}, [caseData]);
 

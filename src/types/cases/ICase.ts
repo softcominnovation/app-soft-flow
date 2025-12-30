@@ -11,6 +11,7 @@ interface Caso {
 	caracteristicas: Caracteristicas;
 	datas: DatasCaso;
 	flags: FlagsCaso;
+	flags_adicionais?: FlagsAdicionais;
 	producao: Producao[] | null;
 	quantidades_apontadas: QuantidadesApontadas;
 	relacionamentos: RelacionamentosCaso;
@@ -18,6 +19,7 @@ interface Caso {
 	tempos: TemposCaso;
 	textos: TextosCaso;
 	usuarios: UsuariosCaso;
+	viabilidade?: Viabilidade;
 	anotacoes?: Anotacao[] | null;
 }
 
@@ -60,6 +62,19 @@ interface FlagsCaso {
 	mostrar_teste: boolean;
 	nao_planejado: boolean;
 	sinc: boolean;
+}
+
+interface FlagsAdicionais {
+	lacrar?: boolean;
+	reducao_chamados?: boolean;
+	atualizacao_automatica?: boolean;
+}
+
+interface Viabilidade {
+	viabilidade: boolean;
+	entendido: boolean;
+	realizavel: boolean;
+	completo: boolean;
 }
 
 interface QuantidadesApontadas {

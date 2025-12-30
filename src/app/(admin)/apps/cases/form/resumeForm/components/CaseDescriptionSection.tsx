@@ -45,11 +45,21 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			if (value === null || value === undefined) return '';
 			if (typeof value === 'string') return value;
 			if (typeof value === 'number') return String(value);
+			if (typeof value === 'boolean') return value ? '1' : '0';
 			if (typeof value === 'object' && value !== null) {
 				// Se for um objeto (como do react-select), extrai o value
 				return value.value ? String(value.value) : '';
 			}
 			return String(value);
+		};
+
+		// Função auxiliar para converter valores booleanos para boolean (true/false)
+		const toBoolean = (value: any): boolean => {
+			if (value === null || value === undefined) return false;
+			if (typeof value === 'boolean') return value;
+			if (typeof value === 'string') return value === 'true' || value === '1';
+			if (typeof value === 'number') return value !== 0;
+			return Boolean(value);
 		};
 		
 		// Extrai o valor do status (pode ser objeto ou string)
@@ -83,6 +93,15 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			Relator: toString(values.relator_id || values.desenvolvedor_id), // Relator pode ser o desenvolvedor se não houver relator específico
 			status: statusValue,
 			VersaoProduto: toString(values.versao),
+			// Campos de Viabilidade (com primeira letra maiúscula) - enviados como boolean
+			Viabilidade: toBoolean(values.viabilidade),
+			Viabilidade_Entendido: toBoolean(values.entendivel), // API usa "entendido", formulário usa "entendivel"
+			Viabilidade_Realizavel: toBoolean(values.realizavel),
+			Viabilidade_Completo: toBoolean(values.completo),
+			Liberacao: toBoolean(values.liberacao),
+			// nao_planejado é gerenciado pelo controle de tempo, não pelo formulário de resumo
+			entregue: toBoolean(values.entregue),
+			atualizacao_automatica: toBoolean(values.atualizacao_auto), // API usa "atualizacao_automatica"
 		};
 	}, [getValues]);
 

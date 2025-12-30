@@ -23,6 +23,15 @@ export interface CaseFormValues {
 	descricao_completa?: string;
 	informacoes_adicionais?: string;
 	anexo?: string;
+	// Campos de Viabilidade
+	viabilidade?: boolean;
+	entendivel?: boolean;
+	realizavel?: boolean;
+	completo?: boolean;
+	liberacao?: boolean;
+	nao_planejado?: boolean;
+	entregue?: boolean;
+	atualizacao_auto?: boolean;
 }
 
 /**

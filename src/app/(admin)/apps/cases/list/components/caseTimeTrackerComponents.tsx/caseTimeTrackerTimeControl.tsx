@@ -1,6 +1,6 @@
 "use client";
-import { useMemo, useCallback, useState } from "react";
-import { Badge, Card, Col, Row } from "react-bootstrap";
+import { useMemo, useCallback, useState, useEffect } from "react";
+import { Badge, Card, Col, Row, Form } from "react-bootstrap";
 import IconifyIcon from "@/components/wrappers/IconifyIcon";
 import { useGetTipoBadgeVariant, useGetTipoIcon } from "@/hooks/caseTimeTracker/caseTimeTrackerVarianions";
 import { formatTipoLabel } from "@/hooks/caseTimeTracker/useFormatLabel";
@@ -8,7 +8,6 @@ import { useTimeFormatter } from "./hooks/useTimeFormatter";
 import { useTimeInput } from "./hooks/useTimeInput";
 import { updateCase } from "@/services/caseServices";
 import { toast } from "react-toastify";
-import { useEffect } from "react";
 import EstimatedTimeDisplay from "./components/EstimatedTimeDisplay";
 import TimeInfoItem from "./components/TimeInfoItem";
 import TimeControlButton from "./components/TimeControlButton";
@@ -31,6 +30,7 @@ interface CaseTimeTrackerTimeControlProps {
   estimadoMinutos: number;
   realizadoMinutos: number;
   tamanhoPontos?: number | null;
+  naoPlanejado?: boolean;
   onCaseUpdated?: () => void;
   canEditTempoEstimado?: boolean;
   canEditPontos?: boolean;
@@ -53,6 +53,7 @@ export default function CaseTimeTrackerTimeControl({
   estimadoMinutos,
   realizadoMinutos,
   tamanhoPontos,
+  naoPlanejado = false,
   onCaseUpdated,
   canEditTempoEstimado,
   canEditPontos,
@@ -61,7 +62,7 @@ export default function CaseTimeTrackerTimeControl({
   const isDarkMode = settings.theme === 'dark';
   const { formatMinutesToHours, validateTime } = useTimeFormatter();
 
-  const handleSaveTime = useCallback(async (time: string, tamanhoId?: number) => {
+  const handleSaveTime = useCallback(async (time: string, tamanhoId?: number, naoPlanejadoValue?: boolean) => {
     if (!caseId) {
       throw new Error('ID do caso não encontrado');
     }
@@ -77,12 +78,37 @@ export default function CaseTimeTrackerTimeControl({
     if (tamanhoId) {
       updateData.tamanho = tamanhoId;
     }
+    if (naoPlanejadoValue !== undefined) {
+      updateData.NaoPlanejado = naoPlanejadoValue ? 1 : 0;
+    }
 
     await updateCase(caseId, updateData);
     toast.success('Tempo estimado atualizado com sucesso!');
 
     if (onCaseUpdated) {
       onCaseUpdated();
+    }
+  }, [caseId, onCaseUpdated]);
+
+  const [naoPlanejadoValue, setNaoPlanejadoValue] = useState<boolean>(naoPlanejado);
+
+  useEffect(() => {
+    setNaoPlanejadoValue(naoPlanejado);
+  }, [naoPlanejado]);
+
+  const handleNaoPlanejadoChange = useCallback(async (checked: boolean) => {
+    setNaoPlanejadoValue(checked);
+    if (caseId) {
+      try {
+        await updateCase(caseId, { NaoPlanejado: checked ? 1 : 0 });
+        toast.success('Campo atualizado com sucesso!');
+        if (onCaseUpdated) {
+          onCaseUpdated();
+        }
+      } catch (error) {
+        setNaoPlanejadoValue(!checked);
+        toast.error('Erro ao atualizar campo');
+      }
     }
   }, [caseId, onCaseUpdated]);
 
@@ -298,6 +324,44 @@ export default function CaseTimeTrackerTimeControl({
 
                   {/* Informações de Tempo */}
                   <div className="d-flex flex-wrap align-items-start gap-3 pt-3 border-top case-time-control-info">
+                    {/* Checkbox Não Planejado */}
+                    <div className="d-flex align-items-center gap-2" style={{ flex: '0 0 auto' }}>
+                      <Form.Check
+                        type="checkbox"
+                        id="nao-planejado-time-checkbox"
+                        checked={naoPlanejadoValue}
+                        onChange={(e) => handleNaoPlanejadoChange(e.target.checked)}
+                        className="mb-0"
+                        style={{ 
+                          cursor: 'pointer',
+                          accentColor: 'var(--bs-primary)',
+                          marginTop: '0.125rem'
+                        }}
+                      />
+                      <Form.Label 
+                        htmlFor="nao-planejado-time-checkbox"
+                        className="mb-0 d-flex align-items-center gap-1"
+                        style={{ 
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          fontWeight: naoPlanejadoValue ? '600' : '500',
+                          color: naoPlanejadoValue ? 'var(--bs-primary)' : '#6c757d',
+                          transition: 'all 0.2s ease',
+                          userSelect: 'none',
+                          margin: 0
+                        }}
+                      >
+                        <IconifyIcon 
+                          icon="lucide:calendar-x" 
+                          style={{ 
+                            fontSize: '0.875rem',
+                            color: naoPlanejadoValue ? 'var(--bs-primary)' : '#6c757d'
+                          }} 
+                        />
+                        <span>Não Planejado</span>
+                      </Form.Label>
+                    </div>
+
                     {shouldShowPointsInput ? (
                       <div className="points-selector-container" style={{ flex: '1 1 auto', minWidth: '220px', zIndex: 1001 }}>
                         <div className="d-flex align-items-center gap-2 mb-1">

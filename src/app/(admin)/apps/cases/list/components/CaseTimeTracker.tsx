@@ -444,6 +444,7 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 	const estimadoMinutos = tempos?.estimado_minutos ?? 0;
 	const realizadoMinutos = tempos?.realizado_minutos ?? 0;
 	const tamanhoPontos = currentCase?.caso.caracteristicas?.tamanho_pontos;
+	const naoPlanejado = currentCase?.caso.flags?.nao_planejado ?? false;
 
 	return (
 		<>
@@ -460,6 +461,7 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 					estimadoMinutos={estimadoMinutos}
 					realizadoMinutos={realizadoMinutos}
 					tamanhoPontos={tamanhoPontos}
+					naoPlanejado={naoPlanejado}
 					onCaseUpdated={handleCaseUpdate}
 					canEditTempoEstimado={permissions.canEditTempoEstimado}
 					canEditPontos={permissions.canEditPontos}

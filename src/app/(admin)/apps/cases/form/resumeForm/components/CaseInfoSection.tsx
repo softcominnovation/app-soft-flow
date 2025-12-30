@@ -18,6 +18,7 @@ import { IStatusAssistant } from '@/services/statusServices';
 import { IModuleAssistant } from '@/services/modulesServices';
 import { asyncSelectStyles, selectStyles } from '@/components/Form/asyncSelectStyles';
 import { useCasePermissions } from '@/hooks/useCasePermissions';
+import ViabilitySection from './ViabilitySection';
 
 interface CaseInfoSectionProps {
 	isOpen: boolean;
@@ -572,6 +573,9 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 								</Form.Group>
 							</Col>
 						</Row>
+
+						{/* Seção de Viabilidade e Flags */}
+						<ViabilitySection control={methods.control} />
 					</Card.Body>
 				</div>
 			</Collapse>
