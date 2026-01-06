@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { ICaseEspecifiedResponse, ICaseResponse, ICreateAnotacaoResponse, IUpdateAnotacaoResponse, IDeleteAnotacaoResponse } from '@/types/cases/ICase';
 import { ICaseProducaoResponse } from '@/types/cases/ICaseProducao';
 import IAgendaDevAssistant from '@/types/assistant/IAgendaDevAssistant';
+import { ICaseClienteResponse } from '@/types/cases/ICaseCliente';
 
 export async function allCase(data: any): Promise<ICaseResponse> {
 	try {
@@ -237,6 +238,59 @@ export async function bulkUpdateCases(data: IBulkUpdateCaseRequest): Promise<IBu
 		const res = await axios.post<IBulkUpdateCaseResponse>('/api/cases/bulk-update', data);
 		return res.data;
 	} catch (err: unknown) {
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
+export async function getCaseClients(registro: number): Promise<ICaseClienteResponse> {
+	try {
+		const res: AxiosResponse<ICaseClienteResponse> = await axios.get(`/api/cases/${registro}/clientes`);
+		return res.data;
+	} catch (err: unknown) {
+		// Preserva a estrutura do erro do axios para tratamento de permissões
+		if (axios.isAxiosError(err)) {
+			throw err;
+		}
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
+export async function createCaseClient(registro: number, cliente: number): Promise<any> {
+	try {
+		const res: AxiosResponse<any> = await axios.post(`/api/cases/${registro}/clientes`, {
+			cliente,
+		});
+		return res.data;
+	} catch (err: unknown) {
+		// Preserva a estrutura do erro do axios para tratamento de permissões
+		if (axios.isAxiosError(err)) {
+			throw err;
+		}
+		if (err instanceof Error) {
+			throw new Error(err.message);
+		} else {
+			throw new Error(String(err));
+		}
+	}
+}
+
+export async function deleteCaseClient(sequencia: number): Promise<{ message: string }> {
+	try {
+		const res: AxiosResponse<{ message: string }> = await axios.delete(`/api/projeto-casos-clientes/${sequencia}`);
+		return res.data;
+	} catch (err: unknown) {
+		// Preserva a estrutura do erro do axios para tratamento de permissões
+		if (axios.isAxiosError(err)) {
+			throw err;
+		}
 		if (err instanceof Error) {
 			throw new Error(err.message);
 		} else {

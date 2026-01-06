@@ -4,6 +4,7 @@ import { ICase } from '@/types/cases/ICase';
 import ResumeForm, { ResumeFormRef } from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
 import CaseTimeTracker from './CaseTimeTracker';
 import CaseAnnotations from './CaseAnnotations';
+import CaseClients from './CaseClients';
 import TimetrackerSkelleton from '../skelletons/timetrackerSkelleton';
 
 interface CaseModalTabsProps {
@@ -57,6 +58,12 @@ export default function CaseModalTabs({
 							)}
 						</Nav.Link>
 					</Nav.Item>
+					<Nav.Item>
+						<Nav.Link eventKey="clientes" className="d-flex align-items-center">
+							<IconifyIcon icon="lucide:users" className="me-2" />
+							<span>Clientes</span>
+						</Nav.Link>
+					</Nav.Item>
 				</Nav>
 				<div
 					className="custom-scrollbar px-4 py-4"
@@ -79,6 +86,9 @@ export default function CaseModalTabs({
 									<h5 className="text-muted">Carregando caso...</h5>
 								</div>
 							)}
+						</Tab.Pane>
+						<Tab.Pane eventKey="clientes">
+							<CaseClients registro={caseData?.caso?.id || null} />
 						</Tab.Pane>
 					</Tab.Content>
 				</div>

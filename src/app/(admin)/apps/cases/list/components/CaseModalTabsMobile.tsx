@@ -4,6 +4,7 @@ import { ICase } from '@/types/cases/ICase';
 import ResumeForm, { ResumeFormRef } from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
 import CaseTimeTracker from './CaseTimeTracker';
 import CaseAnnotations from './CaseAnnotations';
+import CaseClients from './CaseClients';
 import TimetrackerSkelleton from '../skelletons/timetrackerSkelleton';
 
 interface CaseModalTabsMobileProps {
@@ -61,6 +62,13 @@ export default function CaseModalTabsMobile({
 						</Nav.Link>
 					</Nav.Item>
 					<Nav.Item className="flex-fill">
+						<Nav.Link eventKey="clientes" className="d-flex align-items-center justify-content-center text-center">
+							<IconifyIcon icon="lucide:users" className="me-1 d-lg-none" style={{ fontSize: '1.1rem' }} />
+							<IconifyIcon icon="lucide:users" className="me-2 d-none d-lg-inline" />
+							<span>Clientes</span>
+						</Nav.Link>
+					</Nav.Item>
+					<Nav.Item className="flex-fill">
 						<Nav.Link eventKey="tempo" className="d-flex align-items-center justify-content-center text-center">
 							<IconifyIcon icon="lucide:clock" className="me-1 d-lg-none" style={{ fontSize: '1.1rem' }} />
 							<IconifyIcon icon="lucide:clock" className="me-2 d-none d-lg-inline" />
@@ -89,6 +97,9 @@ export default function CaseModalTabsMobile({
 									<h5 className="text-muted">Carregando caso...</h5>
 								</div>
 							)}
+						</Tab.Pane>
+						<Tab.Pane eventKey="clientes">
+							<CaseClients registro={caseData?.caso?.id || null} />
 						</Tab.Pane>
 						<Tab.Pane eventKey="tempo">
 							{!caseData ? (
