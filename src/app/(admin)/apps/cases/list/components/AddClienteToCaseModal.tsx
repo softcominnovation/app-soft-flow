@@ -10,6 +10,7 @@ import IClienteAssistant from '@/types/assistant/IClienteAssistant';
 import AsyncSelectInput from '@/components/Form/AsyncSelectInput';
 import { createCaseClient } from '@/services/caseServices';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 interface AddClienteToCaseModalProps {
 	open: boolean;
@@ -25,6 +26,9 @@ export default function AddClienteToCaseModal({
 	onClienteAdded,
 }: AddClienteToCaseModalProps) {
 	const [saving, setSaving] = useState(false);
+
+	// Debug: verificar se o componente está sendo renderizado
+	console.log('AddClienteToCaseModal renderizado - open:', open, 'caseRegistro:', caseRegistro);
 
 	const {
 		loadOptions,
@@ -62,17 +66,8 @@ export default function AddClienteToCaseModal({
 			}
 		} catch (error: any) {
 			console.error('Erro ao adicionar cliente ao caso:', error);
-			const errorData = error?.response?.data;
-			const requiredPermission = errorData?.required_permission;
-			
-			if (requiredPermission) {
-				// Se houver erro de permissão, mostra apenas a mensagem de permissão
-				const permissionMessage = errorData?.message || `Acesso negado. Permissão necessária: ${requiredPermission}`;
-				toast.error(permissionMessage);
-			} else {
-				// Para outros erros, mostra a mensagem padrão
-				toast.error(errorData?.message || 'Erro ao adicionar cliente ao caso');
-			}
+			const errorData = axios.isAxiosError(error) ? error.response?.data : null;
+			toast.error(errorData?.message || 'Erro ao adicionar cliente ao caso');
 		} finally {
 			setSaving(false);
 		}
@@ -131,13 +126,17 @@ export default function AddClienteToCaseModal({
 					margin-bottom: 0.75rem;
 				}
 				
-				/* Garantir que o menu do select apareça acima do modal */
-				.add-cliente-modal .modal {
-					z-index: 1050;
+				/* Garantir que o modal apareça acima de outros modais (como o modal de casos) */
+				.add-cliente-modal.modal {
+					z-index: 1070 !important;
 				}
 				
-				.add-cliente-modal .modal-backdrop {
-					z-index: 1040;
+				.add-cliente-modal + .modal-backdrop {
+					z-index: 1069 !important;
+				}
+				
+				body:has(.add-cliente-modal.show) .modal-backdrop.show {
+					z-index: 1069 !important;
 				}
 				
 				/* Menu do react-select precisa estar acima do modal */
@@ -159,7 +158,14 @@ export default function AddClienteToCaseModal({
 					}
 				}
 			`}</style>
-			<Modal show={open} onHide={handleClose} centered className="add-cliente-modal">
+			<Modal 
+				show={open} 
+				onHide={handleClose} 
+				centered 
+				className="add-cliente-modal"
+				backdrop={true}
+				keyboard={true}
+			>
 				<Modal.Header closeButton>
 					<Modal.Title className="fw-bold text-body d-flex align-items-center gap-2">
 						<IconifyIcon icon="lucide:user-plus" className="text-primary" style={{ fontSize: '1.25rem' }} />

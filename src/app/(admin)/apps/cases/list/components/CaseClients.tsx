@@ -5,7 +5,7 @@ import { useState } from 'react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { ICaseCliente } from '@/types/cases/ICaseCliente';
 import { useCaseClients } from '../hooks/useCaseClients';
-import CaseClientsSkeleton from '../skelletons/caseClientsSkeleton';
+import CaseClientsSkeleton from '../skelletons/CaseClientsSkeleton';
 import ClienteModal from './ClienteModal';
 import AddClienteToCaseModal from './AddClienteToCaseModal';
 import { deleteCaseClient } from '@/services/caseServices';
@@ -41,6 +41,12 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 	const handleCloseModal = () => {
 		setIsModalOpen(false);
 		setSelectedClienteId(null);
+	};
+
+	const handleOpenAddModal = () => {
+		console.log('handleOpenAddModal chamado!');
+		setIsAddModalOpen(true);
+		console.log('Estado atualizado, isAddModalOpen deve ser true');
 	};
 
 	const handleDeleteClick = (e: React.MouseEvent, sequencia: number) => {
@@ -92,31 +98,49 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 		}
 	};
 
+	// Função para renderizar o header com o botão de adicionar cliente
+	const renderHeader = (count?: number) => (
+		<div style={{ padding: '1.5rem' }} className="d-flex align-items-center justify-content-between">
+			<h5 className="mb-0 d-flex align-items-center">
+				<IconifyIcon icon="lucide:users" className="me-2 text-primary" />
+				Clientes do Caso
+				{count !== undefined && count > 0 && (
+					<span className="badge bg-primary ms-2" style={{ fontSize: '0.65rem' }}>
+						{count}
+					</span>
+				)}
+			</h5>
+			<Button
+				variant="primary"
+				size="sm"
+				className="d-flex align-items-center gap-2"
+				style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
+				onClick={handleOpenAddModal}
+			>
+				<IconifyIcon icon="lucide:plus" style={{ fontSize: '0.875rem' }} />
+				Adicionar Clientes
+			</Button>
+		</div>
+	);
+
 	if (loading) {
 		return (
-			<Card className="border-0 shadow-sm mb-0">
-				<Card.Header className="bg-light border-bottom p-0">
-					<div style={{ padding: '1.5rem' }} className="d-flex align-items-center justify-content-between">
-						<h5 className="mb-0 d-flex align-items-center">
-							<IconifyIcon icon="lucide:users" className="me-2 text-primary" />
-							Clientes do Caso
-						</h5>
-						<Button
-							variant="primary"
-							size="sm"
-							className="d-flex align-items-center gap-2"
-							style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
-							onClick={() => setIsAddModalOpen(true)}
-						>
-							<IconifyIcon icon="lucide:plus" style={{ fontSize: '0.875rem' }} />
-							Adicionar Cliente
-						</Button>
-					</div>
-				</Card.Header>
-				<Card.Body style={{ padding: '1.5rem' }}>
-					<CaseClientsSkeleton />
-				</Card.Body>
-			</Card>
+			<>
+				<Card className="border-0 shadow-sm mb-0">
+					<Card.Header className="bg-light border-bottom p-0">
+						{renderHeader()}
+					</Card.Header>
+					<Card.Body style={{ padding: '1.5rem' }}>
+						<CaseClientsSkeleton />
+					</Card.Body>
+				</Card>
+				<AddClienteToCaseModal
+					open={isAddModalOpen}
+					setOpen={setIsAddModalOpen}
+					caseRegistro={registro}
+					onClienteAdded={refetch}
+				/>
+			</>
 		);
 	}
 
@@ -129,63 +153,49 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 			: errorMessage;
 
 		return (
-			<Card className="border-0 shadow-sm mb-0">
-				<Card.Header className="bg-light border-bottom p-0">
-					<div style={{ padding: '1.5rem' }} className="d-flex align-items-center justify-content-between">
-						<h5 className="mb-0 d-flex align-items-center">
-							<IconifyIcon icon="lucide:users" className="me-2 text-primary" />
-							Clientes do Caso
-						</h5>
-						<Button
-							variant="primary"
-							size="sm"
-							className="d-flex align-items-center gap-2"
-							style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
-							onClick={() => setIsAddModalOpen(true)}
-						>
-							<IconifyIcon icon="lucide:plus" style={{ fontSize: '0.875rem' }} />
-							Adicionar Cliente
-						</Button>
-					</div>
-				</Card.Header>
-				<Card.Body style={{ padding: '1.5rem' }}>
-					<div className="text-center py-5 text-muted">
-						<IconifyIcon icon="lucide:alert-circle" className="mb-3" style={{ fontSize: '3rem' }} />
-						<p className="mb-0">{displayMessage}</p>
-					</div>
-				</Card.Body>
-			</Card>
+			<>
+				<Card className="border-0 shadow-sm mb-0">
+					<Card.Header className="bg-light border-bottom p-0">
+						{renderHeader()}
+					</Card.Header>
+					<Card.Body style={{ padding: '1.5rem' }}>
+						<div className="text-center py-5 text-muted">
+							<IconifyIcon icon="lucide:alert-circle" className="mb-3" style={{ fontSize: '3rem' }} />
+							<p className="mb-0">{displayMessage}</p>
+						</div>
+					</Card.Body>
+				</Card>
+				<AddClienteToCaseModal
+					open={isAddModalOpen}
+					setOpen={setIsAddModalOpen}
+					caseRegistro={registro}
+					onClienteAdded={refetch}
+				/>
+			</>
 		);
 	}
 
 	if (!clients || clients.length === 0) {
 		return (
-			<Card className="border-0 shadow-sm mb-0">
-				<Card.Header className="bg-light border-bottom p-0">
-					<div style={{ padding: '1.5rem' }} className="d-flex align-items-center justify-content-between">
-						<h5 className="mb-0 d-flex align-items-center">
-							<IconifyIcon icon="lucide:users" className="me-2 text-primary" />
-							Clientes do Caso
-						</h5>
-						<Button
-							variant="primary"
-							size="sm"
-							className="d-flex align-items-center gap-2"
-							style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
-							onClick={() => setIsAddModalOpen(true)}
-						>
-							<IconifyIcon icon="lucide:plus" style={{ fontSize: '0.875rem' }} />
-							Adicionar Cliente
-						</Button>
-					</div>
-				</Card.Header>
-				<Card.Body style={{ padding: '1.5rem' }}>
-					<div className="text-center py-5 text-muted">
-						<IconifyIcon icon="lucide:users-off" className="mb-3" style={{ fontSize: '3rem' }} />
-						<p className="mb-0">Nenhum cliente relacionado a este caso.</p>
-					</div>
-				</Card.Body>
-			</Card>
+			<>
+				<Card className="border-0 shadow-sm mb-0">
+					<Card.Header className="bg-light border-bottom p-0">
+						{renderHeader()}
+					</Card.Header>
+					<Card.Body style={{ padding: '1.5rem' }}>
+						<div className="text-center py-5 text-muted">
+							<IconifyIcon icon="lucide:users-off" className="mb-3" style={{ fontSize: '3rem' }} />
+							<p className="mb-0">Nenhum cliente relacionado a este caso.</p>
+						</div>
+					</Card.Body>
+				</Card>
+				<AddClienteToCaseModal
+					open={isAddModalOpen}
+					setOpen={setIsAddModalOpen}
+					caseRegistro={registro}
+					onClienteAdded={refetch}
+				/>
+			</>
 		);
 	}
 
@@ -236,27 +246,7 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 			`}</style>
 			<Card className="border-0 shadow-sm mb-0 case-clients-card">
 				<Card.Header className="bg-light border-bottom p-0">
-					<div style={{ padding: '1.5rem' }} className="d-flex align-items-center justify-content-between">
-						<h5 className="mb-0 d-flex align-items-center">
-							<IconifyIcon icon="lucide:users" className="me-2 text-primary" />
-							Clientes do Caso
-							{clients.length > 0 && (
-								<span className="badge bg-primary ms-2" style={{ fontSize: '0.65rem' }}>
-									{clients.length}
-								</span>
-							)}
-						</h5>
-						<Button
-							variant="primary"
-							size="sm"
-							className="d-flex align-items-center gap-2"
-							style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
-							onClick={() => setIsAddModalOpen(true)}
-						>
-							<IconifyIcon icon="lucide:plus" style={{ fontSize: '0.875rem' }} />
-							Adicionar Cliente
-						</Button>
-					</div>
+					{renderHeader(clients.length)}
 				</Card.Header>
 				<Card.Body style={{ padding: '1.5rem' }}>
 					<Row className="g-3">
@@ -329,6 +319,8 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 				setOpen={handleCloseModal} 
 				clienteId={selectedClienteId}
 			/>
+			{/* Debug: sempre renderizar o modal para testar */}
+			{console.log('CaseClients render - isAddModalOpen:', isAddModalOpen, 'registro:', registro)}
 			<AddClienteToCaseModal
 				open={isAddModalOpen}
 				setOpen={setIsAddModalOpen}
