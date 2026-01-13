@@ -319,8 +319,6 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 				setOpen={handleCloseModal} 
 				clienteId={selectedClienteId}
 			/>
-			{/* Debug: sempre renderizar o modal para testar */}
-			{console.log('CaseClients render - isAddModalOpen:', isAddModalOpen, 'registro:', registro)}
 			<AddClienteToCaseModal
 				open={isAddModalOpen}
 				setOpen={setIsAddModalOpen}

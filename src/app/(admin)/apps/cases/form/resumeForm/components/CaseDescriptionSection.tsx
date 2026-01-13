@@ -77,6 +77,17 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 		// Para Categoria: sempre usa categoria_id (deve ser um número), nunca o texto
 		
 		
+		const normalizeId = (value: any) => {
+			if (value === null || value === undefined || value === '') return null;
+			if (typeof value === 'object' && value !== null) return value.value ?? null;
+			return value;
+		};
+
+		const relatorValue =
+			normalizeId(values.relator_id) ??
+			caseData.caso.relacionamentos?.relator ??
+			normalizeId(values.desenvolvedor_id);
+
 		return {
 			Anexo: toString(values.anexo),
 			AtribuidoPara: toString(values.desenvolvedor_id),
@@ -90,7 +101,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			Prioridade: toString(values.prioridade),
 			Projeto: toString(values.produto_id), // produto_id é o Projeto (id do Produto)
 			QaId: toString(values.qa_id),
-			Relator: toString(values.relator_id || values.desenvolvedor_id), // Relator pode ser o desenvolvedor se não houver relator específico
+			Relator: toString(relatorValue), // preserva relator original; só cai pro dev se não houver relator
 			status: statusValue,
 			VersaoProduto: toString(values.versao),
 			// Campos de Viabilidade (com primeira letra maiúscula) - enviados como boolean
@@ -103,7 +114,7 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			entregue: toBoolean(values.entregue),
 			atualizacao_automatica: toBoolean(values.atualizacao_auto),
 		};
-	}, [getValues]);
+	}, [getValues, caseData]);
 
 		/**
 		 * Salva as alterações do formulário
