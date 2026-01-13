@@ -8,6 +8,17 @@ type CaseTimeUpdateOptions = CaseTimeDraft & {
 	allowZeroTime?: boolean;
 };
 
+type CaseEstimationValidationInput = {
+	timeInput?: string | null;
+	estimadoMinutos?: number | null;
+	pontos?: number | null;
+	tamanhoId?: number | null;
+	naoPlanejado?: boolean | null;
+};
+
+const ESTIMATED_POINTS_REQUIRED_MESSAGE =
+	'Para casos estimados, é obrigatório informar a quantidade de pontos.';
+
 const TIME_REGEX = /^([0-1][0-9]|2[0-3]):([0-5][0-9])$/;
 
 const buildTempoEstimado = (timeInput: string, baseDate: Date = new Date()) => {
@@ -28,6 +39,37 @@ const isMeaningfulTimeSelection = (timeInput?: string | null) => {
 	return timeInput !== '00:00';
 };
 
+const parseTimeToMinutes = (timeInput: string) => {
+	if (!isValidTimeInput(timeInput)) return null;
+	const [hours, minutes] = timeInput.split(':').map(Number);
+	return hours * 60 + minutes;
+};
+
+const resolveEstimatedMinutes = (timeInput?: string | null, fallbackMinutes?: number | null) => {
+	if (isMeaningfulTimeSelection(timeInput)) {
+		const parsed = parseTimeToMinutes(timeInput as string);
+		if (parsed !== null) return parsed;
+	}
+	return typeof fallbackMinutes === 'number' ? fallbackMinutes : 0;
+};
+
+const shouldBlockEstimatedCaseSave = ({
+	timeInput,
+	estimadoMinutos,
+	pontos,
+	tamanhoId,
+	naoPlanejado,
+}: CaseEstimationValidationInput) => {
+	const estimatedMinutes = resolveEstimatedMinutes(timeInput, estimadoMinutos);
+	if (!estimatedMinutes || estimatedMinutes <= 0) return false;
+	if (naoPlanejado) return false;
+	if (tamanhoId) return false;
+	if (typeof pontos === 'number') {
+		return pontos <= 0;
+	}
+	return true;
+};
+
 const buildCaseTimeUpdatePayload = ({
 	timeInput,
 	tamanhoId,
@@ -40,8 +82,11 @@ const buildCaseTimeUpdatePayload = ({
 		updateData.TempoEstimado = buildTempoEstimado(timeInput as string);
 	}
 
-	if (tamanhoId) {
-		updateData.tamanho = tamanhoId;
+	if (tamanhoId !== undefined && tamanhoId !== null) {
+		const parsedTamanhoId = Number(tamanhoId);
+		if (!Number.isNaN(parsedTamanhoId) && parsedTamanhoId > 0) {
+			updateData.tamanho = parsedTamanhoId;
+		}
 	}
 
 	if (naoPlanejado !== undefined) {
@@ -55,5 +100,7 @@ export {
 	buildCaseTimeUpdatePayload,
 	isMeaningfulTimeSelection,
 	isValidTimeInput,
+	shouldBlockEstimatedCaseSave,
+	ESTIMATED_POINTS_REQUIRED_MESSAGE,
 	type CaseTimeDraft,
 };

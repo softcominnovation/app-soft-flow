@@ -6,6 +6,7 @@ interface TimeInputProps {
   error?: string;
   saving: boolean;
   disabled: boolean;
+  saveDisabled?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -20,6 +21,7 @@ export default function TimeInput({
   error,
   saving,
   disabled,
+  saveDisabled,
   onChange,
   onKeyDown,
   onFocus,
@@ -74,7 +76,7 @@ export default function TimeInput({
             variant="primary"
             size="sm"
             onClick={onSave}
-            disabled={disabled || saving || !!error}
+            disabled={disabled || saving || !!error || saveDisabled}
             className="d-flex align-items-center gap-1"
           >
             {saving ? (

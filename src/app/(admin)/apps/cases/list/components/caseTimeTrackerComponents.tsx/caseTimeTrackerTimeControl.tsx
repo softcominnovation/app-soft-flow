@@ -17,7 +17,12 @@ import { getTamanhos, ITamanho } from "@/services/tamanhosServices";
 import { hasPermissao } from "@/helpers/permissionsHelpers";
 import { useThemeContext } from "@/common/context";
 import { getAsyncSelectStyles } from "@/components/Form/asyncSelectStyles";
-import { buildCaseTimeUpdatePayload, type CaseTimeDraft } from "@/utils/caseTime";
+import {
+  buildCaseTimeUpdatePayload,
+  ESTIMATED_POINTS_REQUIRED_MESSAGE,
+  shouldBlockEstimatedCaseSave,
+  type CaseTimeDraft,
+} from "@/utils/caseTime";
 
 interface CaseTimeTrackerTimeControlProps {
   stopCurrentTime: (id: string, isRetry?: boolean) => Promise<void>;
@@ -65,29 +70,6 @@ export default function CaseTimeTrackerTimeControl({
   const isDarkMode = settings.theme === 'dark';
   const { formatMinutesToHours, validateTime } = useTimeFormatter();
 
-  const handleSaveTime = useCallback(async (time: string, tamanhoId?: number, naoPlanejadoValue?: boolean) => {
-    if (!caseId) {
-      throw new Error('ID do caso não encontrado');
-    }
-
-    const updateData = buildCaseTimeUpdatePayload({
-      timeInput: time,
-      tamanhoId,
-      naoPlanejado: naoPlanejadoValue,
-      allowZeroTime: true,
-    });
-    if (!updateData) {
-      return;
-    }
-
-    await updateCase(caseId, updateData);
-    toast.success('Tempo estimado atualizado com sucesso!');
-
-    if (onCaseUpdated) {
-      onCaseUpdated();
-    }
-  }, [caseId, onCaseUpdated]);
-
   const [naoPlanejadoValue, setNaoPlanejadoValue] = useState<boolean>(naoPlanejado);
   const [naoPlanejadoLoading, setNaoPlanejadoLoading] = useState<boolean>(false);
 
@@ -96,6 +78,18 @@ export default function CaseTimeTrackerTimeControl({
   }, [naoPlanejado]);
 
   const handleNaoPlanejadoChange = useCallback(async (checked: boolean) => {
+    if (!checked) {
+      const shouldBlock = shouldBlockEstimatedCaseSave({
+        estimadoMinutos,
+        pontos: tamanhoPontos ?? null,
+        naoPlanejado: checked,
+      });
+      if (shouldBlock) {
+        toast.error(ESTIMATED_POINTS_REQUIRED_MESSAGE);
+        return;
+      }
+    }
+
     setNaoPlanejadoValue(checked);
     if (caseId) {
       setNaoPlanejadoLoading(true);
@@ -112,23 +106,9 @@ export default function CaseTimeTrackerTimeControl({
         setNaoPlanejadoLoading(false);
       }
     }
-  }, [caseId, onCaseUpdated]);
+  }, [caseId, estimadoMinutos, onCaseUpdated, tamanhoPontos]);
 
   const [selectedTamanhoId, setSelectedTamanhoId] = useState<number | undefined>();
-
-  const {
-    timeInput,
-    timeError,
-    saving,
-    handleChange,
-    handleKeyDown,
-    handleFocus,
-    handleSave,
-    setTimeInput,
-  } = useTimeInput({
-    initialMinutes: estimadoMinutos,
-    onSave: (time) => handleSaveTime(time, selectedTamanhoId),
-  });
 
   const { loadOptions, isLoading, defaultOptions, setSelectedOption, selectedOption } = useAsyncSelect<ITamanho>({
     fetchItems: getTamanhos,
@@ -148,6 +128,69 @@ export default function CaseTimeTrackerTimeControl({
       }
     }
   }, [tamanhoPontos, defaultOptions, setSelectedOption]);
+
+  const handleSaveTime = useCallback(async (time: string, tamanhoId?: number) => {
+    if (!caseId) {
+      throw new Error('ID do caso não encontrado');
+    }
+
+    const selectedPointsRaw = selectedOption?.raw?.tamanho;
+    const resolvedTamanhoId = tamanhoId ?? selectedOption?.raw?.id;
+    const parsedSelectedPoints =
+      selectedPointsRaw !== undefined ? Number(selectedPointsRaw) : null;
+    const resolvedPoints =
+      parsedSelectedPoints !== null && !Number.isNaN(parsedSelectedPoints)
+        ? parsedSelectedPoints
+        : (tamanhoPontos ?? null);
+
+    const validationInput: {
+      timeInput: string;
+      pontos: number | null;
+      tamanhoId?: number;
+      naoPlanejado: boolean;
+    } = {
+      timeInput: time,
+      pontos: resolvedPoints,
+      naoPlanejado: naoPlanejadoValue,
+    };
+    if (resolvedPoints === null) {
+      validationInput.tamanhoId = resolvedTamanhoId;
+    }
+
+    if (shouldBlockEstimatedCaseSave(validationInput)) {
+      throw new Error(ESTIMATED_POINTS_REQUIRED_MESSAGE);
+    }
+
+    const updateData = buildCaseTimeUpdatePayload({
+      timeInput: time,
+      tamanhoId: resolvedTamanhoId,
+      allowZeroTime: true,
+    });
+    if (!updateData) {
+      return;
+    }
+
+    await updateCase(caseId, updateData);
+    toast.success('Tempo estimado atualizado com sucesso!');
+
+    if (onCaseUpdated) {
+      onCaseUpdated();
+    }
+  }, [caseId, naoPlanejadoValue, onCaseUpdated, selectedOption, tamanhoPontos]);
+
+  const {
+    timeInput,
+    timeError,
+    saving,
+    handleChange,
+    handleKeyDown,
+    handleFocus,
+    handleSave,
+    setTimeInput,
+  } = useTimeInput({
+    initialMinutes: estimadoMinutos,
+    onSave: (time) => handleSaveTime(time, selectedTamanhoId),
+  });
 
   const handleTamanhoChange = useCallback((option: AsyncSelectOption<ITamanho> | null) => {
     setSelectedOption(option);

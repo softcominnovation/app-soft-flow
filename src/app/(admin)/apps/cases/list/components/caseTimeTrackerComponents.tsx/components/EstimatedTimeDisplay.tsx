@@ -39,7 +39,7 @@ export default function EstimatedTimeDisplay({
   // Se tem permissão de edição, sempre mostra o input
   // Se não tem permissão, só mostra o input quando não tem tempo estimado
   const shouldShowInput = canEditResolved || estimadoMinutos === 0;
-  const isDisabled = !caseId || !isValid || !canEditResolved;
+  const isDisabled = !caseId || !canEditResolved;
 
   if (!shouldShowInput) {
     return (
@@ -99,6 +99,7 @@ export default function EstimatedTimeDisplay({
             error={timeError}
             saving={saving}
             disabled={isDisabled}
+            saveDisabled={!isValid}
             onChange={onTimeChange}
             onKeyDown={onTimeKeyDown}
             onFocus={onTimeFocus}

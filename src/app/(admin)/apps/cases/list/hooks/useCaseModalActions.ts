@@ -5,7 +5,13 @@ import { finalizeCase, findCase, deleteCase, cloneCase } from '@/services/caseSe
 import { CasesContext } from '@/contexts/casesContext';
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
 import { ResumeFormRef } from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
-import { buildCaseTimeUpdatePayload, isMeaningfulTimeSelection, type CaseTimeDraft } from '@/utils/caseTime';
+import {
+	buildCaseTimeUpdatePayload,
+	ESTIMATED_POINTS_REQUIRED_MESSAGE,
+	isMeaningfulTimeSelection,
+	shouldBlockEstimatedCaseSave,
+	type CaseTimeDraft,
+} from '@/utils/caseTime';
 
 interface UseCaseModalActionsProps {
 	caseData: ICase | null;
@@ -61,6 +67,25 @@ export function useCaseModalActions({
 		const canAutoSaveTimeDraft = !hasSavedTempo && !hasSavedPontos;
 		const tempoSelected = isMeaningfulTimeSelection(timeDraft?.timeInput);
 		const pontosSelected = Boolean(timeDraft?.tamanhoId);
+		const shouldBlock = shouldBlockEstimatedCaseSave(
+			canAutoSaveTimeDraft
+				? {
+						timeInput: timeDraft?.timeInput,
+						estimadoMinutos: caseData?.caso.tempos?.estimado_minutos ?? 0,
+						pontos: caseData?.caso.caracteristicas?.tamanho_pontos ?? 0,
+						tamanhoId: pontosSelected ? timeDraft?.tamanhoId : undefined,
+						naoPlanejado: caseData?.caso.flags?.nao_planejado ?? false,
+					}
+				: {
+						estimadoMinutos: caseData?.caso.tempos?.estimado_minutos ?? 0,
+						pontos: caseData?.caso.caracteristicas?.tamanho_pontos ?? 0,
+						naoPlanejado: caseData?.caso.flags?.nao_planejado ?? false,
+					}
+		);
+		if (shouldBlock) {
+			toast.error(ESTIMATED_POINTS_REQUIRED_MESSAGE);
+			return;
+		}
 		const timeDraftUpdateData = canAutoSaveTimeDraft
 			? buildCaseTimeUpdatePayload({
 					timeInput: tempoSelected ? timeDraft?.timeInput : undefined,

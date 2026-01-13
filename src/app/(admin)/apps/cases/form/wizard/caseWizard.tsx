@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import { useEffect } from 'react';
 import { normalizeLineBreaksToCrlf } from '@/utils/lineBreaks';
+import { ESTIMATED_POINTS_REQUIRED_MESSAGE, shouldBlockEstimatedCaseSave } from '@/utils/caseTime';
 
 export default function CaseWizard({ onClose }: { onClose?: () => void }) {
     const methods = useForm<ICasePost>({
@@ -74,6 +75,62 @@ export default function CaseWizard({ onClose }: { onClose?: () => void }) {
 			if (typeof value === 'number') return value !== 0 ? 1 : 0;
 			return Boolean(value) ? 1 : 0;
 		};
+
+		const resolveTimeInput = () => {
+			const candidates = [data.TempoEstimado, data.tempo_estimado, data.tempoEstimado];
+			for (const candidate of candidates) {
+				if (typeof candidate === 'string' && /^\d{2}:\d{2}$/.test(candidate)) {
+					return candidate;
+				}
+			}
+			return null;
+		};
+
+		const resolveEstimatedMinutes = () => {
+			const candidates = [
+				data.tempo_estimado_minutos,
+				data.tempoEstimadoMinutos,
+				data.tempoEstimadoMin,
+			];
+			for (const candidate of candidates) {
+				if (typeof candidate === 'number') {
+					return candidate;
+				}
+			}
+			return null;
+		};
+
+		const resolvePoints = () => {
+			const candidates = [data.tamanho_pontos, data.pontos, data.tamanhoPontos];
+			for (const candidate of candidates) {
+				if (typeof candidate === 'number') {
+					return candidate;
+				}
+			}
+			return null;
+		};
+
+		const resolveTamanhoId = () => {
+			const candidates = [data.tamanhoId, data.tamanho_id, data.tamanho];
+			for (const candidate of candidates) {
+				if (typeof candidate === 'number') {
+					return candidate;
+				}
+			}
+			return undefined;
+		};
+
+		const shouldBlock = shouldBlockEstimatedCaseSave({
+			timeInput: resolveTimeInput(),
+			estimadoMinutos: resolveEstimatedMinutes(),
+			pontos: resolvePoints(),
+			tamanhoId: resolveTamanhoId(),
+			naoPlanejado: Boolean(data.nao_planejado ?? data.NaoPlanejado ?? data.naoPlanejado ?? false),
+		});
+		if (shouldBlock) {
+			toast.error(ESTIMATED_POINTS_REQUIRED_MESSAGE);
+			return;
+		}
 
         const payload: any = {
             Projeto: data.product?.value ?? data.product ?? null,
