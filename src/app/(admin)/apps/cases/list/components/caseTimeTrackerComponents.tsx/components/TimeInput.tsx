@@ -67,6 +67,7 @@ export default function TimeInput({
             placeholder="00:00"
             maxLength={5}
             isInvalid={!!error}
+            disabled={disabled || saving}
             style={{ maxWidth: '100px' }}
           />
           <Button

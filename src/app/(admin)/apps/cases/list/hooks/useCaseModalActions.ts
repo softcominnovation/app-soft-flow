@@ -5,9 +5,11 @@ import { finalizeCase, findCase, deleteCase, cloneCase } from '@/services/caseSe
 import { CasesContext } from '@/contexts/casesContext';
 import { CASE_CONFLICT_MODAL_CLOSE_EVENT, CASE_RESUME_MODAL_FORCE_CLOSE_EVENT } from '@/constants/caseTimeTracker';
 import { ResumeFormRef } from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
+import { buildCaseTimeUpdatePayload, isMeaningfulTimeSelection, type CaseTimeDraft } from '@/utils/caseTime';
 
 interface UseCaseModalActionsProps {
 	caseData: ICase | null;
+	timeDraft?: CaseTimeDraft | null;
 	setCase?: (caseData: ICase | null) => void;
 	setLocalCaseData: (caseData: ICase | null) => void;
 	onClose: () => void;
@@ -16,6 +18,7 @@ interface UseCaseModalActionsProps {
 
 export function useCaseModalActions({
 	caseData,
+	timeDraft,
 	setCase,
 	setLocalCaseData,
 	onClose,
@@ -53,9 +56,22 @@ export function useCaseModalActions({
 			return;
 		}
 
+		const hasSavedTempo = (caseData?.caso.tempos?.estimado_minutos ?? 0) > 0;
+		const hasSavedPontos = (caseData?.caso.caracteristicas?.tamanho_pontos ?? 0) > 0;
+		const canAutoSaveTimeDraft = !hasSavedTempo && !hasSavedPontos;
+		const tempoSelected = isMeaningfulTimeSelection(timeDraft?.timeInput);
+		const pontosSelected = Boolean(timeDraft?.tamanhoId);
+		const timeDraftUpdateData = canAutoSaveTimeDraft
+			? buildCaseTimeUpdatePayload({
+					timeInput: tempoSelected ? timeDraft?.timeInput : undefined,
+					tamanhoId: pontosSelected ? timeDraft?.tamanhoId : undefined,
+					allowZeroTime: false,
+				})
+			: null;
+
 		setSaving(true);
 		try {
-			await resumeFormRef.current.save();
+			await resumeFormRef.current.save(timeDraftUpdateData ?? undefined);
 		} catch (error) {
 			console.error('Erro ao salvar:', error);
 		} finally {

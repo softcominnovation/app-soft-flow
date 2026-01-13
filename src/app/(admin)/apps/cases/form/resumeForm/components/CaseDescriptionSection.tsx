@@ -18,7 +18,7 @@ interface CaseDescriptionSectionProps {
 }
 
 export interface CaseDescriptionSectionRef {
-	save: () => Promise<void>;
+	save: (extraUpdateData?: Record<string, any>) => Promise<void>;
 	isSaving: boolean;
 }
 
@@ -119,13 +119,16 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 		/**
 		 * Salva as alterações do formulário
 		 */
-		const handleSave = useCallback(async () => {
+		const handleSave = useCallback(async (extraUpdateData?: Record<string, any>) => {
 			if (isSaving) return;
 
 			setIsSaving(true);
 			try {
 				const values = getValues();
-				const updateData = prepareUpdateData();
+				const updateData = {
+					...prepareUpdateData(),
+					...(extraUpdateData ?? {}),
+				};
 
 				console.log('🔍 Valores do formulário:', values);
 				console.log('📤 Payload enviado para API:', updateData);

@@ -9,10 +9,12 @@ import CaseActiveTimeConflictModal from './CaseActiveTimeConflictModal';
 import CaseTimeTrackerHistory from './caseTimeTrackerComponents.tsx/caseTimeTrackerHistory';
 import CaseTimeTrackerTimeControl from './caseTimeTrackerComponents.tsx/caseTimeTrackerTimeControl';
 import { useCasePermissions } from '@/hooks/useCasePermissions';
+import type { CaseTimeDraft } from '@/utils/caseTime';
 
 interface CaseTimeTrackerProps {
 	caseData?: ICase | null;
 	onCaseUpdated?: (updatedCase: ICase) => void;
+	onTimeDraftChange?: (draft: CaseTimeDraft) => void;
 }
 
 type PendingAction = {
@@ -20,7 +22,7 @@ type PendingAction = {
 	caseId: string;
 };
 
-export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTrackerProps) {
+export default function CaseTimeTracker({ caseData, onCaseUpdated, onTimeDraftChange }: CaseTimeTrackerProps) {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [localCase, setLocalCase] = useState<ICase | null>(caseData ?? null);
 	const permissions = useCasePermissions(localCase ?? caseData ?? null);
@@ -465,6 +467,7 @@ export default function CaseTimeTracker({ caseData, onCaseUpdated }: CaseTimeTra
 					onCaseUpdated={handleCaseUpdate}
 					canEditTempoEstimado={permissions.canEditTempoEstimado}
 					canEditPontos={permissions.canEditPontos}
+					onDraftChange={onTimeDraftChange}
 				/>
 				<CaseTimeTrackerHistory 
 					historyEntries={historyEntries} 

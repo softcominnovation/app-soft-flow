@@ -1,13 +1,15 @@
 import { ICase } from '@/types/cases/ICase';
+import type { CaseTimeDraft } from '@/utils/caseTime';
 import CaseTimeTracker from './CaseTimeTracker';
 import TimetrackerSkelleton from '../skelletons/timetrackerSkelleton';
 
 interface CaseModalTimeColumnProps {
 	caseData: ICase | null;
 	onCaseUpdated: (updatedCase: ICase) => void;
+	onTimeDraftChange?: (draft: CaseTimeDraft) => void;
 }
 
-export default function CaseModalTimeColumn({ caseData, onCaseUpdated }: CaseModalTimeColumnProps) {
+export default function CaseModalTimeColumn({ caseData, onCaseUpdated, onTimeDraftChange }: CaseModalTimeColumnProps) {
 	return (
 		<>
 			{/* Separador vertical sutil */}
@@ -19,7 +21,12 @@ export default function CaseModalTimeColumn({ caseData, onCaseUpdated }: CaseMod
 					{!caseData ? (
 						<TimetrackerSkelleton />
 					) : (
-						<CaseTimeTracker key={caseData.caso.id} caseData={caseData} onCaseUpdated={onCaseUpdated} />
+						<CaseTimeTracker
+							key={caseData.caso.id}
+							caseData={caseData}
+							onCaseUpdated={onCaseUpdated}
+							onTimeDraftChange={onTimeDraftChange}
+						/>
 					)}
 				</div>
 			</div>

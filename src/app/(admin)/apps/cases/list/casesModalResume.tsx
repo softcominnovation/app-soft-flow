@@ -1,7 +1,7 @@
 "use client";
 import { Modal } from "react-bootstrap";
 import { ICase } from '@/types/cases/ICase';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useCasePermissions } from '@/hooks/useCasePermissions';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useModalScroll } from './hooks/useModalScroll';
@@ -13,6 +13,7 @@ import CaseModalTabsMobile from './components/CaseModalTabsMobile';
 import CaseModalTimeColumn from './components/CaseModalTimeColumn';
 import CaseModalActionButtons from './components/CaseModalActionButtons';
 import { ResumeFormRef } from '@/app/(admin)/apps/cases/form/resumeForm/resumeForm';
+import type { CaseTimeDraft } from '@/utils/caseTime';
 
 interface Props {
 	open: boolean;
@@ -24,10 +25,15 @@ interface Props {
 
 export default function CasesModalResume({ setOpen, open, case: caseData, setCase, openModal }: Props) {
 	const [localCaseData, setLocalCaseData] = useState<ICase | null>(caseData);
+	const [timeDraft, setTimeDraft] = useState<CaseTimeDraft | null>(null);
 	
 	// Calcula displayCaseData antes de usar no hook de permissões
 	const displayCaseData = localCaseData || caseData;
 	const permissions = useCasePermissions(displayCaseData);
+
+	const handleTimeDraftChange = useCallback((draft: CaseTimeDraft) => {
+		setTimeDraft(draft);
+	}, []);
 
 	// Atualizar estado local quando caseData mudar
 	useEffect(() => {
@@ -59,6 +65,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 		handleClose,
 	} = useCaseModalActions({
 		caseData: displayCaseData,
+		timeDraft,
 		setCase,
 		setLocalCaseData,
 		onClose: () => setOpen(false),
@@ -91,6 +98,7 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 							resumeFormRef={resumeFormRef as React.RefObject<ResumeFormRef | null>}
 							onCaseUpdated={handleCaseUpdated}
 							onAnotacaoCreated={handleAnotacaoCreated}
+							onTimeDraftChange={handleTimeDraftChange}
 						/>
 					</div>
 
@@ -108,7 +116,11 @@ export default function CasesModalResume({ setOpen, open, case: caseData, setCas
 						</div>
 
 						{/* Coluna direita - Tempo (sempre visível) */}
-						<CaseModalTimeColumn caseData={displayCaseData} onCaseUpdated={handleCaseUpdated} />
+						<CaseModalTimeColumn
+							caseData={displayCaseData}
+							onCaseUpdated={handleCaseUpdated}
+							onTimeDraftChange={handleTimeDraftChange}
+						/>
 					</div>
 				</Modal.Body>
 				<Modal.Footer className="bg-light border-top">

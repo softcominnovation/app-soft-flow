@@ -11,7 +11,7 @@ interface ResumeFormProps {
 }
 
 export interface ResumeFormRef {
-	save: () => Promise<void>;
+	save: (extraUpdateData?: Record<string, any>) => Promise<void>;
 	isSaving: boolean;
 }
 
@@ -26,9 +26,9 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 	const formInitializedRef = useRef<string | null>(null);
 
 	useImperativeHandle(ref, () => ({
-		save: async () => {
+		save: async (extraUpdateData?: Record<string, any>) => {
 			if (caseDescriptionRef.current) {
-				await caseDescriptionRef.current.save();
+				await caseDescriptionRef.current.save(extraUpdateData);
 			}
 		},
 		get isSaving() {

@@ -6,6 +6,7 @@ import CaseTimeTracker from './CaseTimeTracker';
 import CaseAnnotations from './CaseAnnotations';
 import CaseClients from './CaseClients';
 import TimetrackerSkelleton from '../skelletons/timetrackerSkelleton';
+import type { CaseTimeDraft } from '@/utils/caseTime';
 
 interface CaseModalTabsMobileProps {
 	caseData: ICase | null;
@@ -13,6 +14,7 @@ interface CaseModalTabsMobileProps {
 	resumeFormRef: React.RefObject<ResumeFormRef | null>;
 	onCaseUpdated: (updatedCase: ICase) => void;
 	onAnotacaoCreated: () => void;
+	onTimeDraftChange?: (draft: CaseTimeDraft) => void;
 }
 
 export default function CaseModalTabsMobile({
@@ -21,6 +23,7 @@ export default function CaseModalTabsMobile({
 	resumeFormRef,
 	onCaseUpdated,
 	onAnotacaoCreated,
+	onTimeDraftChange,
 }: CaseModalTabsMobileProps) {
 	const tabLinkStyle = hasAnotacoes
 		? ({
@@ -109,6 +112,7 @@ export default function CaseModalTabsMobile({
 									key={caseData.caso.id}
 									caseData={caseData}
 									onCaseUpdated={onCaseUpdated}
+									onTimeDraftChange={onTimeDraftChange}
 								/>
 							)}
 						</Tab.Pane>

@@ -17,6 +17,7 @@ import { getTamanhos, ITamanho } from "@/services/tamanhosServices";
 import { hasPermissao } from "@/helpers/permissionsHelpers";
 import { useThemeContext } from "@/common/context";
 import { getAsyncSelectStyles } from "@/components/Form/asyncSelectStyles";
+import { buildCaseTimeUpdatePayload, type CaseTimeDraft } from "@/utils/caseTime";
 
 interface CaseTimeTrackerTimeControlProps {
   stopCurrentTime: (id: string, isRetry?: boolean) => Promise<void>;
@@ -34,6 +35,7 @@ interface CaseTimeTrackerTimeControlProps {
   onCaseUpdated?: () => void;
   canEditTempoEstimado?: boolean;
   canEditPontos?: boolean;
+  onDraftChange?: (draft: CaseTimeDraft) => void;
 }
 
 const BADGE_BASE_CLASS = "d-inline-flex align-items-center gap-1 text-capitalize py-1 px-2 rounded-2";
@@ -57,6 +59,7 @@ export default function CaseTimeTrackerTimeControl({
   onCaseUpdated,
   canEditTempoEstimado,
   canEditPontos,
+  onDraftChange,
 }: CaseTimeTrackerTimeControlProps) {
   const { settings } = useThemeContext();
   const isDarkMode = settings.theme === 'dark';
@@ -67,19 +70,14 @@ export default function CaseTimeTrackerTimeControl({
       throw new Error('ID do caso não encontrado');
     }
 
-    const [hours, minutes] = time.split(':').map(Number);
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const tempoEstimado = `${year}-${month}-${day} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-
-    const updateData: any = { TempoEstimado: tempoEstimado };
-    if (tamanhoId) {
-      updateData.tamanho = tamanhoId;
-    }
-    if (naoPlanejadoValue !== undefined) {
-      updateData.NaoPlanejado = naoPlanejadoValue ? 1 : 0;
+    const updateData = buildCaseTimeUpdatePayload({
+      timeInput: time,
+      tamanhoId,
+      naoPlanejado: naoPlanejadoValue,
+      allowZeroTime: true,
+    });
+    if (!updateData) {
+      return;
     }
 
     await updateCase(caseId, updateData);
@@ -167,6 +165,12 @@ export default function CaseTimeTrackerTimeControl({
     }
   }, [setTimeInput, setSelectedOption]);
 
+  useEffect(() => {
+    if (onDraftChange) {
+      onDraftChange({ timeInput, tamanhoId: selectedTamanhoId });
+    }
+  }, [onDraftChange, timeInput, selectedTamanhoId]);
+
   const handleStartTime = useCallback(() => {
     if (caseId) {
       startNewTime(caseId);
@@ -191,7 +195,8 @@ export default function CaseTimeTrackerTimeControl({
     return 'Nenhum tempo em andamento';
   }, [isRunning, runningStart]);
 
-  const shouldShowPointsInput = canEditPontos || !tamanhoPontos;
+  const canEditPontosResolved = Boolean(canEditPontos) || estimadoMinutos === 0;
+  const shouldShowPointsInput = canEditPontosResolved || !tamanhoPontos;
 
   // Desabilita o botão de iniciar apenas se não tiver tempo estimado E não for não planejado
   // Se não planejado for true, o botão fica habilitado mesmo sem tempo estimado
@@ -396,6 +401,7 @@ export default function CaseTimeTrackerTimeControl({
                           placeholder="Selecione os pontos..."
                           loadOptions={loadOptions}
                           isLoading={isLoading}
+                          isDisabled={!canEditPontosResolved}
                           value={selectedOption}
                           onChange={handleTamanhoChange}
                           defaultOptions

@@ -34,10 +34,12 @@ export default function EstimatedTimeDisplay({
   canEdit,
 }: EstimatedTimeDisplayProps) {
   const { formatMinutesToHours } = useTimeFormatter();
+  const canEditResolved = Boolean(canEdit) || estimadoMinutos === 0;
 
   // Se tem permissão de edição, sempre mostra o input
   // Se não tem permissão, só mostra o input quando não tem tempo estimado
-  const shouldShowInput = canEdit || estimadoMinutos === 0;
+  const shouldShowInput = canEditResolved || estimadoMinutos === 0;
+  const isDisabled = !caseId || !isValid || !canEditResolved;
 
   if (!shouldShowInput) {
     return (
@@ -96,7 +98,7 @@ export default function EstimatedTimeDisplay({
             value={timeInput}
             error={timeError}
             saving={saving}
-            disabled={!caseId || !isValid}
+            disabled={isDisabled}
             onChange={onTimeChange}
             onKeyDown={onTimeKeyDown}
             onFocus={onTimeFocus}
