@@ -19,6 +19,8 @@ export interface CaseFormValues {
 	} | string | null;
 	qa_id?: string;
 	qa?: string;
+	relator_id?: string;
+	relator?: string;
 	resumo?: string;
 	descricao_completa?: string;
 	informacoes_adicionais?: string;
@@ -94,12 +96,22 @@ export function createUpdatedCase(caseData: ICase, values: CaseFormValues): ICas
 				// Mantém o status original se não foi alterado
 				return caseData.caso.status;
 			})(),
+			relacionamentos: {
+				...caseData.caso.relacionamentos,
+				...(values.relator_id && { relator: Number(values.relator_id) }),
+			},
 			usuarios: {
 				...caseData.caso.usuarios,
 				...(values.qa_id && {
 					qa: {
 						id: values.qa_id,
 						nome: values.qa || caseData.caso.usuarios.qa?.nome || null,
+					},
+				}),
+				...(values.relator_id && {
+					relator: {
+						id: values.relator_id,
+						nome: values.relator || caseData.caso.usuarios.relator?.nome || caseData.caso.usuarios.abertura?.nome || null,
 					},
 				}),
 			},

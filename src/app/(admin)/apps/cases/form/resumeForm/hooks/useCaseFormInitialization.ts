@@ -83,6 +83,20 @@ export function useCaseFormInitialization({
 	});
 
 	const {
+		loadOptions: loadRelatorOptions,
+		selectedOption: selectedRelator,
+		setSelectedOption: setSelectedRelator,
+		defaultOptions: defaultRelatorOptions,
+		triggerDefaultLoad: triggerRelatorDefaultLoad,
+		isLoading: isLoadingRelator,
+	} = useAsyncSelect<IUserAssistant>({
+		fetchItems: async (input) => fetchUsers({ search: input, nome_suporte: input }),
+		getOptionLabel: (user) => user.nome_suporte || user.setor || 'Usuario sem nome',
+		getOptionValue: (user) => user.id,
+		debounceMs: 1000,
+	});
+
+	const {
 		loadOptions: loadQaOptions,
 		selectedOption: selectedQa,
 		setSelectedOption: setSelectedQa,
@@ -260,6 +274,29 @@ export function useCaseFormInitialization({
 			setSelectedQa(null);
 			methods.setValue('qa_id', '');
 			methods.setValue('qa', '');
+		}
+
+		// Inicializar Relator
+		const relatorId = caseData.caso?.relacionamentos?.relator;
+		const relatorNome = caseData.caso?.usuarios?.relator?.nome || caseData.caso?.usuarios?.abertura?.nome || '';
+
+		if (relatorId && relatorNome) {
+			const relatorOption: AsyncSelectOption<IUserAssistant> = {
+				value: String(relatorId),
+				label: relatorNome,
+				raw: {
+					id: String(relatorId),
+					nome_suporte: relatorNome,
+					setor: '',
+				} as IUserAssistant,
+			};
+			setSelectedRelator(relatorOption);
+			methods.setValue('relator_id', String(relatorId));
+			methods.setValue('relator', relatorNome);
+		} else {
+			setSelectedRelator(null);
+			methods.setValue('relator_id', '');
+			methods.setValue('relator', relatorNome || '');
 		}
 
 		// Inicializar Projeto
@@ -476,6 +513,14 @@ export function useCaseFormInitialization({
 		defaultQaOptions,
 		triggerQaDefaultLoad,
 		isLoadingQa,
+
+		// Relator
+		loadRelatorOptions,
+		selectedRelator,
+		setSelectedRelator,
+		defaultRelatorOptions,
+		triggerRelatorDefaultLoad,
+		isLoadingRelator,
 
 		// Projeto
 		loadProjectOptions,

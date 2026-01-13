@@ -134,6 +134,7 @@ interface UsuariosCaso {
 	abertura: Usuario;
 	desenvolvimento: Usuario;
 	qa: Usuario;
+	relator?: Usuario;
 }
 
 interface Usuario {

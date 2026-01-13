@@ -73,6 +73,13 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 		defaultQaOptions,
 		triggerQaDefaultLoad,
 		isLoadingQa,
+		// Relator
+		loadRelatorOptions,
+		selectedRelator,
+		setSelectedRelator,
+		defaultRelatorOptions,
+		triggerRelatorDefaultLoad,
+		isLoadingRelator,
 		// Projeto
 		loadProjectOptions,
 		selectedProject,
@@ -128,6 +135,12 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 		setSelectedQa(option);
 		methods.setValue('qa_id', option?.value ?? '');
 		methods.setValue('qa', option?.raw?.nome_suporte || option?.raw?.setor || '');
+	};
+
+	const handleRelatorChange = (option: AsyncSelectOption<IUserAssistant> | null) => {
+		setSelectedRelator(option);
+		methods.setValue('relator_id', option?.value ?? '');
+		methods.setValue('relator', option?.raw?.nome_suporte || option?.raw?.setor || '');
 	};
 
 	const handleProjectChange = (option: AsyncSelectOption<IProjectAssistant> | null) => {
@@ -565,6 +578,43 @@ export default function CaseInfoSection({ isOpen, onToggle, caseData }: CaseInfo
 												onMenuOpen={triggerQaDefaultLoad}
 												noOptionsMessage={() =>
 													isLoadingQa ? 'Carregando...' : 'Nenhum QA encontrado'
+												}
+												loadingMessage={() => 'Carregando...'}
+											/>
+										)}
+									/>
+								</Form.Group>
+							</Col>
+							<Col xs={12} md={3}>
+								<Form.Group>
+									<Form.Label className="fw-semibold d-flex align-items-center">
+										<IconifyIcon icon="lucide:user-round" className="me-2 text-muted" />
+										Relator
+									</Form.Label>
+									<Controller
+										name="relator_id"
+										control={methods.control}
+										render={({ field }) => (
+											<AsyncSelect<AsyncSelectOption<IUserAssistant>, false>
+												cacheOptions
+												defaultOptions={selectedRelator ? [selectedRelator] : defaultRelatorOptions}
+												loadOptions={loadRelatorOptions}
+												inputId="relator-id"
+												className="react-select case-status-select"
+												classNamePrefix="react-select"
+												placeholder="Pesquise um relator..."
+												isClearable
+												isDisabled={!permissions.canEditCategoria}
+												styles={asyncSelectStyles}
+												value={selectedRelator}
+												onChange={(option) => {
+													handleRelatorChange(option);
+													field.onChange(option?.value ?? '');
+												}}
+												onBlur={field.onBlur}
+												onMenuOpen={triggerRelatorDefaultLoad}
+												noOptionsMessage={() =>
+													isLoadingRelator ? 'Carregando...' : 'Nenhum relator encontrado'
 												}
 												loadingMessage={() => 'Carregando...'}
 											/>

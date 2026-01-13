@@ -64,7 +64,8 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 		// Obter a versão
 		const versaoValue = caseData.produto?.versao || caseData.caso.caracteristicas.versao_produto || '';
 
-		const relatorId = caseData.caso.relacionamentos?.relator ?? null;
+		const relatorUser = caseData.caso.usuarios?.relator || caseData.caso.usuarios?.abertura || null;
+		const relatorId = caseData.caso.relacionamentos?.relator ?? relatorUser?.id ?? null;
 
 		return {
 			codigo: caseData.caso.id,
@@ -75,7 +76,7 @@ const ResumeForm = forwardRef<ResumeFormRef, ResumeFormProps>(({ caseData, onCas
 			desenvolvedor: caseData.caso.usuarios.desenvolvimento?.nome || '',
 			desenvolvedor_id: caseData.caso.usuarios.desenvolvimento?.id?.toString() || '',
 			relator_id: relatorId ? String(relatorId) : '',
-			relator: caseData.caso.usuarios?.abertura?.nome || '',
+			relator: relatorUser?.nome || '',
 			qa: (caseData.caso.usuarios.qa?.id && caseData.caso.usuarios.qa.id !== '0' && caseData.caso.usuarios.qa.id !== 0) 
 				? (caseData.caso.usuarios.qa?.nome || '') 
 				: '',
