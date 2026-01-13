@@ -9,6 +9,7 @@ import { updateCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
 import { createUpdatedCase } from '../utils/caseUpdateUtils';
 import { useCasePermissions } from '@/hooks/useCasePermissions';
+import { normalizeLineBreaksToCrlf } from '@/utils/lineBreaks';
 
 interface CaseDescriptionSectionProps {
 	caseData: ICase;
@@ -88,13 +89,16 @@ const CaseDescriptionSection = forwardRef<CaseDescriptionSectionRef, CaseDescrip
 			caseData.caso.relacionamentos?.relator ??
 			normalizeId(values.desenvolvedor_id);
 
+		const descricaoCompleta = normalizeLineBreaksToCrlf(toString(values.descricao_completa));
+		const descricaoResumo = normalizeLineBreaksToCrlf(toString(values.resumo));
+
 		return {
 			Anexo: toString(values.anexo),
 			AtribuidoPara: toString(values.desenvolvedor_id),
 			Categoria: toString(values.categoria_id),
 			Cronograma_id: toString(values.projeto_id), // projeto_id é o Cronograma_id
-			DescricaoCompleta: toString(values.descricao_completa),
-			DescricaoResumo: toString(values.resumo),
+			DescricaoCompleta: descricaoCompleta,
+			DescricaoResumo: descricaoResumo,
 			Id_Origem: toString(values.origem_id),
 			InformacoesAdicionais: toString(values.informacoes_adicionais),
 			Modulo: toString(values.modulo),

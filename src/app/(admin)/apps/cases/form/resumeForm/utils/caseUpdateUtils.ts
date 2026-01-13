@@ -1,4 +1,5 @@
 import { ICase } from '@/types/cases/ICase';
+import { normalizeLineBreaksToCrlf } from '@/utils/lineBreaks';
 
 /**
  * Interface para os valores do formulário que serão usados para atualizar o caso
@@ -117,8 +118,8 @@ export function createUpdatedCase(caseData: ICase, values: CaseFormValues): ICas
 			},
 			textos: {
 				...caseData.caso.textos,
-				descricao_resumo: values.resumo || '',
-				descricao_completa: values.descricao_completa || '',
+				descricao_resumo: normalizeLineBreaksToCrlf(values.resumo || ''),
+				descricao_completa: normalizeLineBreaksToCrlf(values.descricao_completa || ''),
 				informacoes_adicionais: values.informacoes_adicionais || '',
 				anexo: values.anexo || '',
 			},

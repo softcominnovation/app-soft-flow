@@ -10,6 +10,7 @@ import { createCase } from '@/services/caseServices';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import { useEffect } from 'react';
+import { normalizeLineBreaksToCrlf } from '@/utils/lineBreaks';
 
 export default function CaseWizard({ onClose }: { onClose?: () => void }) {
     const methods = useForm<ICasePost>({
@@ -53,8 +54,17 @@ export default function CaseWizard({ onClose }: { onClose?: () => void }) {
 			return undefined;
 		};
 
-		const descricaoResumo = resolve('descricao_resumo', 'description-resumo', 'descriptionSummary', 'descricaoResumo', 'description_resumo');
-		const descricaoCompleta = resolve('descricao_completa', 'description-completa', 'description', 'description-resumo');
+		const descricaoResumoRaw = resolve('descricao_resumo', 'description-resumo', 'descriptionSummary', 'descricaoResumo', 'description_resumo');
+		const descricaoCompletaRaw = resolve('descricao_completa', 'description-completa', 'description', 'description-resumo');
+
+		const descricaoResumo =
+			descricaoResumoRaw === undefined || descricaoResumoRaw === null
+				? undefined
+				: normalizeLineBreaksToCrlf(String(descricaoResumoRaw));
+		const descricaoCompleta =
+			descricaoCompletaRaw === undefined || descricaoCompletaRaw === null
+				? undefined
+				: normalizeLineBreaksToCrlf(String(descricaoCompletaRaw));
 
 		// Função auxiliar para converter valores booleanos para número inteiro (0 ou 1)
 		const toInt = (value: any): number => {
