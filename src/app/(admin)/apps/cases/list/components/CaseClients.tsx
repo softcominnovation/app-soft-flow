@@ -262,7 +262,7 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 											{/* Header do card */}
 											<div className="d-flex align-items-center justify-content-between">
 												<h6 className="mb-0 fw-semibold text-body">
-													Cliente-{cliente.registro}
+													{cliente.cliente_nome || `Cliente-${cliente.cliente ?? cliente.registro}`}
 												</h6>
 												<div className="d-flex align-items-center gap-2">
 													{cliente.incidente > 0 && (
@@ -298,7 +298,7 @@ export default function CaseClients({ registro }: CaseClientsProps) {
 												<div className="d-flex align-items-center gap-2">
 													<IconifyIcon icon="lucide:user" className="text-muted" style={{ fontSize: '0.875rem' }} />
 													<span className="text-muted small">Cliente:</span>
-													<span className="fw-semibold">{cliente.cliente}</span>
+													<span className="fw-semibold">{cliente.cliente_nome || cliente.cliente}</span>
 												</div>
 												<div className="d-flex align-items-center gap-2">
 													<IconifyIcon icon="lucide:calendar" className="text-muted" style={{ fontSize: '0.875rem' }} />

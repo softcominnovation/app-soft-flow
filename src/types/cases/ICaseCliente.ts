@@ -3,6 +3,7 @@ export interface ICaseCliente {
 	registro: number;
 	data_solicitacao: string;
 	cliente: number;
+	cliente_nome?: string;
 	incidente: number;
 }
 
