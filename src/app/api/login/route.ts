@@ -35,6 +35,7 @@ export async function POST(request: Request) {
 		setCookie('user_name', response.data.user.nome);
 		setCookie('user_id', response.data.user.id.toString());
 		setCookie('user_email', data.email);
+		setCookie('user_setor', response.data.user.setor);
 
 		return NextResponse.json({ message: "Usuário logado com sucesso!", data: response.data },  { status: 200 });
 	} catch (error: any) {

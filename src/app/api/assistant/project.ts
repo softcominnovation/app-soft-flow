@@ -16,6 +16,10 @@ export async function GET(request: Request) {
 		const params = new URLSearchParams(url.search);
 		const requestData = Object.fromEntries(params.entries());
 
+		const userSetor = cookieStore.get('user_setor');
+		
+		console.log(userSetor);
+
 		const response = await axios.get(`${getBaseApiUrl()}/auxiliar/projetos`, {
 			headers: {
 				'Content-Type': 'application/json',

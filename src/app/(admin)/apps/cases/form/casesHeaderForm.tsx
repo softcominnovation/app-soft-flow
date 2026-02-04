@@ -13,7 +13,7 @@ import { assistant as fetchCategories, ICategoryAssistant } from '@/services/cat
 import IProductAssistant from '@/types/assistant/IProductAssistant';
 import type { AsyncSelectOption } from '@/hooks/useAsyncSelect';
 import { asyncSelectStyles, filterOption } from '@/components/Form/asyncSelectStyles';
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 type Props = {
 	control: Control<ICasePost>
@@ -33,11 +33,10 @@ export default function CasesHeaderForm({ control }: Props) {
 		fetchItems: async (input) => fetchProducts({ search: input, nome: input }),
 		getOptionLabel: (product) => product.nome_projeto || product.setor || 'Produto sem nome',
 		getOptionValue: (product) => product.id,
-		debounceMs: 800,
+		debounceMs: 450,
 	});
 
 	const {
-		loadOptions: loadVersionOptions,
 		selectedOption: selectedVersion,
 		setSelectedOption: setSelectedVersion,
 		defaultOptions: defaultVersionOptions,
@@ -51,8 +50,26 @@ export default function CasesHeaderForm({ control }: Props) {
 		},
 		getOptionLabel: (version) => version.versao || version.sequencia || 'Sem versão',
 		getOptionValue: (version) => version.id,
-		debounceMs: 800,
+		debounceMs: 450,
 	});
+
+	// Wrapper para fazer busca local nas versões já carregadas
+	const loadVersionOptions = useCallback(
+		(inputValue: string) => {
+			const query = (inputValue ?? '').trim().toLowerCase();
+			
+			if (!query) {
+				return Promise.resolve(defaultVersionOptions);
+			}
+			
+			const filtered = defaultVersionOptions.filter((option) =>
+				option.label.toLowerCase().includes(query)
+			);
+			
+			return Promise.resolve(filtered);
+		},
+		[defaultVersionOptions]
+	);
 
 	const priorityOptions = Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
 
@@ -67,7 +84,7 @@ export default function CasesHeaderForm({ control }: Props) {
 		fetchItems: async (input) => fetchStatus({ search: input }),
 		getOptionLabel: (status) => status.descricao || status.tipo || 'Status sem nome',
 		getOptionValue: (status) => String(status.Registro),
-		debounceMs: 800,
+		debounceMs: 450,
 	});
 
 	useEffect(() => {
@@ -110,7 +127,6 @@ export default function CasesHeaderForm({ control }: Props) {
 	}, [selectedStatus, setSelectedStatus, setValue]);
 
 	const {
-		loadOptions: loadOriginOptions,
 		selectedOption: selectedOrigin,
 		setSelectedOption: setSelectedOrigin,
 		defaultOptions: defaultOriginOptions,
@@ -120,11 +136,28 @@ export default function CasesHeaderForm({ control }: Props) {
 		fetchItems: async (input) => fetchOrigins({ search: input }),
 		getOptionLabel: (origin) => origin.nome,
 		getOptionValue: (origin) => origin.id,
-		debounceMs: 800,
+		debounceMs: 450,
 	});
 
+	// Wrapper para fazer busca local nas origens já carregadas
+	const loadOriginOptions = useCallback(
+		(inputValue: string) => {
+			const query = (inputValue ?? '').trim().toLowerCase();
+			
+			if (!query) {
+				return Promise.resolve(defaultOriginOptions);
+			}
+			
+			const filtered = defaultOriginOptions.filter((option) =>
+				option.label.toLowerCase().includes(query)
+			);
+			
+			return Promise.resolve(filtered);
+		},
+		[defaultOriginOptions]
+	);
+
 	const {
-		loadOptions: loadModuleOptions,
 		selectedOption: selectedModule,
 		setSelectedOption: setSelectedModule,
 		defaultOptions: defaultModuleOptions,
@@ -138,11 +171,28 @@ export default function CasesHeaderForm({ control }: Props) {
 		},
 		getOptionLabel: (module) => module.nome || 'Módulo sem nome',
 		getOptionValue: (module) => module.nome,
-		debounceMs: 1000,
+		debounceMs: 450,
 	});
 
+	// Wrapper para fazer busca local nos módulos já carregados
+	const loadModuleOptions = useCallback(
+		(inputValue: string) => {
+			const query = (inputValue ?? '').trim().toLowerCase();
+			
+			if (!query) {
+				return Promise.resolve(defaultModuleOptions);
+			}
+			
+			const filtered = defaultModuleOptions.filter((option) =>
+				option.label.toLowerCase().includes(query)
+			);
+			
+			return Promise.resolve(filtered);
+		},
+		[defaultModuleOptions]
+	);
+
 	const {
-		loadOptions: loadCategoryOptions,
 		selectedOption: selectedCategory,
 		setSelectedOption: setSelectedCategory,
 		defaultOptions: defaultCategoryOptions,
@@ -152,16 +202,77 @@ export default function CasesHeaderForm({ control }: Props) {
 		fetchItems: async (input) => fetchCategories({ search: input }),
 		getOptionLabel: (category) => category.tipo_categoria || 'Categoria sem nome',
 		getOptionValue: (category) => String(category.id),
-		debounceMs: 1000,
+		debounceMs: 450,
 	});
 
-	// Limpar módulo quando produto mudar
+	// Wrapper para fazer busca local nas categorias já carregadas
+	const loadCategoryOptions = useCallback(
+		(inputValue: string) => {
+			const query = (inputValue ?? '').trim().toLowerCase();
+			
+			if (!query) {
+				return Promise.resolve(defaultCategoryOptions);
+			}
+			
+			const filtered = defaultCategoryOptions.filter((option) =>
+				option.label.toLowerCase().includes(query)
+			);
+			
+			return Promise.resolve(filtered);
+		},
+		[defaultCategoryOptions]
+	);
+
+	// Rastrear o último produto carregado para evitar loops infinitos
+	const lastLoadedProductIdRef = useRef<string | null>(null);
+
+	// Carregar versões automaticamente quando produto for selecionado
 	useEffect(() => {
-		if (!selectedProduct) {
-			setSelectedModule(null);
-			setValue('modulo', '');
+		if (selectedProduct) {
+			const currentProductId = selectedProduct.value;
+			// Só carregar se o produto mudou
+			if (lastLoadedProductIdRef.current !== currentProductId) {
+				lastLoadedProductIdRef.current = currentProductId;
+				triggerVersionDefaultLoad();
+			}
+		} else {
+			// Limpar versão selecionada quando produto for removido
+			if (lastLoadedProductIdRef.current !== null) {
+				lastLoadedProductIdRef.current = null;
+				setSelectedVersion(null);
+				setValue('version', null as any);
+			}
 		}
-	}, [selectedProduct, setSelectedModule, setValue]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedProduct]);
+
+	// Rastrear o último produto carregado para módulos (evitar loops infinitos)
+	const lastLoadedProductIdForModulesRef = useRef<string | null>(null);
+
+	// Carregar módulos automaticamente quando produto for selecionado
+	useEffect(() => {
+		if (selectedProduct) {
+			const currentProductId = selectedProduct.value;
+			// Só carregar se o produto mudou
+			if (lastLoadedProductIdForModulesRef.current !== currentProductId) {
+				lastLoadedProductIdForModulesRef.current = currentProductId;
+				triggerModuleDefaultLoad();
+			}
+		} else {
+			// Limpar módulo selecionado quando produto for removido
+			if (lastLoadedProductIdForModulesRef.current !== null) {
+				lastLoadedProductIdForModulesRef.current = null;
+				setSelectedModule(null);
+				setValue('modulo', '');
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedProduct]);
+
+	useEffect(() => {
+		triggerCategoryDefaultLoad();
+		triggerOriginDefaultLoad();
+	}, []);
 
 	useEffect(() => {
 		const formValues = getValues();
@@ -341,6 +452,7 @@ export default function CasesHeaderForm({ control }: Props) {
 							<Controller
 								name="priority"
 								rules={{ required: 'O campo Prioridade (1,2,3,4,5,6,7,8,9,10) é obrigatório.' }}
+								defaultValue={priorityOptions.find((o) => o.value === '3')?.value}
 								control={control}
 								render={({ field, fieldState }) => {
 									const selected = priorityOptions.find((o) => o.value === field.value);
